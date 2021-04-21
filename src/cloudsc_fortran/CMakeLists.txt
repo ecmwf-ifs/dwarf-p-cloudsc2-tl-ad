@@ -7,7 +7,7 @@ ecbuild_add_option( FEATURE CLOUDSC_FORTRAN
 if( HAVE_CLOUDSC_FORTRAN )
 
     # Define the binary build target for this variant
-    ecbuild_add_executable( TARGET dwarf-cloudsc-fortran
+    ecbuild_add_executable( TARGET dwarf-cloudsc2-nl
         SOURCES
             dwarf_cloudsc.F90
             cloudsc_driver_mod.F90
@@ -16,14 +16,14 @@ if( HAVE_CLOUDSC_FORTRAN )
             cloudsc2.F90
         DEFINITIONS ${CLOUDSC_DEFINITIONS}
     )
-    target_link_libraries( dwarf-cloudsc-fortran PRIVATE cloudsc-common-lib )
+    target_link_libraries( dwarf-cloudsc2-nl PRIVATE cloudsc-common-lib )
 
     if( HAVE_OMP AND TARGET OpenMP::OpenMP_Fortran )
-        target_link_libraries( dwarf-cloudsc-fortran PRIVATE OpenMP::OpenMP_Fortran )
+        target_link_libraries( dwarf-cloudsc2-nl PRIVATE OpenMP::OpenMP_Fortran )
     endif()
 
     if( HAVE_MPI AND TARGET MPI::MPI_Fortran )
-        target_link_libraries( dwarf-cloudsc-fortran PRIVATE MPI::MPI_Fortran )
+        target_link_libraries( dwarf-cloudsc2-nl PRIVATE MPI::MPI_Fortran )
     endif()
 
     # Create symlink for the input data
