@@ -172,8 +172,8 @@ contains
        bsize = min(nproma, ngptot - gidx + 1)  ! Size of the field block
 
        ! First read, might not be aligned
-       bidx = mod(gidx,nlon)
-       bend = min(nlon, mod(gidx, nlon)+bsize-1)
+       bidx = merge(nlon, mod(gidx,nlon), gidx==nlon)
+       bend = merge(nlon, min(nlon, mod(gidx, nlon)+bsize-1), gidx==nlon)
        fidx = 1
        fend = bend - bidx + 1
        field(fidx:fend,b) = buffer(bidx:bend)
@@ -204,8 +204,8 @@ contains
        bsize = min(nproma, ngptot - gidx + 1)  ! Size of the field block
 
        ! First read, might not be aligned
-       bidx = mod(gidx,nlon)
-       bend = min(nlon, mod(gidx, nlon)+bsize-1)
+       bidx = merge(nlon, mod(gidx,nlon), gidx==nlon)
+       bend = merge(nlon, min(nlon, mod(gidx, nlon)+bsize-1), gidx==nlon)
        fidx = 1
        fend = bend - bidx + 1
        field(fidx:fend,b) = buffer(bidx:bend)
@@ -237,8 +237,8 @@ contains
        bsize = min(nproma, ngptot - gidx + 1)  ! Size of the field block
 
        ! First read, might not be aligned
-       bidx = mod(gidx,nlon)
-       bend = min(nlon, mod(gidx, nlon)+bsize-1)
+       bidx = merge(nlon, mod(gidx,nlon), gidx==nlon)
+       bend = merge(nlon, min(nlon, mod(gidx, nlon)+bsize-1), gidx==nlon)
        fidx = 1
        fend = bend - bidx + 1
        field(fidx:fend,b) = buffer(bidx:bend)
@@ -271,8 +271,8 @@ contains
        bsize = min(nproma, ngptot - gidx + 1)  ! Size of the field block
 
        ! First read, might not be aligned
-       bidx = mod(gidx,nlon)
-       bend = min(nlon, mod(gidx, nlon)+bsize-1)
+       bidx = merge(nlon, mod(gidx,nlon), gidx==nlon)
+       bend = merge(nlon, min(nlon, mod(gidx, nlon)+bsize-1), gidx==nlon)
        fidx = 1
        fend = bend - bidx + 1
        field(fidx:fend,:,b) = buffer(bidx:bend,:)
@@ -304,8 +304,8 @@ contains
        bsize = min(nproma, ngptot - gidx + 1)  ! Size of the field block
 
        ! First read, might not be aligned
-       bidx = mod(gidx,nlon)
-       bend = min(nlon, mod(gidx, nlon)+bsize-1)
+       bidx = merge(nlon, mod(gidx,nlon), gidx==nlon)
+       bend = merge(nlon, min(nlon, mod(gidx, nlon)+bsize-1), gidx==nlon)
        fidx = 1
        fend = bend - bidx + 1
        field(fidx:fend,:,:,b) = buffer(bidx:bend,:,:)
