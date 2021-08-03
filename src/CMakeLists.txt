@@ -1,4 +1,4 @@
 add_subdirectory(common)
-add_subdirectory(cloudsc_fortran)
-add_subdirectory(cloudsc_fortran_TL)
-add_subdirectory(cloudsc_fortran_AD)
+add_subdirectory(cloudsc2_nl)
+add_subdirectory(cloudsc2_tl)
+add_subdirectory(cloudsc2_ad)
