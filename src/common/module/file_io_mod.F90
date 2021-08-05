@@ -24,7 +24,7 @@ module file_io_mod
   implicit none
 
 #ifdef HAVE_HDF5
-  TYPE(hdf5_file) :: input_file
+  TYPE(hdf5_file) :: data_file
 #endif
 
   interface load_scalar
@@ -35,18 +35,27 @@ module file_io_mod
     procedure load_array_l1, load_array_i1, load_array_r1, load_array_r2, load_array_r3
   end interface load_array
 
+  interface write_scalar
+    procedure write_scalar_real, write_scalar_int
+  end interface write_scalar
+
+  interface write_array
+    procedure write_array_r1, write_array_r2, write_array_r3
+  end interface write_array
+
 contains
 
-  subroutine input_initialize(name)
+  subroutine input_initialize(name, read_only)
     ! Initialize input file for a given data set name
     character(len=*), intent(in) :: name
+    logical, intent(in) :: read_only
 #ifdef HAVE_SERIALBOX
     ! Get dimensions information from stored metadata
     call ppser_initialize(directory='data', prefix='dummy', prefix_ref=NAME)
     call fs_create_savepoint(NAME, ppser_savepoint)
     call ppser_set_mode(1)
 #elif defined(HAVE_HDF5)
-    call input_file%open_file(NAME//'.h5')
+    call data_file%open_file(NAME//'.h5', rdwr=.not.read_only)
 #else
     call abor1('ERROR: Serialbox and HDF5 not found.')
 #endif
@@ -56,7 +65,7 @@ contains
 #ifdef HAVE_SERIALBOX
     call ppser_finalize()
 #elif defined(HAVE_HDF5)
-    call input_file%close_file()
+    call data_file%close_file()
 #else
     call abor1('ERROR: Serialbox not found.')
 #endif
@@ -72,7 +81,7 @@ contains
     call fs_get_serializer_metainfo(ppser_serializer_ref, name, buffer)
     variable = buffer
 #elif defined(HAVE_HDF5)
-    call input_file%load(name, buffer)
+    call data_file%load(name, buffer)
     variable = buffer
 #else
     call abor1('ERROR: Serialbox and HDF5 not found.')
@@ -86,7 +95,7 @@ contains
 #ifdef HAVE_SERIALBOX
     call fs_get_serializer_metainfo(ppser_serializer_ref, name, variable)
 #elif defined(HAVE_HDF5)
-    call input_file%load(name, variable)
+    call data_file%load(name, variable)
 #else
     call abor1('ERROR: Serialbox and HDF5 not found.')
 #endif
@@ -100,7 +109,7 @@ contains
 #ifdef HAVE_SERIALBOX
     call fs_get_serializer_metainfo(ppser_serializer_ref, name, variable)
 #elif defined(HAVE_HDF5)
-    call input_file%load(name, tmp)
+    call data_file%load(name, tmp)
     variable = merge(.TRUE., .FALSE., tmp > 0)
 #else
     call abor1('ERROR: Serialbox and HDF5 not found.')
@@ -121,7 +130,7 @@ contains
     buffer(:) = rbuf(start:end)
     deallocate(rbuf)
 #elif defined(HAVE_HDF5)
-    call input_file%load(name, buffer, start, size)
+    call data_file%load(name, buffer, start, size)
 #else
     call abor1('ERROR: Serialbox and HDF5 not found.')
 #endif
@@ -140,7 +149,7 @@ contains
     buffer(:) = rbuf(start:end)
     deallocate(rbuf)
 #elif defined(HAVE_HDF5)
-    call input_file%load(name, buffer, start, size)
+    call data_file%load(name, buffer, start, size)
 #else
     call abor1('ERROR: Serialbox and HDF5 not found.')
 #endif
@@ -160,7 +169,7 @@ contains
     deallocate(rbuf)
 #elif defined(HAVE_HDF5)
     allocate(rbuf(size))
-    call input_file%load(name, rbuf, start, size)
+    call data_file%load(name, rbuf, start, size)
     buffer(:) = rbuf(:)
     deallocate(rbuf)
 #else
@@ -187,7 +196,7 @@ contains
     isize(1) = size
     isize(2) = nlev
     allocate(rbuf(size,nlev))
-    call input_file%load(name, rbuf, istart, isize)
+    call data_file%load(name, rbuf, istart, isize)
     buffer(:,:) = rbuf(:,:)
     deallocate(rbuf)
 #else
@@ -216,12 +225,108 @@ contains
     isize(2) = nlev
     isize(3) = ndim
     allocate(rbuf(size,nlev,ndim))
-    call input_file%load(name, rbuf, istart, isize)
+    call data_file%load(name, rbuf, istart, isize)
     buffer(:,:,:) = rbuf(:,:,:)
     deallocate(rbuf)
 #else
     call abor1('ERROR: Serialbox and HDF5 not found.')
 #endif
   end subroutine load_array_r3
+
+
+  subroutine write_scalar_real(name, variable)
+    character(len=*), intent(in) :: name
+    real(kind=JPRB), intent(inout) :: variable
+    real(kind=JPRD) :: buffer
+
+#ifdef HAVE_SERIALBOX
+    buffer = variable
+    call fs_add_serializer_metainfo(ppser_serializer, name, buffer)
+#elif defined(HAVE_HDF5)
+    call abor1('ERROR: HDF5 writes not yet supported.')
+#else
+    call abor1('ERROR: Serialbox and HDF5 not found.')
+#endif
+  end subroutine write_scalar_real
+
+  subroutine write_scalar_int(name, variable)
+    character(len=*), intent(in) :: name
+    integer(kind=JPIM), intent(inout) :: variable
+#ifdef HAVE_SERIALBOX
+    call fs_add_serializer_metainfo(ppser_serializer, name, buffer)
+#elif defined(HAVE_HDF5)
+    call data_file%write(name, variable)
+#else
+    call abor1('ERROR: Serialbox and HDF5 not found.')
+#endif
+  end subroutine write_scalar_int
+
+
+  subroutine write_array_r1(name, nlon, buffer)
+    ! Load data from file into the local memory buffer
+    character(len=*), intent(in) :: name
+    integer(kind=jpim), intent(in) :: nlon
+    real(kind=jprb), intent(out) :: buffer(nlon)
+    real(kind=jprd), allocatable :: wbuf(:)
+
+#ifdef HAVE_SERIALBOX
+    allocate(wbuf(nlon))
+    wbuf(:) = buffer(:nlon)
+    call fs_write_field(ppser_serializer_ref, name, wbuf)
+    deallocate(wbuf)
+#elif defined(HAVE_HDF5)
+    allocate(wbuf(nlon))
+    wbuf(:) = buffer(:nlon)
+    call data_file%write(name, wbuf)
+    deallocate(wbuf)
+#else
+    call abor1('ERROR: Serialbox and HDF5 not found.')
+#endif
+  end subroutine write_array_r1
+
+  subroutine write_array_r2(name, nlon, nlev, buffer)
+    ! Load data from file into the local memory buffer
+    character(len=*), intent(in) :: name
+    integer(kind=jpim), intent(in) :: nlon, nlev
+    real(kind=jprb), intent(out) :: buffer(nlon, nlev)
+    real(kind=jprd), allocatable :: wbuf(:,:)
+
+#ifdef HAVE_SERIALBOX
+    allocate(wbuf(nlon,nlev))
+    wbuf(:,:) = buffer(:nlon,:nlev)
+    call fs_write_field(ppser_serializer_ref, name, wbuf)
+    deallocate(wbuf)
+#elif defined(HAVE_HDF5)
+    allocate(wbuf(nlon,nlev))
+    wbuf(:,:) = buffer(:nlon,:nlev)
+    call data_file%write(name, wbuf)
+    deallocate(wbuf)
+#else
+    call abor1('ERROR: Serialbox and HDF5 not found.')
+#endif
+  end subroutine write_array_r2
+
+  subroutine write_array_r3(name, nlon, nlev, ndim, buffer)
+    ! Load data from file into the local memory buffer
+    character(len=*), intent(in) :: name
+    integer(kind=jpim), intent(in) :: nlon, nlev, ndim
+    real(kind=jprb), intent(out) :: buffer(nlon, nlev, ndim)
+    real(kind=jprd), allocatable :: wbuf(:,:,:)
+
+#ifdef HAVE_SERIALBOX
+    allocate(wbuf(nlon,nlev,ndim))
+    wbuf(:) = buffer(:nlon,:nlev,:ndim)
+    call fs_write_field(ppser_serializer_ref, name, wbuf)
+    deallocate(wbuf)
+#elif defined(HAVE_HDF5)
+    allocate(wbuf(nlon,nlev,ndim))
+    wbuf(:,:,:) = buffer(:nlon,:nlev,:ndim)
+    call data_file%write(name, wbuf)
+    deallocate(wbuf)
+
+#else
+    call abor1('ERROR: Serialbox and HDF5 not found.')
+#endif
+  end subroutine write_array_r3
 
 end module file_io_mod

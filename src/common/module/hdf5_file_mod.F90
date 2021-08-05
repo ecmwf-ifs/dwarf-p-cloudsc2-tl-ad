@@ -38,6 +38,10 @@ MODULE hdf5_file_mod
                         & hdf5_file_load_l1, hdf5_file_load_i1, hdf5_file_load_r1, &
                         & hdf5_file_load_r2, hdf5_file_load_r3
 
+    procedure, private :: hdf5_file_write_i0, hdf5_file_write_r1, hdf5_file_write_r2, hdf5_file_write_r3
+
+    generic :: write => hdf5_file_write_i0, hdf5_file_write_r1, hdf5_file_write_r2, hdf5_file_write_r3
+
   END TYPE hdf5_file
 
 CONTAINS
@@ -76,13 +80,16 @@ CONTAINS
     if (error /= 0) call abor1('ERROR: Failed to create HDF5 file.')
   end subroutine hdf5_file_create
 
-  subroutine hdf5_file_open(self, filename)
+  subroutine hdf5_file_open(self, filename, rdwr)
     class(hdf5_file) :: self
     character(len=*), intent(in) :: filename
+    logical, intent(in) :: rdwr
     integer :: error
 
     if (.not. self%is_open) then
       call hdf5_library_status%init()
+
+      self%is_rdwr = rdwr
 
       if (self%is_rdwr) then
         call self%create_file(filename)
@@ -146,6 +153,33 @@ CONTAINS
     call h5dclose_f(dset_id, error)
     if (error /= 0) call abor1('ERROR: Failed to close dataset.')
   end subroutine hdf5_dataset_load
+
+  subroutine hdf5_dataset_write(file_id, type_id, name, buf, count)
+    use iso_c_binding, only: c_ptr
+
+    integer(HID_T), intent(in) :: file_id, type_id
+    character(len=*), intent(in) :: name
+    type(c_ptr), intent(inout) :: buf
+    integer(HSIZE_T), intent(in) :: count(:)
+    integer(HID_T) :: dset_id, file_space_id, mem_space_id
+    integer :: error
+
+    call h5screate_simple_f(size(count), count, file_space_id, error)
+    if (error /= 0) call abor1('ERROR: Failed to create data space in file.')
+
+    call h5dcreate_f(file_id, name, type_id, file_space_id, dset_id, error)
+    if (error /= 0) call abor1('ERROR: Failed to create dataset.')
+
+    call h5dwrite_f(dset_id, type_id, buf, error)
+    if (error /= 0) call abor1('ERROR: Failed to write buffer to file.')
+
+    call h5dclose_f(dset_id, error)
+    if (error /= 0) call abor1('ERROR: Failed to close dataset.')
+
+    call h5sclose_f(file_space_id, error)
+    if (error /= 0) call abor1('ERROR: Failed to close data space.')
+  end subroutine hdf5_dataset_write
+
 
   subroutine hdf5_file_load_l0(self, name, val)
     use iso_c_binding, only: c_loc
@@ -325,5 +359,74 @@ CONTAINS
     call self%assert_file_open()
     call hdf5_dataset_load(self%file_id, H5T_NATIVE_DOUBLE, name, ptr, hstart, hcount)
   end subroutine hdf5_file_load_r3
+
+  subroutine hdf5_file_write_i0(self, name, val)
+    use iso_c_binding, only: c_ptr, c_loc
+
+    class(hdf5_file) :: self
+    character(len=*), intent(in) :: name
+    integer(kind=jpim), target, intent(inout) :: val
+    integer(kind=hsize_t) :: hcount(1)
+    type(c_ptr) :: ptr
+
+    hcount(1) = 1
+    ptr = c_loc(val)
+    call self%assert_file_open()
+
+    call hdf5_dataset_write(self%file_id, h5kind_to_type(jpim, H5_INTEGER_KIND), name, ptr, hcount)
+  end subroutine hdf5_file_write_i0
+
+
+  subroutine hdf5_file_write_r1(self, name, buffer)
+    use iso_c_binding, only: c_ptr, c_loc
+
+    class(hdf5_file) :: self
+    character(len=*), intent(in) :: name
+    real(kind=jprd), target, intent(inout) :: buffer(:)
+    integer(kind=hsize_t) :: hcount(1)
+    integer :: error
+    type(c_ptr) :: ptr
+
+    hcount = shape(buffer, kind=hsize_t)
+    ptr = c_loc(buffer(1))
+    call self%assert_file_open()
+
+    call hdf5_dataset_write(self%file_id, H5T_NATIVE_DOUBLE, name, ptr, hcount)
+  end subroutine hdf5_file_write_r1
+
+  subroutine hdf5_file_write_r2(self, name, buffer)
+    use iso_c_binding, only: c_ptr, c_loc
+
+    class(hdf5_file) :: self
+    character(len=*), intent(in) :: name
+    real(kind=jprd), target, intent(inout) :: buffer(:,:)
+    integer(kind=hsize_t) :: hcount(2)
+    integer :: error
+    type(c_ptr) :: ptr
+
+    hcount = shape(buffer, kind=hsize_t)
+    ptr = c_loc(buffer(1,1))
+    call self%assert_file_open()
+
+    call hdf5_dataset_write(self%file_id, H5T_NATIVE_DOUBLE, name, ptr, hcount)
+  end subroutine hdf5_file_write_r2
+
+  subroutine hdf5_file_write_r3(self, name, buffer)
+    use iso_c_binding, only: c_ptr, c_loc
+
+    class(hdf5_file) :: self
+    character(len=*), intent(in) :: name
+    real(kind=jprd), target, intent(inout) :: buffer(:,:,:)
+    integer(kind=hsize_t) :: hcount(3)
+    integer :: error
+    type(c_ptr) :: ptr
+
+    hcount = shape(buffer, kind=hsize_t)
+    ptr = c_loc(buffer(1,1,1))
+    call self%assert_file_open()
+
+    call hdf5_dataset_write(self%file_id, H5T_NATIVE_DOUBLE, name, ptr, hcount)
+  end subroutine hdf5_file_write_r3
+
 
 END MODULE hdf5_file_mod
