@@ -11,74 +11,33 @@ MODULE CLOUDSC_DRIVER_MOD
 CONTAINS
 
   SUBROUTINE CLOUDSC_DRIVER( &
-     & NUMOMP, NPROMA, NLEV, NGPTOT, NGPTOTG, KFLDX, PTSPHY, &
-     & PT, PQ, TENDENCY_CML, TENDENCY_TMP, TENDENCY_LOC, &
-     & PVFA, PVFL, PVFI, PDYNA, PDYNL, PDYNI, &
-     & PHRSW,    PHRLW, &
-     & PVERVEL,  PAP,      PAPH, &
-     & PLSM,     LDCUM,    KTYPE, &
-     & PLU,      PLUDE,    PSNDE,    PMFU,     PMFD, &
+     & NUMOMP, NPROMA, NLEV, NGPTOT, NGPTOTG, PTSPHY, &
+     & PT, PQ, TENDENCY_CML, TENDENCY_LOC, &
+     & PAP,      PAPH, &
+     & PLU,      PLUDE,    PMFU,     PMFD, &
      & PA,       PCLV,     PSUPSAT,&
-     & PLCRIT_AER,PICRIT_AER, PRE_ICE, &
-     & PCCN,     PNICE,&
-     & PCOVPTOT, PRAINFRAC_TOPRFZ, &
-     & PFSQLF,   PFSQIF ,  PFCQNNG,  PFCQLNG, &
-     & PFSQRF,   PFSQSF ,  PFCQRNG,  PFCQSNG, &
-     & PFSQLTUR, PFSQITUR, &
+     & PCOVPTOT, &
      & PFPLSL,   PFPLSN,   PFHPSL,   PFHPSN &
      & )
     ! Driver routine that performans the parallel NPROMA-blocking and
     ! invokes the CLOUDSC2 kernel
 
     INTEGER(KIND=JPIM), INTENT(IN)    :: NUMOMP, NPROMA, NLEV, NGPTOT, NGPTOTG
-    INTEGER(KIND=JPIM), INTENT(IN)    :: KFLDX      ! NOT_USED
     REAL(KIND=JPRB),    INTENT(IN)    :: PTSPHY       ! Physics timestep
     REAL(KIND=JPRB),    INTENT(IN)    :: PT(:,:,:)    ! T at start of callpar
     REAL(KIND=JPRB),    INTENT(IN)    :: PQ(:,:,:)    ! Q at start of callpar
     TYPE(STATE_TYPE),   INTENT(IN)    :: TENDENCY_CML(:) ! cumulative tendency used for final output
-    TYPE(STATE_TYPE),   INTENT(IN)    :: TENDENCY_TMP(:) !  NOT_USED
     TYPE(STATE_TYPE),   INTENT(OUT)   :: TENDENCY_LOC(:) ! local tendency from cloud scheme
-    REAL(KIND=JPRB),    INTENT(IN)    :: PVFA(:,:,:)  ! CC from VDF scheme NOT_USED
-    REAL(KIND=JPRB),    INTENT(IN)    :: PVFL(:,:,:)  ! Liq from VDF scheme NOT_USED
-    REAL(KIND=JPRB),    INTENT(IN)    :: PVFI(:,:,:)  ! Ice from VDF scheme NOT_USED
-    REAL(KIND=JPRB),    INTENT(IN)    :: PDYNA(:,:,:) ! CC from Dynamics  NOT_USED
-    REAL(KIND=JPRB),    INTENT(IN)    :: PDYNL(:,:,:) ! Liq from Dynamics  NOT_USED
-    REAL(KIND=JPRB),    INTENT(IN)    :: PDYNI(:,:,:) ! Liq from Dynamics  NOT_USED
-    REAL(KIND=JPRB),    INTENT(IN)    :: PHRSW(:,:,:) ! Short-wave heating rate NOT_USED
-    REAL(KIND=JPRB),    INTENT(IN)    :: PHRLW(:,:,:) ! Long-wave heating rate NOT_USED
-    REAL(KIND=JPRB),    INTENT(IN)    :: PVERVEL(:,:,:) !Vertical velocity NOT_USED
     REAL(KIND=JPRB),    INTENT(IN)    :: PAP(:,:,:)   ! Pressure on full levels
     REAL(KIND=JPRB),    INTENT(IN)    :: PAPH(:,:,:)  ! Pressure on half levels
-    REAL(KIND=JPRB),    INTENT(IN)    :: PLSM(:,:)    ! Land fraction (0-1) NOT_USED
-    LOGICAL        ,    INTENT(IN)    :: LDCUM(:,:)   ! Convection active  NOT_USED
-    INTEGER(KIND=JPIM), INTENT(IN)    :: KTYPE(:,:)   ! Convection type 0,1,2  NOT_USED
     REAL(KIND=JPRB),    INTENT(IN)    :: PLU(:,:,:)   ! Conv. condensate
     REAL(KIND=JPRB),    INTENT(INOUT) :: PLUDE(:,:,:) ! Conv. detrained water
-    REAL(KIND=JPRB),    INTENT(IN)    :: PSNDE(:,:,:) ! Conv. detrained snow NOT_USED
     REAL(KIND=JPRB),    INTENT(IN)    :: PMFU(:,:,:)  ! Conv. mass flux up
     REAL(KIND=JPRB),    INTENT(IN)    :: PMFD(:,:,:)  ! Conv. mass flux down
     REAL(KIND=JPRB),    INTENT(IN)    :: PA(:,:,:)    ! Original Cloud fraction (t)
     REAL(KIND=JPRB),    INTENT(IN)    :: PCLV(:,:,:,:) 
     REAL(KIND=JPRB),    INTENT(IN)    :: PSUPSAT(:,:,:)
-    REAL(KIND=JPRB),    INTENT(IN)    :: PLCRIT_AER(:,:,:) ! NOT_USED
-    REAL(KIND=JPRB),    INTENT(IN)    :: PICRIT_AER(:,:,:) ! NOT_USED
-    REAL(KIND=JPRB),    INTENT(IN)    :: PRE_ICE(:,:,:)    ! NOT_USED
-    REAL(KIND=JPRB),    INTENT(IN)    :: PCCN(:,:,:)     ! liquid cloud condensation nuclei NOT_USED
-    REAL(KIND=JPRB),    INTENT(IN)    :: PNICE(:,:,:)    ! ice number concentration (cf. CCN) NOT_USED
-
     REAL(KIND=JPRB),    INTENT(INOUT) :: PCOVPTOT(:,:,:) ! Precip fraction
-    REAL(KIND=JPRB),    INTENT(OUT)   :: PRAINFRAC_TOPRFZ(:,:) ! NOT_USED
-    ! Flux diagnostics for DDH budget
-    REAL(KIND=JPRB),    INTENT(OUT)   :: PFSQLF(:,:,:)  ! Flux of liquid NOT_USED
-    REAL(KIND=JPRB),    INTENT(OUT)   :: PFSQIF(:,:,:)  ! Flux of ice  NOT_USED
-    REAL(KIND=JPRB),    INTENT(OUT)   :: PFCQLNG(:,:,:) ! -ve corr for liq  NOT_USED
-    REAL(KIND=JPRB),    INTENT(OUT)   :: PFCQNNG(:,:,:) ! -ve corr for ice  NOT_USED
-    REAL(KIND=JPRB),    INTENT(OUT)   :: PFSQRF(:,:,:)  ! Flux diagnostics  NOT_USED
-    REAL(KIND=JPRB),    INTENT(OUT)   :: PFSQSF(:,:,:)  !    for DDH, generic  NOT_USED
-    REAL(KIND=JPRB),    INTENT(OUT)   :: PFCQRNG(:,:,:) ! rain  NOT_USED
-    REAL(KIND=JPRB),    INTENT(OUT)   :: PFCQSNG(:,:,:) ! snow  NOT_USED
-    REAL(KIND=JPRB),    INTENT(OUT)   :: PFSQLTUR(:,:,:) ! liquid flux due to VDF NOT_USED
-    REAL(KIND=JPRB),    INTENT(OUT)   :: PFSQITUR(:,:,:) ! ice flux due to VDF NOT_USED
     REAL(KIND=JPRB),    INTENT(OUT)   :: PFPLSL(:,:,:) ! liq+rain sedim flux
     REAL(KIND=JPRB),    INTENT(OUT)   :: PFPLSN(:,:,:) ! ice+snow sedim flux
     REAL(KIND=JPRB),    INTENT(OUT)   :: PFHPSL(:,:,:) ! Enthalpy flux for liq
