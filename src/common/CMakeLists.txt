@@ -23,7 +23,7 @@ ecbuild_add_library( TARGET cloudsc-common-lib
 	module/file_io_mod.F90
 	module/hdf5_file_mod.F90
         module/validate_mod.F90
-        module/cloudsc_global_state_mod.F90
+        module/cloudsc2_array_state_mod.F90
         module/cloudsc_mpi_mod.F90
     DEFINITIONS ${CLOUDSC_DEFINITIONS}
 )
