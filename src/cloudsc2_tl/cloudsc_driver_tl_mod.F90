@@ -57,6 +57,8 @@ CONTAINS
     INTEGER(KIND=JPIM) :: JKGLO,IBL,ICEND,NGPBLKS,ISTART,ITEST,INEGAT,ITEMPNEGAT
 
     TYPE(PERFORMANCE_TIMER) :: TIMER
+    REAL(KIND=JPRD), PARAMETER :: ZHPM = 3996006.0_JPRD  ! The nominal number of flops per 100 columns
+
     INTEGER(KIND=JPIM) :: TID ! thread id from 0 .. NUMOMP - 1
     LOGICAL            :: LDRAIN1D = .FALSE.
     REAL(KIND=JPRB)    :: ZQSAT(NPROMA,NLEV) ! local array
@@ -256,7 +258,7 @@ CONTAINS
 
       CALL TIMER%END()
 
-      CALL TIMER%PRINT_PERFORMANCE(NPROMA, NGPBLKS, NGPTOT)
+      CALL TIMER%PRINT_PERFORMANCE(NPROMA, NGPBLKS, ZHPM, NGPTOT)
 
       ! Evaluate the test and print the otput
       print *, ' TL Taylor test '
