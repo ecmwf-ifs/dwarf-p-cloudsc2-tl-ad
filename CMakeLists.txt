@@ -14,7 +14,7 @@ cmake_minimum_required( VERSION 3.12 FATAL_ERROR )
 find_package( ecbuild REQUIRED )
 
 # define the project
-project(dwarf-P-cloudMicrophysics-IFSScheme VERSION 1.1 LANGUAGES C Fortran )
+project(dwarf-p-cloudsc2-tl-ad VERSION 1.0 LANGUAGES C Fortran )
 
 include( cmake/compat.cmake )
 
@@ -64,12 +64,8 @@ if( MPI_Fortran_FOUND AND ENABLE_MPI )
 endif()
 
 ### HDF5
-## Note that this dwarf fully depends on HDF5 input data
-ecbuild_find_package( NAME HDF5  COMPONENTS Fortran )
-
-ecbuild_add_option( FEATURE HDF5
-    DESCRIPTION "HDF5" DEFAULT ON
-    CONDITION HDF5_FOUND )
+# HDF5: This dwarf fully depends on HDF5 for input and reference data
+ecbuild_find_package( NAME HDF5 REQUIRED COMPONENTS Fortran )
 list(APPEND CLOUDSC_DEFINITIONS HAVE_HDF5 ${HDF5_Fortran_DEFINITIONS})
 
 # build executables

@@ -31,6 +31,9 @@ target_include_directories( cloudsc-common-lib PUBLIC $<INSTALL_INTERFACE:includ
 target_include_directories( cloudsc-common-lib PUBLIC $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>)
 target_include_directories( cloudsc-common-lib PUBLIC $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}/module>)
 
+# We do all I/O via HDF% in this dwarf
+target_link_libraries( cloudsc-common-lib PUBLIC HDF5::HDF5 )
+
 if( HAVE_OMP AND TARGET OpenMP::OpenMP_Fortran )
     target_link_libraries( cloudsc-common-lib PRIVATE OpenMP::OpenMP_Fortran )
 endif()
@@ -38,14 +41,4 @@ endif()
 if( HAVE_MPI AND TARGET MPI::MPI_Fortran )
     target_sources( cloudsc-common-lib PRIVATE module/cloudsc_mpif.F90 )
     target_link_libraries( cloudsc-common-lib PRIVATE MPI::MPI_Fortran )
-endif()
-
-if ( HAVE_HDF5 )
-    target_sources( cloudsc-common-lib PRIVATE module/hdf5_file_mod.F90 )
-    target_include_directories( cloudsc-common-lib PRIVATE ${HDF5_Fortran_INCLUDE_DIRS} )
-    target_link_libraries( cloudsc-common-lib PRIVATE ${HDF5_LIBRARIES} )
-endif()
-
-if( TARGET Serialbox::Serialbox_Fortran )
-    target_link_libraries( cloudsc-common-lib PRIVATE Serialbox::Serialbox_Fortran )
 endif()
