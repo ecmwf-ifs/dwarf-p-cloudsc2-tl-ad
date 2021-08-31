@@ -25,21 +25,8 @@ options :
         help  : Specify compiler options via supplied toolchain file
         cmake : CMAKE_TOOLCHAIN_FILE={{value}}
 
-    - with-mpi :
-        help  : Enable MPI-parallel kernel
-        cmake : ENABLE_MPI=ON
-
     - cloudsc-fortran :
         help  : Build the new Fortran version of CLOUDSC [ON|OFF]
         cmake : ENABLE_CLOUDSC_FORTRAN={{value}}
-
-    - hdf5 :
-        help : Enable use of HDF5 input file [ON|OFF]
-        cmake : ENABLE_HDF5={{value}}
-
-    - with-hdf5 :
-        help : Enable use of HDF5 input file (disables Serialbox)
-        cmake : >
-            ENABLE_HDF5=ON
 
 ...
