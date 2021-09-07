@@ -31,7 +31,7 @@ module_load gnu/9.3.0
 module_load fftw/3.3.8
 module_load eigen/3.2.0
 module_load boost/1.71.0
-module_load cmake/3.16.5
+module_load cmake/3.19.5
 module_load hdf5/1.10.6
 module_load netcdf4/4.7.4
 module_load lapack/3.5.0
