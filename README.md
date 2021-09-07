@@ -29,3 +29,24 @@ Then simply install the bundle via:
 ./cloudsc-bundle create  # Checks out dependency packages
 ./cloudsc-bundle build [--build-type=debug|bit|release] [--arch=$PWD/arch/ecmwf/machine/compiler/version/env.sh]
 ```
+
+Example usage and verification
+------------------------------
+
+Example run of the non-linear baseline run on CPU (4 threads):
+```
+./bin/dwarf-cloudsc2-nl 4 160000 32
+```
+
+Verify the correctness of the tangent linear version by running a
+Taylor test for each column with:
+```
+./bin/dwarf-cloudsc2-tl 1 100 1
+```
+_Note that this is not yet ready for performance evaluation._
+
+Verify the correctness of the adjoint, please run:
+```
+./bin/dwarf-cloudsc2-ad 1 100 100
+```
+_Note that this is not yet ready for performance evaluation._
