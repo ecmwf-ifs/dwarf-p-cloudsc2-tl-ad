@@ -9,6 +9,48 @@ def foeewm(ptare, yrethf, yrmcst):
                       (1.0-foealfa(ptare, yrethf))*np.exp(yrethf.r3ies*(ptare-yrmcst.rtt)/(ptare-yrethf.r4ies)))
 
 
+def satur(kidia, kfdia, klon, ktdia, klev, ldphylin, paprsf, pt, pqsat, kflag, yrethf, yrmcst):
+
+    #----------------------------------------------------------------------
+    #*    1.           DEFINE CONSTANTS
+    zqmax = 0.5
+
+    #     *
+    #----------------------------------------------------------------------
+    #     *    2.           CALCULATE SATURATION SPECIFIC HUMIDITY
+    #                       --------------------------------------
+
+    if ldphylin:
+        for jk in range(1, klev + 1):
+            for jl in range(kidia, kfdia + 1):
+                ztarg = pt[jk-1,jl-1]
+                zalfa = foealfa(ztarg, yrethf)
+
+                zfoeewl = yrethf.r2es*np.exp(yrethf.r3les*(ztarg-yrmcst.rtt)/(ztarg-yrethf.r4les))
+                zfoeewi = yrethf.r2es*np.exp(yrethf.r3ies*(ztarg-yrmcst.rtt)/(ztarg-yrethf.r4ies))
+                zfoeew = zalfa*zfoeewl+(1.0-zalfa)*zfoeewi
+
+                zqs    = zfoeew/paprsf[jk-1,jl-1]
+                if zqs > zqmax:
+                    zqs=zqmax
+
+                zcor = 1.0/(1.0-yrmcst.retv*zqs)
+                pqsat[jk-1,jl-1]=zqs*zcor
+
+    else:
+        for jk in range(1, klev + 1):
+            for jl in range(kidia, kfdia + 1):
+                if(kflag == 1):
+                    zew  = foeewmcu(pt[jk-1,jl-1])
+                else:
+                    zew  = foeewm(pt[jk-1,jl-1])
+
+                zqs  = zew/paprsf[jk-1,jl-1]
+                zqs  = min(zqmax,zqs)
+                zcor = 1.0/(1.0-yrmcst.retv*zqs)
+                pqsat[jk-1,jl-1]=zqs*zcor
+
+
 def cloudsc2_py(kidia: None, kfdia: None, klon: None, ktdia: None, klev: None, ldrain1d: None, \
   ptsphy: None, paphp1: None, papp1: None, pqm1: None, pqs: None, ptm1: None, pl: None, pi: None, \
   plude: None, plu: None, pmfu: None, pmfd: None, ptent: None, pgtent: None, ptenq: None, \
@@ -255,7 +297,7 @@ def cloudsc2_py(kidia: None, kfdia: None, klon: None, ktdia: None, klev: None, l
         zcrh2 = zrh1 + (zrh2 - zrh1)*((1.0 - yrecld.ceta[jk-1]) / zdeta1)**0.5
       # Allow ice supersaturation at cold temperatures
       if ztp1[jk-1, jl-1] < yrethf.rtice:
-        zsupsat = (1.8 - 3.E-03)*ztp1[jk-1, jl-1]
+        zsupsat = 1.8 - 3.E-03*ztp1[jk-1, jl-1]
       else:
         zsupsat = 1.0
       zqsat[jl-1] = pqs[jk-1, jl-1]*zsupsat
@@ -399,7 +441,7 @@ def cloudsc2_py(kidia: None, kfdia: None, klon: None, ktdia: None, klev: None, l
       #   Precip evaporation
       
       zprtot = zrfln[jl-1] + zsfln[jl-1]
-      llo2 = zprtot > zeps2 and zcovpclr[jl-1] > zeps2 and (yrphnc.levapls2 or ldrain1d)
+      llo2 = zprtot > zeps2 and zcovpclr[jl-1] > zeps2 and ldrain1d
       if llo2:
         
         zpreclr = (zprtot*zcovpclr[jl-1]) / zcovptot[jl-1]

@@ -273,7 +273,26 @@ def dwarf_cloudsc(regenerate):
 
     # Load the kernel dynamically
     sys.path.insert(0, str(rootpath/'src/cloudsc2_nl_gt4py'))
-    from cloudsc2_py import cloudsc2_py
+    from cloudsc2_py import cloudsc2_py, satur
+
+    satur_args = OrderedDict()
+    satur_args['kidia'] = 1
+    satur_args['kfdia'] = 100
+    satur_args['klon'] = input_fields['KLON']
+    satur_args['klev'] = input_fields['KLEV']
+    satur_args['ktdia'] = 1
+    satur_args['ldphylin'] = True
+
+    satur_args['paprsf'] = input_fields['PAP']
+    satur_args['pt'] = input_fields['PT']
+    satur_args['pqsat'] = input_fields['PQSAT']
+
+    satur_args['kflag'] = 2
+    satur_args['yrethf'] = yrethf
+    satur_args['yrmcst'] = yrmcst
+
+    satur(**satur_args)
+
     cloudsc2_py(**cloudsc_args)
 
     # Validate the output fields against reference data
