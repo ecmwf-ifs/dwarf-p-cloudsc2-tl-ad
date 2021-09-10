@@ -170,12 +170,24 @@ def cloudsc_validate(fields, ref_fields, cloudsc_args):
         'plude', 'pcovptot', 'pfplsl', 'pfplsn', 'pfhpsl', 'pfhpsn', 
         'tendency_loc_a', 'tendency_loc_q', 'tendency_loc_t', # 'tendency_loc_cld',
     ]
-    ngptot = cloudsc_args['kfdia'] - cloudsc_args['kidia'] + 1
+    kidia = cloudsc_args['kidia']
+    kfdia = cloudsc_args['kfdia']
+    ngptot = kfdia - kidia + 1
 
     print("             Variable Dim             MinValue             MaxValue            AbsMaxErr         AvgAbsErr/GP          MaxRelErr-%")
     for name in _field_names:
-        f = fields[name]
-        ref = ref_fields[name]
+        if len(fields[name].shape) == 1:
+            f = fields[name][kidia-1:kfdia]
+            ref = ref_fields[name][kidia-1:kfdia]
+        elif len(fields[name].shape) == 2:
+            f = fields[name][:,kidia-1:kfdia]
+            ref = ref_fields[name][:,kidia-1:kfdia]
+        elif len(fields[name].shape) == 3:
+            f = fields[name][:,:,kidia-1:kfdia]
+            ref = ref_fields[name][:,:,kidia-1:kfdia]
+        else:
+            f = fields[name]
+            ref = ref_fields[name]
         zsum = np.sum(np.absolute(ref))
         zerrsum = np.sum(np.absolute(f - ref))
         zeps = np.finfo(np.float64).eps
