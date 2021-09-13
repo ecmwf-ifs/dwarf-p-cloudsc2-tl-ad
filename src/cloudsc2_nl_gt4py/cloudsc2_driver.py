@@ -40,7 +40,6 @@ def load_input_fields(path):
         for argname in argnames:
             fields[argname] = np.ascontiguousarray(f[argname])
 
-        # from IPython import embed; embed()
         fields['PQSAT'] = np.ndarray(order="C", shape=(klev, klon))
         fields['TENDENCY_LOC_A'] = np.ndarray(order="C", shape=(klev, klon))
         fields['TENDENCY_LOC_T'] = np.ndarray(order="C", shape=(klev, klon))
@@ -136,6 +135,59 @@ def load_reference_fields(path):
     return fields
 
 
+def arguments_from_fields(input_fields, use_gtstorage=True):
+    """
+    Set up the arguments for the kernel from the loaded fields.
+    """
+    cloudsc_args = OrderedDict()
+    cloudsc_args['kidia'] = 1
+    cloudsc_args['kfdia'] = 100
+    cloudsc_args['klon'] = input_fields['KLON']
+    cloudsc_args['klev'] = input_fields['KLEV']
+    cloudsc_args['ktdia'] = 1
+    cloudsc_args['ldrain1d'] = False
+    cloudsc_args['ptsphy'] = input_fields['PTSPHY']
+    cloudsc_args['paphp1'] = input_fields['PAPH']
+    cloudsc_args['papp1'] = input_fields['PAP']
+    cloudsc_args['pqm1'] = input_fields['PQ']
+    cloudsc_args['pqs'] = input_fields['PQSAT']
+    cloudsc_args['ptm1'] = input_fields['PT']
+    cloudsc_args['pl'] = input_fields['PCLV'][NCLDQL,:,:]
+    cloudsc_args['pi'] = input_fields['PCLV'][NCLDQI,:,:]
+    cloudsc_args['plude'] = input_fields['PLUDE']
+    cloudsc_args['plu'] = input_fields['PLU']
+    cloudsc_args['pmfu'] = input_fields['PMFU']
+    cloudsc_args['pmfd'] = input_fields['PMFD']
+    cloudsc_args['ptent'] = input_fields['TENDENCY_LOC_T']
+    cloudsc_args['pgtent'] = input_fields['TENDENCY_CML_T']
+    cloudsc_args['ptenq'] = input_fields['TENDENCY_LOC_Q']
+    cloudsc_args['pgtenq'] = input_fields['TENDENCY_CML_Q']
+    cloudsc_args['ptenl'] = input_fields['TENDENCY_LOC_CLD'][NCLDQL,:,:]
+    cloudsc_args['pgtenl'] = input_fields['TENDENCY_CML_CLD'][NCLDQL,:,:]
+    cloudsc_args['pteni'] = input_fields['TENDENCY_LOC_CLD'][NCLDQI,:,:]
+    cloudsc_args['pgteni'] = input_fields['TENDENCY_CML_CLD'][NCLDQI,:,:]
+    cloudsc_args['psupsat'] = input_fields['PSUPSAT']
+    cloudsc_args['pclc'] = input_fields['PA']
+    cloudsc_args['pfplsl'] = input_fields['PFPLSL']
+    cloudsc_args['pfplsn'] = input_fields['PFPLSN']
+    cloudsc_args['pfhpsl'] = input_fields['PFHPSL']
+    cloudsc_args['pfhpsn'] = input_fields['PFHPSN']
+    cloudsc_args['pcovptot'] = input_fields['PCOVPTOT']
+
+    satur_args = OrderedDict()
+    satur_args['kidia'] = 1
+    satur_args['kfdia'] = 100
+    satur_args['klon'] = input_fields['KLON']
+    satur_args['klev'] = input_fields['KLEV']
+    satur_args['ktdia'] = 1
+    satur_args['ldphylin'] = True
+
+    satur_args['paprsf'] = input_fields['PAP']
+    satur_args['pt'] = input_fields['PT']
+    satur_args['pqsat'] = input_fields['PQSAT']
+
+    return satur_args, cloudsc_args
+
 def cloudsc_pythonize(header, source, kernel_name, out_path):
     """
     Trigger the regeneration of the Python/GT4Py CLOUDSC kernel.
@@ -208,47 +260,21 @@ def dwarf_cloudsc(regenerate):
     """
     Run that dwarf, ...!
     """
+
+    # Get raw input fields and parameters from input file
     input_path = rootpath/'config-files/input.h5'
     input_fields = load_input_fields(path=input_path)
     yrecldp, yrmcst, yrethf, yrephli = load_input_parameters(path=input_path)
 
+    # Get referennce solution fields from file
     ref_path = rootpath/'config-files/reference.h5'
     ref_fields = load_reference_fields(path=ref_path)
 
-    cloudsc_args = OrderedDict()
-    cloudsc_args['kidia'] = 1
-    cloudsc_args['kfdia'] = 100
-    cloudsc_args['klon'] = input_fields['KLON']
-    cloudsc_args['klev'] = input_fields['KLEV']
-    cloudsc_args['ktdia'] = 1
-    cloudsc_args['ldrain1d'] = False
-    cloudsc_args['ptsphy'] = input_fields['PTSPHY']
-    cloudsc_args['paphp1'] = input_fields['PAPH']
-    cloudsc_args['papp1'] = input_fields['PAP']
-    cloudsc_args['pqm1'] = input_fields['PQ']
-    cloudsc_args['pqs'] = input_fields['PQSAT']
-    cloudsc_args['ptm1'] = input_fields['PT']
-    cloudsc_args['pl'] = input_fields['PCLV'][NCLDQL,:,:]
-    cloudsc_args['pi'] = input_fields['PCLV'][NCLDQI,:,:]
-    cloudsc_args['plude'] = input_fields['PLUDE']
-    cloudsc_args['plu'] = input_fields['PLU']
-    cloudsc_args['pmfu'] = input_fields['PMFU']
-    cloudsc_args['pmfd'] = input_fields['PMFD']
-    cloudsc_args['ptent'] = input_fields['TENDENCY_LOC_T']
-    cloudsc_args['pgtent'] = input_fields['TENDENCY_CML_T']
-    cloudsc_args['ptenq'] = input_fields['TENDENCY_LOC_Q']
-    cloudsc_args['pgtenq'] = input_fields['TENDENCY_CML_Q']
-    cloudsc_args['ptenl'] = input_fields['TENDENCY_LOC_CLD'][NCLDQL,:,:]
-    cloudsc_args['pgtenl'] = input_fields['TENDENCY_CML_CLD'][NCLDQL,:,:]
-    cloudsc_args['pteni'] = input_fields['TENDENCY_LOC_CLD'][NCLDQI,:,:]
-    cloudsc_args['pgteni'] = input_fields['TENDENCY_CML_CLD'][NCLDQI,:,:]
-    cloudsc_args['psupsat'] = input_fields['PSUPSAT']
-    cloudsc_args['pclc'] = input_fields['PA']
-    cloudsc_args['pfplsl'] = input_fields['PFPLSL']
-    cloudsc_args['pfplsn'] = input_fields['PFPLSN']
-    cloudsc_args['pfhpsl'] = input_fields['PFHPSL']
-    cloudsc_args['pfhpsn'] = input_fields['PFHPSN']
-    cloudsc_args['pcovptot'] = input_fields['PCOVPTOT']
+    # Populate kernel inputs with raw fields (this splits compound arrays)
+    satur_args, cloudsc_args = arguments_from_fields(input_fields)
+
+    from cloudsc2_gt4py import wrap_input_arrays
+    satur_args, cloudsc_args = wrap_input_arrays(satur_args, cloudsc_args)
 
     klon = input_fields['KLON']
     klev = input_fields['KLEV']
@@ -286,18 +312,6 @@ def dwarf_cloudsc(regenerate):
     # Load the kernel dynamically
     sys.path.insert(0, str(rootpath/'src/cloudsc2_nl_gt4py'))
     from cloudsc2_py import cloudsc2_py, satur
-
-    satur_args = OrderedDict()
-    satur_args['kidia'] = 1
-    satur_args['kfdia'] = 100
-    satur_args['klon'] = input_fields['KLON']
-    satur_args['klev'] = input_fields['KLEV']
-    satur_args['ktdia'] = 1
-    satur_args['ldphylin'] = True
-
-    satur_args['paprsf'] = input_fields['PAP']
-    satur_args['pt'] = input_fields['PT']
-    satur_args['pqsat'] = input_fields['PQSAT']
 
     satur_args['kflag'] = 2
     satur_args['yrethf'] = yrethf
