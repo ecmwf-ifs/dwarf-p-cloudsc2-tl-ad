@@ -1,9 +1,11 @@
 import sys
 import click
-import h5py
+
 import numpy as np
 from pathlib import Path
 from collections import OrderedDict
+
+from cloudsc2_inputs import load_input_parameters, load_input_fields, load_reference_fields
 
 
 NCLV = 5      # number of microphysics variables
@@ -17,125 +19,7 @@ NCLDQV = 4    # vapour
 rootpath = Path(__file__).resolve().parents[2]
 
 
-def load_input_fields(path):
-    """
-
-    """
-    fields = OrderedDict()
-
-    argnames = [
-        'PT', 'PQ', 'PAP', 'PAPH', 'PLU', 'PLUDE', 'PMFU', 'PMFD',
-        'PA', 'PCLV', 'PSUPSAT', 'TENDENCY_CML_T', 'TENDENCY_CML_Q',
-        'TENDENCY_CML_CLD'
-    ]
-   
-    with h5py.File(path, 'r') as f:        
-        fields['KLON'] = f['KLON'][0]
-        fields['KLEV'] = f['KLEV'][0]
-        fields['PTSPHY'] = f['PTSPHY'][0]
-
-        klon = fields['KLON']
-        klev = fields['KLEV']
-        
-        for argname in argnames:
-            fields[argname] = np.ascontiguousarray(f[argname])
-
-        fields['PQSAT'] = np.ndarray(order="C", shape=(klev, klon))
-        fields['TENDENCY_LOC_A'] = np.ndarray(order="C", shape=(klev, klon))
-        fields['TENDENCY_LOC_T'] = np.ndarray(order="C", shape=(klev, klon))
-        fields['TENDENCY_LOC_Q'] = np.ndarray(order="C", shape=(klev, klon))
-        fields['TENDENCY_LOC_CLD'] = np.ndarray(order="C", shape=(NCLV, klev, klon))
-        fields['PCOVPTOT'] = np.ndarray(order="C", shape=(klev, klon))
-        fields['PFPLSL'] = np.ndarray(order="C", shape=(klev+1, klon))
-        fields['PFPLSN'] = np.ndarray(order="C", shape=(klev+1, klon))
-        fields['PFHPSL'] = np.ndarray(order="C", shape=(klev+1, klon))
-        fields['PFHPSN'] = np.ndarray(order="C", shape=(klev+1, klon))
-
-    return fields
-
-def load_input_parameters(path):
-    class TECLDP:
-        pass
-    yrecldp = TECLDP()
-
-    class TEPHLI:
-        pass
-    yrephli = TEPHLI()
-
-    class TMCST:
-        pass
-    yrmcst = TMCST()
-
-    class TETHF:
-        pass
-    yrethf = TETHF()
-
-
-    with h5py.File(path, 'r') as f:
-        tecldp_keys = [k for k in f.keys() if 'YRECLDP' in k]
-        for k in tecldp_keys:
-            attrkey = k.replace('YRECLDP_', '').lower()
-            setattr(yrecldp, attrkey, f[k][0])
-
-        tephli_keys = [k for k in f.keys() if 'YREPHLI' in k]
-        for k in tephli_keys:
-            attrkey = k.replace('YREPHLI_', '').lower()
-            setattr(yrephli, attrkey, f[k][0])
-
-        yrmcst.rg = f['RG'][0]
-        yrmcst.rd = f['RD'][0]
-        yrmcst.rcpd = f['RCPD'][0]
-        yrmcst.retv = f['RETV'][0]
-        yrmcst.rlvtt = f['RLVTT'][0]
-        yrmcst.rlstt = f['RLSTT'][0]
-        yrmcst.rlmlt = f['RLMLT'][0]
-        yrmcst.rtt = f['RTT'][0]
-        yrmcst.rv = f['RV'][0]
-
-        yrethf.r2es = f['R2ES'][0]
-        yrethf.r3les = f['R3LES'][0]
-        yrethf.r3ies = f['R3IES'][0]
-        yrethf.r4les = f['R4LES'][0]
-        yrethf.r4ies = f['R4IES'][0]
-        yrethf.r5les = f['R5LES'][0]
-        yrethf.r5ies = f['R5IES'][0]
-        yrethf.r5alvcp = f['R5ALVCP'][0]
-        yrethf.r5alscp = f['R5ALSCP'][0]
-        yrethf.ralvdcp = f['RALVDCP'][0]
-        yrethf.ralsdcp = f['RALSDCP'][0]
-        yrethf.ralfdcp = f['RALFDCP'][0]
-        yrethf.rtwat = f['RTWAT'][0]
-        yrethf.rtice = f['RTICE'][0]
-        yrethf.rticecu = f['RTICECU'][0]
-        yrethf.rtwat_rtice_r = f['RTWAT_RTICE_R'][0]
-        yrethf.rtwat_rticecu_r = f['RTWAT_RTICECU_R'][0]
-        yrethf.rkoop1 = f['RKOOP1'][0]
-        yrethf.rkoop2 = f['RKOOP2'][0]
-
-        yrethf.rvtmp2 = 0.0
-
-    return yrecldp, yrmcst, yrethf, yrephli
-
-
-def load_reference_fields(path):
-    """
-
-    """
-    fields = OrderedDict()
-
-    argnames = [
-        'PLUDE', 'PCOVPTOT', 'PFPLSL', 'PFPLSN', 'PFHPSL', 'PFHPSN', 
-        'TENDENCY_LOC_A', 'TENDENCY_LOC_Q', 'TENDENCY_LOC_T', 'TENDENCY_LOC_CLD',
-    ]
-   
-    with h5py.File(path, 'r') as f:                
-        for argname in argnames:
-            fields[argname.lower()] = np.ascontiguousarray(f[argname])
-
-    return fields
-
-
-def arguments_from_fields(input_fields, use_gtstorage=True):
+def arguments_from_fields(input_fields):
     """
     Set up the arguments for the kernel from the loaded fields.
     """
@@ -261,10 +145,15 @@ def dwarf_cloudsc(regenerate):
     Run that dwarf, ...!
     """
 
+    use_gt4py = True
+
     # Get raw input fields and parameters from input file
     input_path = rootpath/'config-files/input.h5'
     input_fields = load_input_fields(path=input_path)
-    yrecldp, yrmcst, yrethf, yrephli = load_input_parameters(path=input_path)
+    yrecldp, yrmcst, yrethf, yrephli, yrecld = load_input_parameters(path=input_path)
+
+    klon = input_fields['KLON']
+    klev = input_fields['KLEV']
 
     # Get referennce solution fields from file
     ref_path = rootpath/'config-files/reference.h5'
@@ -273,25 +162,9 @@ def dwarf_cloudsc(regenerate):
     # Populate kernel inputs with raw fields (this splits compound arrays)
     satur_args, cloudsc_args = arguments_from_fields(input_fields)
 
-    from cloudsc2_gt4py import wrap_input_arrays
-    satur_args, cloudsc_args = wrap_input_arrays(satur_args, cloudsc_args)
-
-    klon = input_fields['KLON']
-    klev = input_fields['KLEV']
-
-    class TECLD:
-        pass
-    yrecld = TECLD()
-    yrecld.ceta = np.ndarray(order="C", shape=(klev, ))
-    yrecld.ceta[:] = input_fields['PAP'][0:,0] / input_fields['PAPH'][klev,0]
-
-    yrephli.lphylin = True
-
-    cloudsc_args['yrecldp'] = yrecldp
-    cloudsc_args['yrecld'] = yrecld
-    cloudsc_args['yrmcst'] = yrmcst
-    cloudsc_args['yrethf'] = yrethf
-    cloudsc_args['yrephli'] = yrephli
+    if use_gt4py:
+        from cloudsc2_gt4py import wrap_input_arrays
+        satur_args, cloudsc_args = wrap_input_arrays(satur_args, cloudsc_args)
 
     if regenerate:
         ### NOTE: DO NOT USE!!!
@@ -312,27 +185,53 @@ def dwarf_cloudsc(regenerate):
     # Load the kernel dynamically
     sys.path.insert(0, str(rootpath/'src/cloudsc2_nl_gt4py'))
     from cloudsc2_py import cloudsc2_py, satur
+    from cloudsc2_gt4py import cloudsc2_py_gt4py, satur_py_gt4py
 
     satur_args['kflag'] = 2
-    satur_args['yrethf'] = yrethf
-    satur_args['yrmcst'] = yrmcst
 
-    satur(**satur_args)
+    if use_gt4py:
+        satur_py_gt4py(**satur_args)
+        cloudsc2_py_gt4py(**cloudsc_args)
 
-    cloudsc2_py(**cloudsc_args)
+        # Validate the output fields against reference data
+        output_fields = {}
+        output_fields['plude'] = cloudsc_args['plude'][0]
+        output_fields['pcovptot']  = cloudsc_args['pcovptot'][0]
+        output_fields['pfplsl'] = cloudsc_args['pfplsl'][0]
+        output_fields['pfplsn'] = cloudsc_args['pfplsn'][0]
+        output_fields['pfhpsl'] = cloudsc_args['pfhpsl'][0]
+        output_fields['pfhpsn']  = cloudsc_args['pfhpsn'][0]
+        output_fields['tendency_loc_a'] = np.zeros(shape=(klev, klon))
+        output_fields['tendency_loc_q'] = cloudsc_args['ptenq'][0]
+        output_fields['tendency_loc_t'] = cloudsc_args['ptent'][0]
+        # output_fields['tendency_loc_cld'] = cloudsc_args['ptenl']
 
-    # Validate the output fields against reference data
-    output_fields = {}
-    output_fields['plude'] = cloudsc_args['plude']
-    output_fields['pcovptot']  = cloudsc_args['pcovptot']
-    output_fields['pfplsl'] = cloudsc_args['pfplsl']
-    output_fields['pfplsn'] = cloudsc_args['pfplsn']
-    output_fields['pfhpsl'] = cloudsc_args['pfhpsl']
-    output_fields['pfhpsn']  = cloudsc_args['pfhpsn']
-    output_fields['tendency_loc_a'] = np.zeros(shape=(klev, klon))
-    output_fields['tendency_loc_q'] = cloudsc_args['ptenq']
-    output_fields['tendency_loc_t'] = cloudsc_args['ptent']
-    # output_fields['tendency_loc_cld'] = cloudsc_args['ptenl']
+    else:
+        satur_args['yrethf'] = yrethf
+        satur_args['yrmcst'] = yrmcst
+
+        satur(**satur_args)
+
+        cloudsc_args['yrecldp'] = yrecldp
+        cloudsc_args['yrecld'] = yrecld
+        cloudsc_args['yrmcst'] = yrmcst
+        cloudsc_args['yrethf'] = yrethf
+        cloudsc_args['yrephli'] = yrephli
+
+        cloudsc2_py(**cloudsc_args)
+
+        # Validate the output fields against reference data
+        output_fields = {}
+        output_fields['plude'] = cloudsc_args['plude']
+        output_fields['pcovptot']  = cloudsc_args['pcovptot']
+        output_fields['pfplsl'] = cloudsc_args['pfplsl']
+        output_fields['pfplsn'] = cloudsc_args['pfplsn']
+        output_fields['pfhpsl'] = cloudsc_args['pfhpsl']
+        output_fields['pfhpsn']  = cloudsc_args['pfhpsn']
+        output_fields['tendency_loc_a'] = np.zeros(shape=(klev, klon))
+        output_fields['tendency_loc_q'] = cloudsc_args['ptenq']
+        output_fields['tendency_loc_t'] = cloudsc_args['ptent']
+        # output_fields['tendency_loc_cld'] = cloudsc_args['ptenl']
 
     cloudsc_validate(output_fields, ref_fields, cloudsc_args)
     
