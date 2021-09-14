@@ -190,20 +190,32 @@ def dwarf_cloudsc(regenerate):
     satur_args['kflag'] = 2
 
     if use_gt4py:
+        del satur_args['kidia']
+        del satur_args['kfdia']
+        satur_args['iend'] = 10
+        satur_args['jend'] = 10
+
         satur_py_gt4py(**satur_args)
+
+        del cloudsc_args['kidia']
+        del cloudsc_args['kfdia']
+        cloudsc_args['iend'] = 10
+        cloudsc_args['jend'] = 10
         cloudsc2_py_gt4py(**cloudsc_args)
 
         # Validate the output fields against reference data
+        cloudsc_args['kidia'] = 1
+        cloudsc_args['kfdia'] = 100
         output_fields = {}
-        output_fields['plude'] = cloudsc_args['plude'][0]
-        output_fields['pcovptot']  = cloudsc_args['pcovptot'][0]
-        output_fields['pfplsl'] = cloudsc_args['pfplsl'][0]
-        output_fields['pfplsn'] = cloudsc_args['pfplsn'][0]
-        output_fields['pfhpsl'] = cloudsc_args['pfhpsl'][0]
-        output_fields['pfhpsn']  = cloudsc_args['pfhpsn'][0]
+        output_fields['plude'] = np.transpose(np.reshape(cloudsc_args['plude'], (klon, klev)))
+        output_fields['pcovptot']  = np.transpose(np.reshape(cloudsc_args['pcovptot'], (klon, klev)))
+        output_fields['pfplsl'] = np.transpose(np.reshape(cloudsc_args['pfplsl'], (klon, klev+1)))
+        output_fields['pfplsn'] = np.transpose(np.reshape(cloudsc_args['pfplsn'], (klon, klev+1)))
+        output_fields['pfhpsl'] = np.transpose(np.reshape(cloudsc_args['pfhpsl'], (klon, klev+1)))
+        output_fields['pfhpsn']  = np.transpose(np.reshape(cloudsc_args['pfhpsn'], (klon, klev+1)))
         output_fields['tendency_loc_a'] = np.zeros(shape=(klev, klon))
-        output_fields['tendency_loc_q'] = cloudsc_args['ptenq'][0]
-        output_fields['tendency_loc_t'] = cloudsc_args['ptent'][0]
+        output_fields['tendency_loc_q'] = np.transpose(np.reshape(cloudsc_args['ptenq'], (klon, klev)))
+        output_fields['tendency_loc_t'] = np.transpose(np.reshape(cloudsc_args['ptent'], (klon, klev)))
         # output_fields['tendency_loc_cld'] = cloudsc_args['ptenl']
 
     else:
