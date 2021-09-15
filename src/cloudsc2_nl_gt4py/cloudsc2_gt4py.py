@@ -10,6 +10,9 @@ import gt4py.storage as gt_storage
 from cloudsc2_inputs import load_input_parameters
 
 
+__all__ = ['wrap_input_arrays', 'satur_py_gt4py', 'cloudsc2_py_gt4py', 'cloudsc2_gt4py']
+
+
 backend = "numpy"
 dtype = np.float64
 origin = (0, 0, 0)
@@ -18,7 +21,7 @@ origin = (0, 0, 0)
 rootpath = Path(__file__).resolve().parents[2]
 input_path = rootpath/'config-files/input.h5'
 yrecldp, yrmcst, yrethf, yrephli, yrecld = load_input_parameters(path=input_path)
-
+klev = 137
 
 def wrap_input_arrays(satur_args, cloudsc_args):
     wrapped_fields = OrderedDict()
@@ -147,29 +150,29 @@ def cloudsc2_py_gt4py(
   
   #=======================================================================
   
-  zrfl = np.ndarray(order="C", shape=(iend,jend,1))
-  zsfl = np.ndarray(order="C", shape=(iend,jend,1))
-  zrfln = np.ndarray(order="C", shape=(iend,jend,1))
-  zsfln = np.ndarray(order="C", shape=(iend,jend,1))
-  zgdp = np.ndarray(order="C", shape=(iend,jend,1))
-  zdqdt = np.ndarray(order="C", shape=(iend,jend,1))
-  zdtdt = np.ndarray(order="C", shape=(iend,jend,1))
-  zdldt = np.ndarray(order="C", shape=(iend,jend,1))
-  zdidt = np.ndarray(order="C", shape=(iend,jend,1))
+  # zrfl = np.ndarray(order="C", shape=(iend,jend,1))
+  # zsfl = np.ndarray(order="C", shape=(iend,jend,1))
+  zrfln = np.ndarray(order="C", shape=(iend,jend,klev))
+  zsfln = np.ndarray(order="C", shape=(iend,jend,klev))
+  zgdp = np.ndarray(order="C", shape=(iend,jend,klev))
+  zdqdt = np.ndarray(order="C", shape=(iend,jend,klev))
+  zdtdt = np.ndarray(order="C", shape=(iend,jend,klev))
+  # zdldt = np.ndarray(order="C", shape=(iend,jend,1))
+  # zdidt = np.ndarray(order="C", shape=(iend,jend,1))
   zqcrit = np.ndarray(order="C", shape=(iend,jend,1))
   zcovpclr = np.ndarray(order="C", shape=(iend,jend,1))
   zcovptot = np.ndarray(order="C", shape=(iend,jend,1))
   zdqsdtemp = np.ndarray(order="C", shape=(iend,jend,1))
   zcorqs = np.ndarray(order="C", shape=(iend,jend,1))
   zdtgdp = np.ndarray(order="C", shape=(iend,jend,1))
-  zqold = np.ndarray(order="C", shape=(iend,jend,1))
+  zqold = np.ndarray(order="C", shape=(iend,jend,klev))
   zpp = np.ndarray(order="C", shape=(iend,jend,1))
   zdq = np.ndarray(order="C", shape=(iend,jend,1))
   zqlim = np.ndarray(order="C", shape=(iend,jend,1))
   zscalm = np.ndarray(order="C", shape=(klev,))
   zqsat = np.ndarray(order="C", shape=(iend,jend,1))
   zfoeew = np.ndarray(order="C", shape=(iend,jend,1))
-  zfwat = np.ndarray(order="C", shape=(iend,jend,1))
+  zfwat = np.ndarray(order="C", shape=(iend,jend,klev))
   
   
   ztrpaus = np.ndarray(order="C", shape=(iend,jend,1))
@@ -229,8 +232,7 @@ def cloudsc2_py_gt4py(
   for jk in range(klev):
     for i, j in product(range(iend), range(jend)):
       ztp1[i,j,jk] = ptm1[i,j,jk] + ptsphy*pgtent[i,j,jk]
-      zqp1[i,j,jk] = \
-        pqm1[i,j,jk] + ptsphy*pgtenq[i,j,jk] + psupsat[i,j,jk]
+      zqp1[i,j,jk] = pqm1[i,j,jk] + ptsphy*pgtenq[i,j,jk] + psupsat[i,j,jk]
       zl[i,j,jk] = pl[i,j,jk] + ptsphy*pgtenl[i,j,jk]
       zi[i,j,jk] = pi[i,j,jk] + ptsphy*pgteni[i,j,jk]
   
@@ -273,8 +275,8 @@ def cloudsc2_py_gt4py(
   #       Set to zero precipitation fluxes at the top
   
   for i, j in product(range(iend), range(jend)):
-    zrfl[i,j,0] = 0.0
-    zsfl[i,j,0] = 0.0
+    zrfln[i,j,0] = 0.0
+    zsfln[i,j,0] = 0.0
     pfplsl[i,j,0] = 0.0
     pfplsn[i,j,0] = 0.0
     zcovptot[i,j,0] = 0.0
@@ -314,11 +316,11 @@ def cloudsc2_py_gt4py(
       if yrephli.lphylin or ldrain1d:
         zoealfaw = 0.545*(np.tanh(0.17*(ztp1[i,j,jk] - yrephli.rlptrc)) + 1.0)
         if ztp1[i,j,jk] < yrmcst.rtt:
-          zfwat[i,j,0] = zoealfaw
+          zfwat[i,j,jk] = zoealfaw
           z3es = yrethf.r3ies
           z4es = yrethf.r4ies
         else:
-          zfwat[i,j,0] = 1.0
+          zfwat[i,j,jk] = 1.0
           z3es = yrethf.r3les
           z4es = yrethf.r4les
         zfoeew[i,j,0] = \
@@ -327,16 +329,16 @@ def cloudsc2_py_gt4py(
         if zesdp > zqmax:
           zesdp = zqmax
       else:
-        zfwat[i,j,0] = foealfa(ztp1[i,j,jk], yrethf)
+        zfwat[i,j,jk] = foealfa(ztp1[i,j,jk], yrethf)
         zfoeew[i,j,0] = foeewm(ztp1[i,j,jk], yrethf, yrmcst)
         zesdp = zfoeew[i,j,0] / papp1[i,j,jk]
       zfacw = yrethf.r5les / ((ztp1[i,j,jk] - yrethf.r4les)**2)
       zfaci = yrethf.r5ies / ((ztp1[i,j,jk] - yrethf.r4ies)**2)
-      zfac = zfwat[i,j,0]*zfacw + (1.0 - zfwat[i,j,0])*zfaci
+      zfac = zfwat[i,j,jk]*zfacw + (1.0 - zfwat[i,j,jk])*zfaci
       zcor = 1.0 / (1.0 - yrmcst.retv*zesdp)
       zdqsdtemp[i,j,0] = zfac*zcor*pqs[i,j,jk]
       zcorqs[i,j,0] = 1.0 + zcons3*zdqsdtemp[i,j,0]
-      
+
       # use clipped state
       
       zqlim[i,j,0] = zqp1[i,j,jk]
@@ -384,12 +386,16 @@ def cloudsc2_py_gt4py(
           1.0 - np.sqrt(zqpd / (zqcd - zscalm[jk]*(zqt - zqcrit[i,j,0])))
         zqc[i,j,jk] = \
           (zscalm[jk]*zqpd + (1.0 - zscalm[jk])*zqcd)*pclc[i,j,jk]**2
-    
+
+  # ----------------------------------------------------------------------
+  # for jk in range(klev):
+    # for i, j in product(range(iend), range(jend)):
+
     # Add convective component
     
     for i, j in product(range(iend), range(jend)):
-      zgdp[i,j,0] = yrmcst.rg / (paphp1[i,j,jk+1] - paphp1[i,j,jk])
-      zlude[i,j,jk] = plude[i,j,jk]*ptsphy*zgdp[i,j,0]
+      zgdp[i,j,jk] = yrmcst.rg / (paphp1[i,j,jk+1] - paphp1[i,j,jk])
+      zlude[i,j,jk] = plude[i,j,jk]*ptsphy*zgdp[i,j,jk]
       if jk < klev:
         llo1 = zlude[i,j,jk] >= yrecldp.rlmin and plu[i,j,jk+1] >= zeps2
       else:
@@ -407,7 +413,7 @@ def cloudsc2_py_gt4py(
       zfac2 = 1.0 / (papp1[i,j,jk] - yrmcst.retv*zfoeew[i,j,0])
       zrodqsdp = -zrho*pqs[i,j,jk]*zfac2
       zldcp = \
-        zfwat[i,j,0]*zlvdcp[i,j,jk] + (1.0 - zfwat[i,j,0])*zlsdcp[i,j,jk]
+        zfwat[i,j,jk]*zlvdcp[i,j,jk] + (1.0 - zfwat[i,j,jk])*zlsdcp[i,j,jk]
       zfac3 = 1.0 / (1.0 + zldcp*zdqsdtemp[i,j,0])
       dtdzmo = yrmcst.rg*(1.0 / yrmcst.rcpd - zldcp*zrodqsdp)*zfac3
       zdqsdz = zdqsdtemp[i,j,0]*dtdzmo - yrmcst.rg*zrodqsdp
@@ -418,8 +424,8 @@ def cloudsc2_py_gt4py(
     # New cloud liquid/ice contents and condensation rates (liquid/ice)
     
     for i, j in product(range(iend), range(jend)):
-      zqlwc[i,j,jk] = zqc[i,j,jk]*zfwat[i,j,0]
-      zqiwc[i,j,jk] = zqc[i,j,jk]*(1.0 - zfwat[i,j,0])
+      zqlwc[i,j,jk] = zqc[i,j,jk]*zfwat[i,j,jk]
+      zqiwc[i,j,jk] = zqc[i,j,jk]*(1.0 - zfwat[i,j,jk])
       zcondl[i,j,jk] = (zqlwc[i,j,jk] - zl[i,j,jk])*zqtmst
       zcondi[i,j,jk] = (zqiwc[i,j,jk] - zi[i,j,jk])*zqtmst
     
@@ -439,15 +445,20 @@ def cloudsc2_py_gt4py(
     # Melting of incoming snow
     
     for i, j in product(range(iend), range(jend)):
-      if zsfl[i,j,0] != 0.0:
+      if jk > 0:
+        # Level loop update (this step becomes implicit in the stencil)
+        zrfln[i,j,jk] = zrfln[i,j,jk-1] if jk > 0 else 0.0
+        zsfln[i,j,jk] = zsfln[i,j,jk-1] if jk > 0 else 0.0  
+      if zsfln[i,j,jk] != 0.0:
         zcons = (zcons2*zdp[i,j,jk]) / zlfdcp[i,j,jk]
-        zsnmlt = min(zsfl[i,j,0], zcons*max(0.0, (ztp1[i,j,jk] - zmeltp2)))
-        zrfln[i,j,0] = zrfl[i,j,0] + zsnmlt
-        zsfln[i,j,0] = zsfl[i,j,0] - zsnmlt
+        zsnmlt = min(zsfln[i,j,jk], zcons*max(0.0, (ztp1[i,j,jk] - zmeltp2)))
+        # zrfln[i,j,jk] = zrfl[i,j,0] + zsnmlt
+        zrfln[i,j,jk] = zrfln[i,j,jk] + zsnmlt
+        zsfln[i,j,jk] = zsfln[i,j,jk] - zsnmlt
         ztp1[i,j,jk] = ztp1[i,j,jk] - zsnmlt / zcons
-      else:
-        zrfln[i,j,0] = zrfl[i,j,0]
-        zsfln[i,j,0] = zsfl[i,j,0]
+      # else:
+        # zrfln[i,j,jk] = zrfl[i,j,0]
+        # zsfln[i,j,0] = zsfl[i,j,0]
     
     for i, j in product(range(iend), range(jend)):
       
@@ -498,12 +509,12 @@ def cloudsc2_py_gt4py(
       
       zrn = zfwatr*zdr
       zsn = (1.0 - zfwatr)*zdr
-      zrfln[i,j,0] = zrfln[i,j,0] + zrn
-      zsfln[i,j,0] = zsfln[i,j,0] + zsn
+      zrfln[i,j,jk] = zrfln[i,j,jk] + zrn
+      zsfln[i,j,jk] = zsfln[i,j,jk] + zsn
       
       #   Precip evaporation
       
-      zprtot = zrfln[i,j,0] + zsfln[i,j,0]
+      zprtot = zrfln[i,j,jk] + zsfln[i,j,jk]
       llo2 = zprtot > zeps2 and zcovpclr[i,j,0] > zeps2 and ldrain1d
       if llo2:
         
@@ -533,12 +544,12 @@ def cloudsc2_py_gt4py(
         pcovptot[i,j,jk] = zcovptot[i,j,0]
         
         # warm proportion
-        zevapr[i,j,jk] = (zdpr*zrfln[i,j,0]) / zprtot
-        zrfln[i,j,0] = zrfln[i,j,0] - zevapr[i,j,jk]
+        zevapr[i,j,jk] = (zdpr*zrfln[i,j,jk]) / zprtot
+        zrfln[i,j,jk] = zrfln[i,j,jk] - zevapr[i,j,jk]
         
         # ice proportion
-        zevaps[i,j,jk] = (zdpr*zsfln[i,j,0]) / zprtot
-        zsfln[i,j,0] = zsfln[i,j,0] - zevaps[i,j,jk]
+        zevaps[i,j,jk] = (zdpr*zsfln[i,j,jk]) / zprtot
+        zsfln[i,j,jk] = zsfln[i,j,jk] - zevaps[i,j,jk]
       
     
     # Update of T and Q tendencies due to:
@@ -548,21 +559,21 @@ def cloudsc2_py_gt4py(
     #  - freezing of rain (impact on T only).
     
     for i, j in product(range(iend), range(jend)):
-      zdqdt[i,j,0] = -(zcondl[i,j,jk] + zcondi[i,j,jk]) + (plude[i,j,jk] \
-        + zevapr[i,j,jk] + zevaps[i,j,jk])*zgdp[i,j,0]
+      zdqdt[i,j,jk] = -(zcondl[i,j,jk] + zcondi[i,j,jk]) + (plude[i,j,jk] \
+        + zevapr[i,j,jk] + zevaps[i,j,jk])*zgdp[i,j,jk]
       
-      zdtdt[i,j,0] = zlvdcp[i,j,jk]*zcondl[i,j,jk] + zlsdcp[i,j,jk] \
+      zdtdt[i,j,jk] = zlvdcp[i,j,jk]*zcondl[i,j,jk] + zlsdcp[i,j,jk] \
         *zcondi[i,j,jk] - (zlvdcp[i,j,jk]*zevapr[i,j,jk] + \
-        zlsdcp[i,j,jk]*zevaps[i,j,jk] + plude[i,j,jk]*(zfwat[i,j,0] \
-        *zlvdcp[i,j,jk] + (1.0 - zfwat[i,j,0])*zlsdcp[i,j,jk]) - \
-        (zlsdcp[i,j,jk] - zlvdcp[i,j,jk])*zrfreeze[i,j,jk])*zgdp[i,j,0]
+        zlsdcp[i,j,jk]*zevaps[i,j,jk] + plude[i,j,jk]*(zfwat[i,j,jk] \
+        *zlvdcp[i,j,jk] + (1.0 - zfwat[i,j,jk])*zlsdcp[i,j,jk]) - \
+        (zlsdcp[i,j,jk] - zlvdcp[i,j,jk])*zrfreeze[i,j,jk])*zgdp[i,j,jk]
       
       # first guess T and Q
-      ztp1[i,j,jk] = ztp1[i,j,jk] + ptsphy*zdtdt[i,j,0]
-      zqp1[i,j,jk] = zqp1[i,j,jk] + ptsphy*zdqdt[i,j,0]
+      ztp1[i,j,jk] = ztp1[i,j,jk] + ptsphy*zdtdt[i,j,jk]
+      zqp1[i,j,jk] = zqp1[i,j,jk] + ptsphy*zdqdt[i,j,jk]
       
       zpp[i,j,0] = papp1[i,j,jk]
-      zqold[i,j,0] = zqp1[i,j,jk]
+      zqold[i,j,jk] = zqp1[i,j,jk]
     
     # clipping of final qv
     
@@ -611,14 +622,14 @@ def cloudsc2_py_gt4py(
       ztp1[i,j,jk] = ztp1[i,j,jk] + zaldcp*zcond1
       zqp1[i,j,jk] = zqp1[i,j,jk] - zcond1
     # -----------------------------------
-    
+
     for i, j in product(range(iend), range(jend)):
-      zdq[i,j,0] = max(0.0, zqold[i,j,0] - zqp1[i,j,jk])
+      zdq[i,j,0] = max(0.0, zqold[i,j,jk] - zqp1[i,j,jk])
       zdr2 = zcons2*zdp[i,j,jk]*zdq[i,j,0]
       # Update rain fraction and freezing.
       # Note: impact of new temperature ZTP1 on ZFWAT is neglected here.
       if ztp1[i,j,jk] < yrmcst.rtt:
-        zrfreeze2 = zfwat[i,j,0]*zdr2
+        zrfreeze2 = zfwat[i,j,jk]*zdr2
         zfwatr = 0.0
       else:
         zrfreeze2 = 0.0
@@ -628,49 +639,125 @@ def cloudsc2_py_gt4py(
       # Note: The extra condensation due to the adjustment goes directly to precipitation
       zcondl[i,j,jk] = zcondl[i,j,jk] + zfwatr*zdq[i,j,0]*zqtmst
       zcondi[i,j,jk] = zcondi[i,j,jk] + (1.0 - zfwatr)*zdq[i,j,0]*zqtmst
-      zrfln[i,j,0] = zrfln[i,j,0] + zrn
-      zsfln[i,j,0] = zsfln[i,j,0] + zsn
+      zrfln[i,j,jk] = zrfln[i,j,jk] + zrn
+      zsfln[i,j,jk] = zsfln[i,j,jk] + zsn
       zrfreeze[i,j,jk] = zrfreeze[i,j,jk] + zrfreeze2
     
-    for i, j in product(range(iend), range(jend)):
-      zdqdt[i,j,0] = -(zcondl[i,j,jk] + zcondi[i,j,jk]) + (plude[i,j,jk] \
-        + zevapr[i,j,jk] + zevaps[i,j,jk])*zgdp[i,j,0]
+    # for i, j in product(range(iend), range(jend)):
+    #   zdqdt[i,j,jk] = -(zcondl[i,j,jk] + zcondi[i,j,jk]) + (plude[i,j,jk] \
+    #     + zevapr[i,j,jk] + zevaps[i,j,jk])*zgdp[i,j,jk]
       
-      zdtdt[i,j,0] = zlvdcp[i,j,jk]*zcondl[i,j,jk] + zlsdcp[i,j,jk] * \
-        zcondi[i,j,jk] - (zlvdcp[i,j,jk]*zevapr[i,j,jk] + \
-        zlsdcp[i,j,jk]*zevaps[i,j,jk] + plude[i,j,jk]*(zfwat[i,j,0] * \
-        zlvdcp[i,j,jk] + (1.0 - zfwat[i,j,0])*zlsdcp[i,j,jk]) - \
-        (zlsdcp[i,j,jk] - zlvdcp[i,j,jk])*zrfreeze[i,j,jk])*zgdp[i,j,0]
+      # zdtdt[i,j,jk] = zlvdcp[i,j,jk]*zcondl[i,j,jk] + zlsdcp[i,j,jk] * \
+      #   zcondi[i,j,jk] - (zlvdcp[i,j,jk]*zevapr[i,j,jk] + \
+      #   zlsdcp[i,j,jk]*zevaps[i,j,jk] + plude[i,j,jk]*(zfwat[i,j,jk] * \
+      #   zlvdcp[i,j,jk] + (1.0 - zfwat[i,j,jk])*zlsdcp[i,j,jk]) - \
+      #   (zlsdcp[i,j,jk] - zlvdcp[i,j,jk])*zrfreeze[i,j,jk])*zgdp[i,j,jk]
       
-      zdldt[i,j,0] = (zqlwc[i,j,jk] - zl[i,j,jk])*zqtmst
+      # zdldt[i,j,0] = (zqlwc[i,j,jk] - zl[i,j,jk])*zqtmst
       
-      zdidt[i,j,0] = (zqiwc[i,j,jk] - zi[i,j,jk])*zqtmst
+      # zdidt[i,j,0] = (zqiwc[i,j,jk] - zi[i,j,jk])*zqtmst
       
-      ptenq[i,j,jk] = zdqdt[i,j,0]
-      ptent[i,j,jk] = zdtdt[i,j,0]
-      ptenl[i,j,jk] = zdldt[i,j,0]
-      pteni[i,j,jk] = zdidt[i,j,0]
+      # ptenq[i,j,jk] = zdqdt[i,j,jk]
+      # ptent[i,j,jk] = zdtdt[i,j,jk]
+      # ptenl[i,j,jk] = (zqlwc[i,j,jk] - zl[i,j,jk])*zqtmst
+      # pteni[i,j,jk] = (zqiwc[i,j,jk] - zi[i,j,jk])*zqtmst
       
-      pfplsl[i,j,jk+1] = zrfln[i,j,0]
-      pfplsn[i,j,jk+1] = zsfln[i,j,0]
+      # pfplsl[i,j,jk+1] = zrfln[i,j,jk]
+      # pfplsn[i,j,jk+1] = zsfln[i,j,jk]
     
     # record rain flux for next level
-    
-    for i, j in product(range(iend), range(jend)):
-      zrfl[i,j,0] = zrfln[i,j,0]
-      zsfl[i,j,0] = zsfln[i,j,0]
+
+  # for jk in range(klev):
+  #   for i, j in product(range(iend), range(jend)):
+  #     zrfl[i,j,0] = zrfln[i,j,0]
+  #     zsfl[i,j,0] = zsfln[i,j,0]
     
   #jk
   
   #*     ENTHALPY FLUXES DUE TO PRECIPITATION
   #      ------------------------------------
   
-  for jk in range(klev + 1):
-    for i, j in product(range(iend), range(jend)):
-      pfhpsl[i,j,jk] = -pfplsl[i,j,jk]*yrmcst.rlvtt
-      pfhpsn[i,j,jk] = -pfplsn[i,j,jk]*yrmcst.rlstt
+  # for jk in range(klev + 1):
+  #   for i, j in product(range(iend), range(jend)):
+  #     pfhpsl[i,j,jk] = -pfplsl[i,j,jk]*yrmcst.rlvtt
+  #     pfhpsn[i,j,jk] = -pfplsn[i,j,jk]*yrmcst.rlstt
+
+  cloudsc2_gt4py(plude, ptenq, ptent, ptenl, pteni, pfhpsl, pfhpsn, pfplsl, pfplsn,
+                 zqold=zqold, zqp1=zqp1, ztp1=ztp1, zdp=zdp, zlvdcp=zlvdcp, zlsdcp=zlsdcp,
+                 zcondl=zcondl, zcondi=zcondi, zevapr=zevapr, zevaps=zevaps,
+                 zfwat=zfwat, zrfreeze=zrfreeze, zdq=zdq, zgdp=zgdp, zdqdt=zdqdt,
+                 zdtdt=zdtdt, zqlwc=zqlwc, zqiwc=zqiwc, zl=zl, zi=zi,
+                 zrfln=zrfln, zsfln=zsfln, zqtmst=zqtmst, zcons2=zcons2)
   
   #     ------------------------------------------------------------------
   
   #IF (LHOOK) CALL DR_HOOK('CLOUDSC2',1,ZHOOK_HANDLE)
   return 
+
+externals = {
+    'yrmcst': yrmcst
+}
+
+@gtscript.stencil(backend=backend, externals=externals)
+def cloudsc2_gt4py(
+        plude: gtscript.Field[dtype],
+        ptenq: gtscript.Field[dtype],
+        ptent: gtscript.Field[dtype],
+        ptenl: gtscript.Field[dtype],
+        pteni: gtscript.Field[dtype],
+        pfhpsl: gtscript.Field[dtype],
+        pfhpsn: gtscript.Field[dtype],
+        pfplsl: gtscript.Field[dtype],
+        pfplsn: gtscript.Field[dtype],
+        # ---------------------------
+        # temporaries (remove when done)
+        # ---------------------------
+        zqold: gtscript.Field[dtype],
+        zdq: gtscript.Field[dtype],
+        zdp: gtscript.Field[dtype],
+        ztp1: gtscript.Field[dtype],
+        zqp1: gtscript.Field[dtype],
+        zlvdcp: gtscript.Field[dtype],
+        zlsdcp: gtscript.Field[dtype],
+        zcondl: gtscript.Field[dtype],
+        zcondi: gtscript.Field[dtype],
+        zevapr: gtscript.Field[dtype],
+        zevaps: gtscript.Field[dtype],
+        zfwat: gtscript.Field[dtype],
+        zrfreeze: gtscript.Field[dtype],
+        zgdp: gtscript.Field[dtype],
+        zdqdt: gtscript.Field[dtype],
+        zdtdt: gtscript.Field[dtype],
+        zqlwc: gtscript.Field[dtype],
+        zqiwc: gtscript.Field[dtype],
+        zl: gtscript.Field[dtype],
+        zi: gtscript.Field[dtype],
+        zrfln: gtscript.Field[dtype],
+        zsfln: gtscript.Field[dtype],
+        # ---------------------------
+        zqtmst: np.float64,
+        zcons2: np.float64,
+):
+
+    with computation(PARALLEL), interval(...):
+        zdqdt[0,0,0] = -(zcondl[0,0,0] + zcondi[0,0,0]) + (plude[0,0,0] + \
+            zevapr[0,0,0] + zevaps[0,0,0])*zgdp[0,0,0]
+
+        zdtdt = zlvdcp[0,0,0]*zcondl[0,0,0] + zlsdcp[0,0,0] * \
+            zcondi[0,0,0] - (zlvdcp[0,0,0]*zevapr[0,0,0] + \
+            zlsdcp[0,0,0]*zevaps[0,0,0] + plude[0,0,0]*(zfwat[0,0,0] * \
+            zlvdcp[0,0,0] + (1.0 - zfwat[0,0,0])*zlsdcp[0,0,0]) - \
+            (zlsdcp[0,0,0] - zlvdcp[0,0,0])*zrfreeze[0,0,0])*zgdp[0,0,0]
+        
+        ptenq = zdqdt[0,0,0]
+        ptent = zdtdt[0,0,0]
+        ptenl = (zqlwc[0,0,0] - zl[0,0,0])*zqtmst
+        pteni = (zqiwc[0,0,0] - zi[0,0,0])*zqtmst
+    
+    with computation(PARALLEL), interval(1, klev+1):
+        pfplsl = zrfln[0,0,-1]
+        pfplsn = zsfln[0,0,-1]
+    with computation(PARALLEL), interval(0, klev+1):
+        pfhpsl = -pfplsl[0,0,0]*yrmcst.rlvtt
+        pfhpsn = -pfplsn[0,0,0]*yrmcst.rlstt
+    
