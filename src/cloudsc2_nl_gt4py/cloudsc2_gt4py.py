@@ -24,8 +24,23 @@ input_path = rootpath/'config-files/input.h5'
 yrecldp, yrmcst, yrethf, yrephli, yrecld = load_input_parameters(path=input_path)
 klev = 137
 
-def my_tanh(x):
-    return (np.exp(x) - np.exp(-x)) / (np.exp(x) + np.exp(-x))
+
+#=======================================================================
+#     TUNABLE CONSTANTS (to be moved to include files later)
+#=======================================================================
+
+# zscal is a scale factor that linearly reduces the variance between
+# qv=qv-crit and qv-qsat
+# 0 = No scaling
+# 1 = full scaling (i.e. variance=0 when qv=qsat)
+zscal = 0.9
+
+#----------------------------------------------------------------------
+#*    1.           DEFINE CONSTANTS
+zqmax = 0.5
+zeps1 = 1.E-12
+zeps2 = 1.E-10
+
 
 def wrap_input_arrays(satur_args, cloudsc_args):
     wrapped_fields = OrderedDict()
@@ -83,10 +98,6 @@ def foeewm(ptare, yrethf, yrmcst):
 
 def satur_py_gt4py(iend, jend, klon, ktdia, klev, ldphylin, paprsf, pt, pqsat, kflag):
 
-    #----------------------------------------------------------------------
-    #*    1.           DEFINE CONSTANTS
-    zqmax = 0.5
-
     #     *
     #----------------------------------------------------------------------
     #     *    2.           CALCULATE SATURATION SPECIFIC HUMIDITY
@@ -132,16 +143,6 @@ def cloudsc2_py_gt4py(
 ):
 
     #=======================================================================
-    #     TUNABLE CONSTANTS (to be moved to include files later)
-    #=======================================================================
-
-    # zscal is a scale factor that linearly reduces the variance between
-    # qv=qv-crit and qv-qsat
-    # 0 = No scaling
-    # 1 = full scaling (i.e. variance=0 when qv=qsat)
-    zscal = 0.9
-
-    #=======================================================================
 
     zrfln = np.ndarray(order="C", shape=(iend,jend,klev))
     zsfln = np.ndarray(order="C", shape=(iend,jend,klev))
@@ -156,7 +157,7 @@ def cloudsc2_py_gt4py(
     zqp1 = np.ndarray(order="F", shape=(iend,jend,klev))
 
     # -------
-    zcrh2 = np.ndarray(order="F", shape=(iend,jend,klev))
+    zeta3 = np.ndarray(order="F", shape=(iend,jend))
 
     #*         1.     SET-UP INPUT QUANTITIES
     #                 -----------------------
@@ -172,10 +173,6 @@ def cloudsc2_py_gt4py(
     zmeltp2 = yrmcst.rtt + 2.0
     zqtmst = 1.0 / ptsphy
   
-    zqmax = 0.5
-    zeps1 = 1.E-12
-    zeps2 = 1.E-10
-
     #     --------------------------------------------------------------------
     #*         2.1    COMPUTE CRITICAL RELATIVE HUMIDITY AND RELATIVE HUMIDITY
     #                 --------------------------------------------------------
@@ -187,11 +184,6 @@ def cloudsc2_py_gt4py(
             zqp1[i,j,jk] = pqm1[i,j,jk] + ptsphy*pgtenq[i,j,jk] + psupsat[i,j,jk]
             # zl[i,j,jk] = pl[i,j,jk] + ptsphy*pgtenl[i,j,jk]
             # zi[i,j,jk] = pi[i,j,jk] + ptsphy*pgteni[i,j,jk]
-
-    for jk in range(klev):
-        # Parameter for cloud formation
-        for i, j in product(range(iend), range(jend)):
-            zscalm[i,j,jk] = zscal*max((yrecld.ceta[jk] - 0.2), zeps1)**0.2
 
     #     ------------------------------------------------------------------
 
@@ -216,21 +208,7 @@ def cloudsc2_py_gt4py(
     # set up critical value of humidity
     for jk in range(klev):
         for i, j in product(range(iend), range(jend)):
-            zeta3 = ztrpaus[i,j,0]
-            zrh1 = 1.0
-            zrh2 = 0.35 + 0.14*((zeta3 - 0.25) / 0.15)**2 + (0.04*min(zeta3 - 0.25, 0.0)) / 0.15
-            zrh3 = 1.0
-            zdeta2 = 0.3
-            zdeta1 = 0.09 + (0.16*(0.4 - zeta3)) / 0.3
-
-            if yrecld.ceta[jk] < zeta3:
-                zcrh2[i,j,jk] = zrh3
-            elif yrecld.ceta[jk] >= zeta3 and yrecld.ceta[jk] < (zeta3 + zdeta2):
-                zcrh2[i,j,jk] = zrh3 + (zrh2 - zrh3)*((yrecld.ceta[jk] - zeta3) / zdeta2)
-            elif yrecld.ceta[jk] >= (zeta3 + zdeta2) and yrecld.ceta[jk] < (1.0 - zdeta1):
-                zcrh2[i,j,jk] = zrh2
-            elif yrecld.ceta[jk] >= (1.0 - zdeta1):
-                zcrh2[i,j,jk] = zrh1 + (zrh2 - zrh1)*((1.0 - yrecld.ceta[jk]) / zdeta1)**0.5
+            zeta3[i,j] = ztrpaus[i,j,0]
 
     for jk in range(klev-1):
         for i, j in product(range(iend), range(jend)):
@@ -255,23 +233,21 @@ def cloudsc2_py_gt4py(
         psupsat=psupsat, pclc=pclc, pfhpsl=pfhpsl, pfhpsn=pfhpsn,
         pfplsl=pfplsl, pfplsn=pfplsn, pcovptot=pcovptot,
         # ---------------------------
-        zscalm=zscalm, zcrh2=zcrh2, zrfln=zrfln, zsfln=zsfln,
+        zrfln=zrfln, zsfln=zsfln, ztp1=ztp1, zqp1=zqp1, zqold=zqold,
         # ---------------------------
-        ztp1=ztp1, zqp1=zqp1, zqold=zqold,
+        paphp1_top=paphp1_top, plu_p1=plu_p1, ceta=yrecld.ceta, zeta3=zeta3,
         # ---------------------------
-        paphp1_top=paphp1_top, plu_p1=plu_p1,
-        # ---------------------------
-        ptsphy=ptsphy, zeps2=zeps2, ldrain1d=ldrain1d,
+        ptsphy=ptsphy, ldrain1d=ldrain1d,
         zckcodtl=zckcodtl, zckcodti=zckcodti, zcons2=zcons2,
-        zmeltp2=zmeltp2, zqtmst=zqtmst, zeta3=zeta3, zqmax=zqmax,
-        zcons3=zcons3,
+        zmeltp2=zmeltp2, zqtmst=zqtmst, zcons3=zcons3,
     )
 
 
 externals = {
     'yrmcst': yrmcst,
     'yrethf': yrethf,
-    'yrephli': yrephli
+    'yrephli': yrephli,
+    'zscal': zscal,
 }
 
 
@@ -320,31 +296,47 @@ def cloudsc2_kernel_gt4py(
         pfplsn: Field[IJK,dtype],
         pcovptot: Field[IJK, dtype],
         # ---------------------------
-        zscalm: gtscript.Field[gtscript.IJK,dtype],
-        zcrh2: gtscript.Field[gtscript.IJK,dtype],
         zrfln: gtscript.Field[gtscript.IJK, dtype],
         zsfln: gtscript.Field[gtscript.IJK, dtype],
-        # ---------------------------
         ztp1: gtscript.Field[gtscript.IJK, dtype],
         zqp1: gtscript.Field[gtscript.IJK, dtype],
+        # Note that removing this seems to upset things, not sure why...
         zqold: gtscript.Field[gtscript.IJK, dtype],
         # ---------------------------
         paphp1_top: gtscript.Field[gtscript.IJK, dtype],
         plu_p1: gtscript.Field[gtscript.IJK, dtype],
+        ceta: gtscript.Field[gtscript.K, dtype],
+        zeta3: gtscript.Field[gtscript.IJ, dtype],
         # ---------------------------
         ptsphy: np.float64,
-        zeps2: np.float64,
         ldrain1d: bool,
         zckcodtl: np.float64,
         zckcodti: np.float64,
         zcons2: np.float64,
         zmeltp2: np.float64,
         zqtmst: np.float64,
-        zeta3: np.float64,
-        zqmax: np.float64,
         zcons3: np.float64,
 ):
     with computation(FORWARD), interval(...):
+
+        # set up critical value of humidity
+        zrh1 = 1.0
+        zrh2 = 0.35 + 0.14*((zeta3[0,0] - 0.25) / 0.15)**2 + (0.04*min(zeta3[0,0] - 0.25, 0.0)) / 0.15
+        zrh3 = 1.0
+        zdeta2 = 0.3
+        zdeta1 = 0.09 + (0.16*(0.4 - zeta3[0,0])) / 0.3
+
+        if ceta[0] < zeta3[0,0]:
+            zcrh2 = zrh3
+        elif ceta[0] >= zeta3[0,0] and ceta[0] < (zeta3[0,0] + zdeta2):
+            zcrh2 = zrh3 + (zrh2 - zrh3)*((ceta[0] - zeta3[0,0]) / zdeta2)
+        elif ceta[0] >= (zeta3[0,0] + zdeta2) and ceta[0] < (1.0 - zdeta1):
+            zcrh2 = zrh2
+        elif ceta[0] >= (1.0 - zdeta1):
+            zcrh2 = zrh1 + (zrh2 - zrh1)*((1.0 - ceta[0]) / zdeta1)**0.5
+
+        # Parameter for cloud formation
+        zscalm = zscal*max((ceta[0] - 0.2), zeps1)**0.2
 
         # Clear cloud and freezing arrays
         pclc[0,0,0] = 0.0
@@ -415,7 +407,7 @@ def cloudsc2_kernel_gt4py(
         else:
             zsupsat = 1.0
         zqsat = pqs[0,0,0]*zsupsat
-        zqcrit = zcrh2[0,0,0]*zqsat
+        zqcrit = zcrh2*zqsat
 
 
         # simple UNIFORM distribution of total water from Letreut & Li (90)
@@ -426,12 +418,12 @@ def cloudsc2_kernel_gt4py(
             zqc = 0.0
         elif zqt >= zqsat:
             pclc[0,0,0] = 1.0
-            zqc = (1.0 - zscalm[0,0,0])*(zqsat - zqcrit)
+            zqc = (1.0 - zscalm)*(zqsat - zqcrit)
         else:
             zqpd = zqsat - zqt
             zqcd = zqsat - zqcrit
-            pclc[0,0,0] = 1.0 - sqrt(zqpd / (zqcd - zscalm[0,0,0]*(zqt - zqcrit)))
-            zqc = (zscalm[0,0,0]*zqpd + (1.0 - zscalm[0,0,0])*zqcd)*pclc[0,0,0]**2
+            pclc[0,0,0] = 1.0 - sqrt(zqpd / (zqcd - zscalm*(zqt - zqcrit)))
+            zqc = (zscalm*zqpd + (1.0 - zscalm)*zqcd)*pclc[0,0,0]**2
 
         # Add convective component
     
