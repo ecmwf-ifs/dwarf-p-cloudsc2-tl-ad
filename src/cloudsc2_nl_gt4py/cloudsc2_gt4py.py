@@ -185,7 +185,6 @@ def cloudsc2_py_gt4py(
   #REAL(KIND=JPRB) :: ZHOOK_HANDLE
 
   paphp1_top = np.ndarray(order="C", shape=(iend,jend,klev))
-  paphp1_p1 = np.ndarray(order="C", shape=(iend,jend,klev))
   plu_p1 = np.ndarray(order="C", shape=(iend,jend,klev))
   
   
@@ -333,19 +332,17 @@ def cloudsc2_py_gt4py(
   #   2. Convective CC and QL
   #   3. Rainfall
   
-  for jk in range(klev):
-
-    # ------------------------------------
-    #
-    # -----------------------------------
-    paphp1_top[:,:,jk] = paphp1[:,:,klev-1]
-    paphp1_p1[:,:,jk] = paphp1[:,:,jk+1]
-    if jk < klev-1:
-        plu_p1[:,:,jk] = plu[:,:,jk+1]
-    else:
-        plu_p1[:,:,jk] = plu[:,:,jk]
-
   cloudsc2_2d_part3_gt4py(
+        plude=plude[:,:,:],
+        ptent=ptent[:,:,:],
+        ptenq=ptenq[:,:,:],
+        ptenl=ptenl[:,:,:],
+        pteni=pteni[:,:,:],
+        pfhpsl=pfhpsl[:,:,:],
+        pfhpsn=pfhpsn[:,:,:],
+        pfplsl=pfplsl[:,:,:],
+        pfplsn=pfplsn[:,:,:],
+        # ---------------------------
         zscalm=zscalm[:,:,:],
         zcrh2=zcrh2[:,:,:],
         zlude=zlude[:,:,:],
@@ -354,7 +351,7 @@ def cloudsc2_py_gt4py(
         zi=zi[:,:,:],
         pmfu=pmfu.data[:,:,:],
         pmfd=pmfd.data[:,:,:],
-        plu_p1=plu_p1[:,:,:],
+        plu=plu[:,:,:],
         zlfdcp=zlfdcp[:,:,:],
         zdp=zdp[:,:,:],
         zqlwc=zqlwc[:,:,:],
@@ -374,7 +371,6 @@ def cloudsc2_py_gt4py(
         zdtdt=zdtdt[:,:,:],
         zcondl=zcondl[:,:,:],
         zcondi=zcondi[:,:,:],
-        plude=plude.data[:,:,:],
         zevapr=zevapr[:,:,:],
         zevaps=zevaps[:,:,:],
         zgdp=zgdp[:,:,:],
@@ -384,7 +380,6 @@ def cloudsc2_py_gt4py(
         zrfreeze=zrfreeze[:,:,:],
         # ---------------------------
         paphp1_top=paphp1_top[:,:,:],
-        paphp1_p1=paphp1_p1[:,:,:],
         # ---------------------------
         ptsphy=ptsphy,
         zeps2=zeps2,
@@ -399,22 +394,6 @@ def cloudsc2_py_gt4py(
         zcons3=zcons3,
     )
 
-  #jk
-
-  #*     ENTHALPY FLUXES DUE TO PRECIPITATION
-  #      ------------------------------------
-
-  cloudsc2_gt4py(plude, ptenq, ptent, ptenl, pteni, pfhpsl, pfhpsn, pfplsl, pfplsn,
-                 zqold=zqold, zqp1=zqp1, ztp1=ztp1, zdp=zdp, zlvdcp=zlvdcp, zlsdcp=zlsdcp,
-                 zcondl=zcondl, zcondi=zcondi, zevapr=zevapr, zevaps=zevaps,
-                 zfwat=zfwat, zrfreeze=zrfreeze, zdq=zdq, zgdp=zgdp, zdqdt=zdqdt,
-                 zdtdt=zdtdt, zqlwc=zqlwc, zqiwc=zqiwc, zl=zl, zi=zi,
-                 zrfln=zrfln, zsfln=zsfln, zqtmst=zqtmst, zcons2=zcons2)
-
-  #     ------------------------------------------------------------------
-
-  #IF (LHOOK) CALL DR_HOOK('CLOUDSC2',1,ZHOOK_HANDLE)
-  return
 
 externals = {
     'yrmcst': yrmcst,
@@ -441,6 +420,16 @@ def tanh(x):
 
 @gtscript.stencil(backend=backend, externals=externals, rebuild=True)
 def cloudsc2_2d_part3_gt4py(
+        plude: gtscript.Field[gtscript.IJK,dtype],
+        ptenq: gtscript.Field[gtscript.IJK,dtype],
+        ptent: gtscript.Field[gtscript.IJK,dtype],
+        ptenl: gtscript.Field[gtscript.IJK,dtype],
+        pteni: gtscript.Field[gtscript.IJK,dtype],
+        pfhpsl: gtscript.Field[gtscript.IJK,dtype],
+        pfhpsn: gtscript.Field[gtscript.IJK,dtype],
+        pfplsl: gtscript.Field[gtscript.IJK,dtype],
+        pfplsn: gtscript.Field[gtscript.IJK,dtype],
+        # ---------------------------
         zscalm: gtscript.Field[gtscript.IJK,dtype],
         zcrh2: gtscript.Field[gtscript.IJK,dtype],
         zlude: gtscript.Field[gtscript.IJK,dtype],
@@ -449,7 +438,7 @@ def cloudsc2_2d_part3_gt4py(
         zi: gtscript.Field[gtscript.IJK,dtype],
         pmfu: gtscript.Field[gtscript.IJK, dtype],
         pmfd: gtscript.Field[gtscript.IJK, dtype],
-        plu_p1: gtscript.Field[gtscript.IJK, dtype],
+        plu: gtscript.Field[gtscript.IJK, dtype],
         zlfdcp: gtscript.Field[gtscript.IJK, dtype],
         zdp: gtscript.Field[gtscript.IJK, dtype],
         zqlwc: gtscript.Field[gtscript.IJK, dtype],
@@ -469,7 +458,6 @@ def cloudsc2_2d_part3_gt4py(
         zdtdt: gtscript.Field[gtscript.IJK, dtype],
         zcondl: gtscript.Field[gtscript.IJK, dtype],
         zcondi: gtscript.Field[gtscript.IJK, dtype],
-        plude: gtscript.Field[gtscript.IJK, dtype],
         zevapr: gtscript.Field[gtscript.IJK, dtype],
         zevaps: gtscript.Field[gtscript.IJK, dtype],
         zgdp: gtscript.Field[gtscript.IJK, dtype],
@@ -479,7 +467,6 @@ def cloudsc2_2d_part3_gt4py(
         zrfreeze: gtscript.Field[gtscript.IJK, dtype],
         # ---------------------------
         paphp1_top: gtscript.Field[gtscript.IJK, dtype],
-        paphp1_p1: gtscript.Field[gtscript.IJK, dtype],
         # ---------------------------
         ptsphy: np.float64,
         zeps2: np.float64,
@@ -567,10 +554,10 @@ def cloudsc2_2d_part3_gt4py(
 
         # Add convective component
     
-        zgdp[0,0,0] = yrmcst.rg / (paphp1_p1[0,0,0] - paphp1[0,0,0])
+        zgdp[0,0,0] = yrmcst.rg / (paphp1[0,0,+1] - paphp1[0,0,0])
         zlude[0,0,0] = plude[0,0,0]*ptsphy*zgdp[0,0,0]
-        if zlude[0,0,0] >= yrecldp.rlmin and plu_p1[0,0,0] >= zeps2:
-            pclc[0,0,0] = pclc[0,0,0] + (1.0 - pclc[0,0,0])*(1.0 - exp(-zlude[0,0,0] / plu_p1[0,0,0]))
+        if zlude[0,0,0] >= yrecldp.rlmin and plu[0,0,+1] >= zeps2:
+            pclc[0,0,0] = pclc[0,0,0] + (1.0 - pclc[0,0,0])*(1.0 - exp(-zlude[0,0,0] / plu[0,0,+1]))
             zqc[0,0,0] = zqc[0,0,0] + zlude[0,0,0]
     
         # Add compensating subsidence component
@@ -603,7 +590,7 @@ def cloudsc2_2d_part3_gt4py(
         zcovpclr = max(zcovpclr, 0.0)
 
     
-    # with computation(FORWARD), interval(...):
+    with computation(FORWARD), interval(...):
 
         #*         3.3    CALCULATE PRECIPITATION
 
@@ -666,7 +653,7 @@ def cloudsc2_2d_part3_gt4py(
         zrfln[0,0,0] = zrfln[0,0,0] + zrn
         zsfln[0,0,0] = zsfln[0,0,0] + zsn
 
-    # with computation(FORWARD), interval(...):
+    with computation(FORWARD), interval(...):
         #   Precip evaporation
         zprtot = zrfln[0,0,0] + zsfln[0,0,0]
         llo2 = zprtot > zeps2 and zcovpclr > zeps2 and ldrain1d
@@ -686,7 +673,7 @@ def cloudsc2_2d_part3_gt4py(
             #     exact solution:
             #     ZB=(PQS(JL,JK)-ZQE)*(_ONE_-EXP(-ZBETA*ZCORQS(JL)*PTSPHY))/ZCORQS(JL)
         
-            zdtgdp = (ptsphy*yrmcst.rg) / (paphp1_p1[0,0,0] - paphp1[0,0,0])
+            zdtgdp = (ptsphy*yrmcst.rg) / (paphp1[0,0,+1] - paphp1[0,0,0])
         
             zdpr = (zcovpclr*zb) / zdtgdp
             zdpr = min(zdpr, zpreclr)
@@ -710,7 +697,7 @@ def cloudsc2_2d_part3_gt4py(
     #  - detrainment of convective cloud condensate
     #  - evaporation of precipitation
     #  - freezing of rain (impact on T only).
-    # with computation(FORWARD), interval(...):
+    with computation(FORWARD), interval(...):
         zdqdt[0,0,0] = -(zcondl[0,0,0] + zcondi[0,0,0]) + (plude[0,0,0] + \
             zevapr[0,0,0] + zevaps[0,0,0])*zgdp[0,0,0]
       
@@ -727,7 +714,7 @@ def cloudsc2_2d_part3_gt4py(
         zpp = papp1[0,0,0]
         zqold[0,0,0] = zqp1[0,0,0]
 
-    # with computation(FORWARD), interval(...):
+    with computation(FORWARD), interval(...):
         if ztp1[0,0,0] > yrmcst.rtt:
             z3es = yrethf.r3les
             z4es = yrethf.r4les
@@ -763,7 +750,7 @@ def cloudsc2_2d_part3_gt4py(
         ztp1[0,0,0] = ztp1[0,0,0] + zaldcp*zcond1
         zqp1[0,0,0] = zqp1[0,0,0] - zcond1
 
-    # with computation(FORWARD), interval(...):
+    with computation(FORWARD), interval(...):
         zdq = max(0.0, zqold[0,0,0] - zqp1[0,0,0])
         zdr2 = zcons2*zdp[0,0,0]*zdq
         # Update rain fraction and freezing.
@@ -783,47 +770,8 @@ def cloudsc2_2d_part3_gt4py(
         zsfln[0,0,0] = zsfln[0,0,0] + zsn
         zrfreeze[0,0,0] = zrfreeze[0,0,0] + zrfreeze2
 
-
-@gtscript.stencil(backend=backend, externals=externals)
-def cloudsc2_gt4py(
-        plude: gtscript.Field[dtype],
-        ptenq: gtscript.Field[dtype],
-        ptent: gtscript.Field[dtype],
-        ptenl: gtscript.Field[dtype],
-        pteni: gtscript.Field[dtype],
-        pfhpsl: gtscript.Field[dtype],
-        pfhpsn: gtscript.Field[dtype],
-        pfplsl: gtscript.Field[dtype],
-        pfplsn: gtscript.Field[dtype],
-        # ---------------------------
-        # temporaries (remove when done)
-        # ---------------------------
-        zqold: gtscript.Field[dtype],
-        zdq: gtscript.Field[dtype],
-        zdp: gtscript.Field[dtype],
-        ztp1: gtscript.Field[dtype],
-        zqp1: gtscript.Field[dtype],
-        zlvdcp: gtscript.Field[dtype],
-        zlsdcp: gtscript.Field[dtype],
-        zcondl: gtscript.Field[dtype],
-        zcondi: gtscript.Field[dtype],
-        zevapr: gtscript.Field[dtype],
-        zevaps: gtscript.Field[dtype],
-        zfwat: gtscript.Field[dtype],
-        zrfreeze: gtscript.Field[dtype],
-        zgdp: gtscript.Field[dtype],
-        zdqdt: gtscript.Field[dtype],
-        zdtdt: gtscript.Field[dtype],
-        zqlwc: gtscript.Field[dtype],
-        zqiwc: gtscript.Field[dtype],
-        zl: gtscript.Field[dtype],
-        zi: gtscript.Field[dtype],
-        zrfln: gtscript.Field[dtype],
-        zsfln: gtscript.Field[dtype],
-        # ---------------------------
-        zqtmst: np.float64,
-        zcons2: np.float64,
-):
+    #*     ENTHALPY FLUXES DUE TO PRECIPITATION
+    #      ------------------------------------
 
     with computation(PARALLEL), interval(...):
         zdqdt[0,0,0] = -(zcondl[0,0,0] + zcondi[0,0,0]) + (plude[0,0,0] + \
