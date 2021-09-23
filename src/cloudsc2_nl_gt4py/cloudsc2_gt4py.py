@@ -13,7 +13,7 @@ from cloudsc2_inputs import load_input_parameters
 __all__ = ['wrap_input_arrays', 'satur_py_gt4py', 'cloudsc2_py_gt4py', 'cloudsc2_gt4py']
 
 
-backend = 'debug' # "numpy"
+backend = 'numpy'
 dtype = np.float64
 origin = (0, 0, 0)
 
@@ -128,211 +128,177 @@ def cloudsc2_py_gt4py(
         papp1, pqm1, pqs, ptm1, pl, pi, plude, plu, pmfu, pmfd, ptent,
         pgtent, ptenq, pgtenq, ptenl, pgtenl, pteni, pgteni, psupsat,
         pclc, pfplsl, pfplsn, pfhpsl, pfhpsn, pcovptot):
-  
-  #     -----------------------------------------------------------------
-  
-  #*       0.1   ARGUMENTS.
-  #              ----------
-  
-  #     -----------------------------------------------------------------
-  
-  #*       0.2   LOCAL ARRAYS.
-  #              -------------
-  
-  
-  #=======================================================================
-  #     TUNABLE CONSTANTS (to be moved to include files later)
-  #=======================================================================
-  
-  # zscal is a scale factor that linearly reduces the variance between
-  # qv=qv-crit and qv-qsat
-  # 0 = No scaling
-  # 1 = full scaling (i.e. variance=0 when qv=qsat)
-  
-  zscal = 0.9
-  
-  #=======================================================================
-  
-  # zrfl = np.ndarray(order="C", shape=(iend,jend,1))
-  # zsfl = np.ndarray(order="C", shape=(iend,jend,1))
-  zrfln = np.ndarray(order="C", shape=(iend,jend,klev))
-  zsfln = np.ndarray(order="C", shape=(iend,jend,klev))
-  zgdp = np.ndarray(order="C", shape=(iend,jend,klev))
-  zdqdt = np.ndarray(order="C", shape=(iend,jend,klev))
-  zdtdt = np.ndarray(order="C", shape=(iend,jend,klev))
-  # zdldt = np.ndarray(order="C", shape=(iend,jend,1))
-  # zdidt = np.ndarray(order="C", shape=(iend,jend,1))
-  zqcrit = np.ndarray(order="C", shape=(iend,jend,1))
-  zcovpclr = np.ndarray(order="C", shape=(iend,jend,1))
-  zcovptot = np.ndarray(order="C", shape=(iend,jend,1))
-  zdqsdtemp = np.ndarray(order="C", shape=(iend,jend,1))
-  zcorqs = np.ndarray(order="C", shape=(iend,jend,1))
-  zdtgdp = np.ndarray(order="C", shape=(iend,jend,1))
-  zqold = np.ndarray(order="C", shape=(iend,jend,klev))
-  zpp = np.ndarray(order="C", shape=(iend,jend,1))
-  zdq = np.ndarray(order="C", shape=(iend,jend,1))
-  zqlim = np.ndarray(order="C", shape=(iend,jend,1))
-  zscalm = np.ndarray(order="C", shape=(iend,jend,klev,))
-  zqsat = np.ndarray(order="C", shape=(iend,jend,1))
-  zfoeew = np.ndarray(order="C", shape=(iend,jend,1))
-  zfwat = np.ndarray(order="C", shape=(iend,jend,klev))
-  
-  
-  ztrpaus = np.ndarray(order="C", shape=(iend,jend,1))
-  
-  
-  llflag = np.ndarray(order="C", shape=(iend,jend,1))
-  #REAL(KIND=JPRB) :: ZHOOK_HANDLE
 
-  paphp1_top = np.ndarray(order="C", shape=(iend,jend,klev))
-  plu_p1 = np.ndarray(order="C", shape=(iend,jend,klev))
-  
-  
-  #     ------------------------------------------------------------------
-  ztp1 = np.ndarray(order="F", shape=(iend,jend,klev))
-  zqp1 = np.ndarray(order="F", shape=(iend,jend,klev))
-  zl = np.ndarray(order="F", shape=(iend,jend,klev))
-  zi = np.ndarray(order="F", shape=(iend,jend,klev))
-  zlude = np.ndarray(order="F", shape=(iend,jend,klev))
-  zqc = np.ndarray(order="F", shape=(iend,jend,klev))
-  zqlwc = np.ndarray(order="F", shape=(iend,jend,klev))
-  zqiwc = np.ndarray(order="F", shape=(iend,jend,klev))
-  zdp = np.ndarray(order="F", shape=(iend,jend,klev))
-  zlsdcp = np.ndarray(order="F", shape=(iend,jend,klev))
-  zlfdcp = np.ndarray(order="F", shape=(iend,jend,klev))
-  zlvdcp = np.ndarray(order="F", shape=(iend,jend,klev))
-  zrfreeze = np.ndarray(order="F", shape=(iend,jend,klev))
-  zcondl = np.ndarray(order="F", shape=(iend,jend,klev))
-  zcondi = np.ndarray(order="F", shape=(iend,jend,klev))
-  zevapr = np.ndarray(order="F", shape=(iend,jend,klev))
-  zevaps = np.ndarray(order="F", shape=(iend,jend,klev))
+    #=======================================================================
+    #     TUNABLE CONSTANTS (to be moved to include files later)
+    #=======================================================================
 
-  # -------
-  zcrh2 = np.ndarray(order="F", shape=(iend,jend,klev))
+    # zscal is a scale factor that linearly reduces the variance between
+    # qv=qv-crit and qv-qsat
+    # 0 = No scaling
+    # 1 = full scaling (i.e. variance=0 when qv=qsat)
+    zscal = 0.9
 
-  #     ------------------------------------------------------------------
+    #=======================================================================
+
+    zrfln = np.ndarray(order="C", shape=(iend,jend,klev))
+    zsfln = np.ndarray(order="C", shape=(iend,jend,klev))
+    zgdp = np.ndarray(order="C", shape=(iend,jend,klev))
+    zdqdt = np.ndarray(order="C", shape=(iend,jend,klev))
+    zdtdt = np.ndarray(order="C", shape=(iend,jend,klev))
+    zqcrit = np.ndarray(order="C", shape=(iend,jend,1))
+    zcovpclr = np.ndarray(order="C", shape=(iend,jend,1))
+    zcovptot = np.ndarray(order="C", shape=(iend,jend,1))
+    zdqsdtemp = np.ndarray(order="C", shape=(iend,jend,1))
+    zcorqs = np.ndarray(order="C", shape=(iend,jend,1))
+    zdtgdp = np.ndarray(order="C", shape=(iend,jend,1))
+    zqold = np.ndarray(order="C", shape=(iend,jend,klev))
+    zpp = np.ndarray(order="C", shape=(iend,jend,1))
+    zdq = np.ndarray(order="C", shape=(iend,jend,1))
+    zqlim = np.ndarray(order="C", shape=(iend,jend,1))
+    zscalm = np.ndarray(order="C", shape=(iend,jend,klev,))
+    zqsat = np.ndarray(order="C", shape=(iend,jend,1))
+    zfoeew = np.ndarray(order="C", shape=(iend,jend,1))
+    zfwat = np.ndarray(order="C", shape=(iend,jend,klev))
+    ztrpaus = np.ndarray(order="C", shape=(iend,jend,1))
+    #     ------------------------------------------------------------------
+    paphp1_top = np.ndarray(order="C", shape=(iend,jend,klev))
+    plu_p1 = np.ndarray(order="C", shape=(iend,jend,klev))
+    #     ------------------------------------------------------------------
+    ztp1 = np.ndarray(order="F", shape=(iend,jend,klev))
+    zqp1 = np.ndarray(order="F", shape=(iend,jend,klev))
+    zl = np.ndarray(order="F", shape=(iend,jend,klev))
+    zi = np.ndarray(order="F", shape=(iend,jend,klev))
+    zlude = np.ndarray(order="F", shape=(iend,jend,klev))
+    zqc = np.ndarray(order="F", shape=(iend,jend,klev))
+    zqlwc = np.ndarray(order="F", shape=(iend,jend,klev))
+    zqiwc = np.ndarray(order="F", shape=(iend,jend,klev))
+    zdp = np.ndarray(order="F", shape=(iend,jend,klev))
+    zlsdcp = np.ndarray(order="F", shape=(iend,jend,klev))
+    zlfdcp = np.ndarray(order="F", shape=(iend,jend,klev))
+    zlvdcp = np.ndarray(order="F", shape=(iend,jend,klev))
+    zrfreeze = np.ndarray(order="F", shape=(iend,jend,klev))
+    zcondl = np.ndarray(order="F", shape=(iend,jend,klev))
+    zcondi = np.ndarray(order="F", shape=(iend,jend,klev))
+    zevapr = np.ndarray(order="F", shape=(iend,jend,klev))
+    zevaps = np.ndarray(order="F", shape=(iend,jend,klev))
+
+    # -------
+    zcrh2 = np.ndarray(order="F", shape=(iend,jend,klev))
+
+    #*         1.     SET-UP INPUT QUANTITIES
+    #                 -----------------------
+
+    #*         1.1    Set-up tunning parameters
+
+    # set up constants required
+
+    zckcodtl = 2.0*yrecldp.rkconv*ptsphy
+    zckcodti = 5.0*yrecldp.rkconv*ptsphy
+    zcons2 = 1.0 / ((ptsphy*yrmcst.rg))
+    zcons3 = yrmcst.rlvtt / yrmcst.rcpd
+    zmeltp2 = yrmcst.rtt + 2.0
+    zqtmst = 1.0 / ptsphy
   
-  #IF (LHOOK) CALL DR_HOOK('CLOUDSC2',0,ZHOOK_HANDLE)
-  
-  #*         1.     SET-UP INPUT QUANTITIES
-  #                 -----------------------
-  
-  #*         1.1    Set-up tunning parameters
-  
-  # set up constants required
-  
-  zckcodtl = 2.0*yrecldp.rkconv*ptsphy
-  zckcodti = 5.0*yrecldp.rkconv*ptsphy
-  zcons2 = 1.0 / ((ptsphy*yrmcst.rg))
-  zcons3 = yrmcst.rlvtt / yrmcst.rcpd
-  zmeltp2 = yrmcst.rtt + 2.0
-  zqtmst = 1.0 / ptsphy
-  
-  zqmax = 0.5
-  zeps1 = 1.E-12
-  zeps2 = 1.E-10
-  
-  #     --------------------------------------------------------------------
-  
-  #*         2.1    COMPUTE CRITICAL RELATIVE HUMIDITY AND RELATIVE HUMIDITY
-  #                 --------------------------------------------------------
-  
-  # first guess values for T, q, ql and qi
-  
-  for jk in range(klev):
+    zqmax = 0.5
+    zeps1 = 1.E-12
+    zeps2 = 1.E-10
+
+    #     --------------------------------------------------------------------
+    #*         2.1    COMPUTE CRITICAL RELATIVE HUMIDITY AND RELATIVE HUMIDITY
+    #                 --------------------------------------------------------
+
+    # first guess values for T, q, ql and qi
+    for jk in range(klev):
+        for i, j in product(range(iend), range(jend)):
+            ztp1[i,j,jk] = ptm1[i,j,jk] + ptsphy*pgtent[i,j,jk]
+            zqp1[i,j,jk] = pqm1[i,j,jk] + ptsphy*pgtenq[i,j,jk] + psupsat[i,j,jk]
+            zl[i,j,jk] = pl[i,j,jk] + ptsphy*pgtenl[i,j,jk]
+            zi[i,j,jk] = pi[i,j,jk] + ptsphy*pgteni[i,j,jk]
+
+    for jk in range(klev):
+        # Parameter for cloud formation
+        for i, j in product(range(iend), range(jend)):
+            zscalm[i,j,jk] = zscal*max((yrecld.ceta[jk] - 0.2), zeps1)**0.2
+
+            # thermodynamic constants
+            zdp[i,j,jk] = paphp1[i,j,jk+1] - paphp1[i,j,jk]
+            zzz = 1.0 / (yrmcst.rcpd + yrmcst.rcpd*yrethf.rvtmp2*zqp1[i,j,jk])
+            zlfdcp[i,j,jk] = yrmcst.rlmlt*zzz
+            zlsdcp[i,j,jk] = yrmcst.rlstt*zzz
+            zlvdcp[i,j,jk] = yrmcst.rlvtt*zzz
+
+    #     ------------------------------------------------------------------
+
+    #*         2.2    INITIALIZATION OF CLOUD AND PRECIPITATION ARRAYS
+    #                 ------------------------------------------------
+
+    #       Clear cloud and freezing arrays
+    for jk in range(klev):
+        for i, j in product(range(iend), range(jend)):
+            pclc[i,j,jk] = 0.0
+            zqc[i,j,jk] = 0.0
+            zqlwc[i,j,jk] = 0.0
+            zqiwc[i,j,jk] = 0.0
+            zrfreeze[i,j,jk] = 0.0
+            zcondl[i,j,jk] = 0.0
+            zcondi[i,j,jk] = 0.0
+            zevapr[i,j,jk] = 0.0
+            zevaps[i,j,jk] = 0.0
+            pcovptot[i,j,jk] = 0.0
+
+    #       Set to zero precipitation fluxes at the top
     for i, j in product(range(iend), range(jend)):
-      ztp1[i,j,jk] = ptm1[i,j,jk] + ptsphy*pgtent[i,j,jk]
-      zqp1[i,j,jk] = pqm1[i,j,jk] + ptsphy*pgtenq[i,j,jk] + psupsat[i,j,jk]
-      zl[i,j,jk] = pl[i,j,jk] + ptsphy*pgtenl[i,j,jk]
-      zi[i,j,jk] = pi[i,j,jk] + ptsphy*pgteni[i,j,jk]
-  
-  for jk in range(klev):
-    
-    # Parameter for cloud formation
+        zrfln[i,j,0] = 0.0
+        zsfln[i,j,0] = 0.0
+        pfplsl[i,j,0] = 0.0
+        pfplsn[i,j,0] = 0.0
+        zcovptot[i,j,0] = 0.0
+        zcovpclr[i,j,0] = 0.0
 
+    # Eta value at tropopause
     for i, j in product(range(iend), range(jend)):
+        ztrpaus[i,j,0] = 0.1
+    for jk in range(klev - 1):
+        for i, j in product(range(iend), range(jend)):
+            if yrecld.ceta[jk] > 0.1 and yrecld.ceta[jk] < 0.4 and ztp1[i,j,jk] > ztp1[i,j,jk+1]:
+                ztrpaus[i,j,0] = yrecld.ceta[jk]
 
-      zscalm[i,j,jk] = zscal*max((yrecld.ceta[jk] - 0.2), zeps1)**0.2
-      
-      # thermodynamic constants
-      zdp[i,j,jk] = paphp1[i,j,jk+1] - paphp1[i,j,jk]
-      zzz = 1.0 / (yrmcst.rcpd + yrmcst.rcpd*yrethf.rvtmp2*zqp1[i,j,jk])
-      zlfdcp[i,j,jk] = yrmcst.rlmlt*zzz
-      zlsdcp[i,j,jk] = yrmcst.rlstt*zzz
-      zlvdcp[i,j,jk] = yrmcst.rlvtt*zzz
-      llflag[i,j,0] = True
-  
-  #     ------------------------------------------------------------------
-  
-  #*         2.2    INITIALIZATION OF CLOUD AND PRECIPITATION ARRAYS
-  #                 ------------------------------------------------
-  
-  #       Clear cloud and freezing arrays
-  
-  for jk in range(klev):
-    for i, j in product(range(iend), range(jend)):
-      pclc[i,j,jk] = 0.0
-      zqc[i,j,jk] = 0.0
-      zqlwc[i,j,jk] = 0.0
-      zqiwc[i,j,jk] = 0.0
-      zrfreeze[i,j,jk] = 0.0
-      zcondl[i,j,jk] = 0.0
-      zcondi[i,j,jk] = 0.0
-      zevapr[i,j,jk] = 0.0
-      zevaps[i,j,jk] = 0.0
-      pcovptot[i,j,jk] = 0.0
-  
-  #       Set to zero precipitation fluxes at the top
-  
-  for i, j in product(range(iend), range(jend)):
-    zrfln[i,j,0] = 0.0
-    zsfln[i,j,0] = 0.0
-    pfplsl[i,j,0] = 0.0
-    pfplsn[i,j,0] = 0.0
-    zcovptot[i,j,0] = 0.0
-    zcovpclr[i,j,0] = 0.0
-  
-  # Eta value at tropopause
-  for i, j in product(range(iend), range(jend)):
-    ztrpaus[i,j,0] = 0.1
-  for jk in range(klev - 1):
-    for i, j in product(range(iend), range(jend)):
-      llo1 = \
-        yrecld.ceta[jk] > 0.1 and yrecld.ceta[jk] < 0.4 and ztp1[i,j,jk] > ztp1[i,j,jk+1]
-      if llo1:
-        ztrpaus[i,j,0] = yrecld.ceta[jk]
+    # set up critical value of humidity
+    for jk in range(klev):
+        for i, j in product(range(iend), range(jend)):
+            zeta3 = ztrpaus[i,j,0]
+            zrh1 = 1.0
+            zrh2 = 0.35 + 0.14*((zeta3 - 0.25) / 0.15)**2 + (0.04*min(zeta3 - 0.25, 0.0)) / 0.15
+            zrh3 = 1.0
+            zdeta2 = 0.3
+            zdeta1 = 0.09 + (0.16*(0.4 - zeta3)) / 0.3
 
-  # set up critical value of humidity
-  for jk in range(klev):
-      for i, j in product(range(iend), range(jend)):
-          zeta3 = ztrpaus[i,j,0]
-          zrh1 = 1.0
-          zrh2 = 0.35 + 0.14*((zeta3 - 0.25) / 0.15)**2 + (0.04*min(zeta3 - 0.25, 0.0)) / 0.15
-          zrh3 = 1.0
-          zdeta2 = 0.3
-          zdeta1 = 0.09 + (0.16*(0.4 - zeta3)) / 0.3
+            if yrecld.ceta[jk] < zeta3:
+                zcrh2[i,j,jk] = zrh3
+            elif yrecld.ceta[jk] >= zeta3 and yrecld.ceta[jk] < (zeta3 + zdeta2):
+                zcrh2[i,j,jk] = zrh3 + (zrh2 - zrh3)*((yrecld.ceta[jk] - zeta3) / zdeta2)
+            elif yrecld.ceta[jk] >= (zeta3 + zdeta2) and yrecld.ceta[jk] < (1.0 - zdeta1):
+                zcrh2[i,j,jk] = zrh2
+            elif yrecld.ceta[jk] >= (1.0 - zdeta1):
+                zcrh2[i,j,jk] = zrh1 + (zrh2 - zrh1)*((1.0 - yrecld.ceta[jk]) / zdeta1)**0.5
 
-          if yrecld.ceta[jk] < zeta3:
-              zcrh2[i,j,jk] = zrh3
-          elif yrecld.ceta[jk] >= zeta3 and yrecld.ceta[jk] < (zeta3 + zdeta2):
-              zcrh2[i,j,jk] = zrh3 + (zrh2 - zrh3)*((yrecld.ceta[jk] - zeta3) / zdeta2)
-          elif yrecld.ceta[jk] >= (zeta3 + zdeta2) and yrecld.ceta[jk] < (1.0 - zdeta1):
-              zcrh2[i,j,jk] = zrh2
-          elif yrecld.ceta[jk] >= (1.0 - zdeta1):
-              zcrh2[i,j,jk] = zrh1 + (zrh2 - zrh1)*((1.0 - yrecld.ceta[jk]) / zdeta1)**0.5
-  
-  #     ------------------------------------------------------------------
-  
-  #*        3. COMPUTE LAYER CLOUD AMOUNTS
-  #            ---------------------------
-  
-  # Large loop over KLEV
-  # Calculates
-  #   1. diagnostic CC and QL
-  #   2. Convective CC and QL
-  #   3. Rainfall
-  
-  cloudsc2_2d_part3_gt4py(
+    for jk in range(klev-1):
+        for i, j in product(range(iend), range(jend)):
+            plu_p1[i,j,jk] = plu[i,j,jk+1]
+
+    #     ------------------------------------------------------------------
+
+    #*        3. COMPUTE LAYER CLOUD AMOUNTS
+    #            ---------------------------
+
+    # Large loop over KLEV
+    # Calculates
+    #   1. diagnostic CC and QL
+    #   2. Convective CC and QL
+    #   3. Rainfall
+
+    cloudsc2_kernel_gt4py(
         plude=plude[:,:,:],
         ptent=ptent[:,:,:],
         ptenq=ptenq[:,:,:],
@@ -380,6 +346,7 @@ def cloudsc2_py_gt4py(
         zrfreeze=zrfreeze[:,:,:],
         # ---------------------------
         paphp1_top=paphp1_top[:,:,:],
+        plu_p1=plu_p1[:,:,:],
         # ---------------------------
         ptsphy=ptsphy,
         zeps2=zeps2,
@@ -419,7 +386,7 @@ def tanh(x):
 #                       (1.0-foealfa(ptare, yrethf))*exp(yrethf.r3ies*(ptare-yrmcst.rtt)/(ptare-yrethf.r4ies)))
 
 @gtscript.stencil(backend=backend, externals=externals, rebuild=True)
-def cloudsc2_2d_part3_gt4py(
+def cloudsc2_kernel_gt4py(
         plude: gtscript.Field[gtscript.IJK,dtype],
         ptenq: gtscript.Field[gtscript.IJK,dtype],
         ptent: gtscript.Field[gtscript.IJK,dtype],
@@ -467,6 +434,7 @@ def cloudsc2_2d_part3_gt4py(
         zrfreeze: gtscript.Field[gtscript.IJK, dtype],
         # ---------------------------
         paphp1_top: gtscript.Field[gtscript.IJK, dtype],
+        plu_p1: gtscript.Field[gtscript.IJK, dtype],
         # ---------------------------
         ptsphy: np.float64,
         zeps2: np.float64,
@@ -556,8 +524,8 @@ def cloudsc2_2d_part3_gt4py(
     
         zgdp[0,0,0] = yrmcst.rg / (paphp1[0,0,+1] - paphp1[0,0,0])
         zlude[0,0,0] = plude[0,0,0]*ptsphy*zgdp[0,0,0]
-        if zlude[0,0,0] >= yrecldp.rlmin and plu[0,0,+1] >= zeps2:
-            pclc[0,0,0] = pclc[0,0,0] + (1.0 - pclc[0,0,0])*(1.0 - exp(-zlude[0,0,0] / plu[0,0,+1]))
+        if zlude[0,0,0] >= yrecldp.rlmin and plu_p1[0,0,0] >= zeps2:
+            pclc[0,0,0] = pclc[0,0,0] + (1.0 - pclc[0,0,0])*(1.0 - exp(-zlude[0,0,0] / plu_p1[0,0,0]))
             zqc[0,0,0] = zqc[0,0,0] + zlude[0,0,0]
     
         # Add compensating subsidence component
@@ -794,4 +762,3 @@ def cloudsc2_2d_part3_gt4py(
     with computation(PARALLEL), interval(0, klev+1):
         pfhpsl = -pfplsl[0,0,0]*yrmcst.rlvtt
         pfhpsn = -pfplsn[0,0,0]*yrmcst.rlstt
-        
