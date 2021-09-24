@@ -33,6 +33,12 @@ Then simply install the bundle via:
 Example usage and verification
 ------------------------------
 
+Following the build, please run the following to set up the environment:
+```
+cd build
+source env.sh
+```
+
 Example run of the non-linear baseline run on CPU (4 threads):
 ```
 ./bin/dwarf-cloudsc2-nl 4 160000 32
