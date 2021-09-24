@@ -191,11 +191,12 @@ def cloudsc2_py_gt4py(
     #                 ------------------------------------------------
 
     #       Set to zero precipitation fluxes at the top
-    for i, j in product(range(iend), range(jend)):
-        zrfln[i,j,0] = 0.0
-        zsfln[i,j,0] = 0.0
-        pfplsl[i,j,0] = 0.0
-        pfplsn[i,j,0] = 0.0
+    for jk in range(klev):
+        for i, j in product(range(iend), range(jend)):
+            zrfln[i,j,jk] = 0.0
+            zsfln[i,j,jk] = 0.0
+            pfplsl[i,j,jk] = 0.0
+            pfplsn[i,j,jk] = 0.0
 
     # Eta value at tropopause
     for i, j in product(range(iend), range(jend)):
