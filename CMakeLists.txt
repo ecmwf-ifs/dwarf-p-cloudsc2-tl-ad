@@ -18,21 +18,6 @@ project(dwarf-p-cloudsc2-tl-ad VERSION 1.0 LANGUAGES C Fortran )
 
 include( cmake/compat.cmake )
 
-### OpenACC
-if( NOT DEFINED ENABLE_ACC OR ENABLE_ACC )
-    find_package( OpenACC COMPONENTS Fortran C )
-    # Ensure targets are available
-    if( OpenACC_Fortran_FOUND AND NOT TARGET OpenACC::OpenACC_Fortran )
-        ecbuild_critical( "OpenACC::OpenACC_Fortran should have been defined as a CMake target" )
-    endif()
-    if( OpenACC_C_FOUND AND NOT TARGET OpenACC::OpenACC_C )
-        ecbuild_critical( "OpenACC::OpenACC_C should have been defined as a CMake target" )
-    endif()
-endif()
-ecbuild_add_option( FEATURE ACC
-    DESCRIPTION "OpenACC" DEFAULT ON
-    CONDITION OpenACC_C_FOUND OR OpenACC_Fortran_FOUND )
-
 ### OpenMP
 if( NOT DEFINED ENABLE_OMP OR ENABLE_OMP )
     find_package( OpenMP COMPONENTS Fortran C )
