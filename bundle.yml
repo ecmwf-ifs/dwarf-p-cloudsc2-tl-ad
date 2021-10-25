@@ -29,4 +29,11 @@ options :
         help  : Build the new Fortran version of CLOUDSC [ON|OFF]
         cmake : ENABLE_CLOUDSC_FORTRAN={{value}}
 
+    - with-loki :
+        help  : Enable Loki/CLAW source-to-source transformations
+        cmake : ENABLE_LOKI=ON
+
+    - loki-frontend :
+        help  : Frontend parser to use for Loki transformations
+        cmake : LOKI_FRONTEND={{value}}
 ...
