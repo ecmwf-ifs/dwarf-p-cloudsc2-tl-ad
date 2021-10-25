@@ -18,7 +18,7 @@ if( HAVE_CLOUDSC2_AD )
             cloudsc2tl.F90
         DEFINITIONS ${CLOUDSC_DEFINITIONS}
     )
-    target_link_libraries( dwarf-cloudsc2-ad PRIVATE cloudsc-common-lib )
+    target_link_libraries( dwarf-cloudsc2-ad PRIVATE cloudsc2-common-lib )
 
     if( HAVE_OMP AND TARGET OpenMP::OpenMP_Fortran )
         target_link_libraries( dwarf-cloudsc2-ad PRIVATE OpenMP::OpenMP_Fortran )
