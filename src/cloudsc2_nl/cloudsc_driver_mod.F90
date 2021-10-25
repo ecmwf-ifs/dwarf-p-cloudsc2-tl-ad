@@ -75,6 +75,10 @@ CONTAINS
     TYPE(TECLD)     :: YCLD
     TYPE(TECLDP)    :: YCLDP
 
+#include "cloudsc2.intfb.h"
+#include "satur.intfb.h"
+
+
     NGPBLKS = (NGPTOT / NPROMA) + MIN(MOD(NGPTOT,NPROMA), 1)
 1003 format(5x,'NUMPROC=',i0', NUMOMP=',i0,', NGPTOTG=',i0,', NPROMA=',i0,', NGPBLKS=',i0)
     if (irank == 0) then
