@@ -13,16 +13,6 @@ projects :
         version : develop
         bundle  : false
 
-    - serialbox :
-        git     : ${BITBUCKET}/escape/serialbox
-        version : v2.5.4/patched
-        cmake   : >
-            SERIALBOX_BUILD_SHARED=ON
-            SERIALBOX_ENABLE_FORTRAN=ON
-            SERIALBOX_ENABLE_EXPERIMENTAL_FILESYSTEM=OFF
-            Serialbox_TARGETS_EXPORTED=TRUE
-            CMAKE_CXX_EXTENSIONS=ON
-
     - cloudsc-dwarf :
         # The CLOUDSC dwarf project with multiple implementations
         dir     : $PWD
@@ -51,14 +41,5 @@ options :
         help : Enable use of HDF5 input file (disables Serialbox)
         cmake : >
             ENABLE_HDF5=ON
-            CMAKE_DISABLE_FIND_PACKAGE_Serialbox=TRUE
-
-    - without-serialbox :
-        help  : Disable Serialbox utility for platform-agnostic file I/O
-        cmake : CMAKE_DISABLE_FIND_PACKAGE_Serialbox=TRUE
-
-    - serialbox-experimental :
-        help  : Enable Serialbox experimental filesystem [ON|OFF]
-        cmake : SERIALBOX_ENABLE_EXPERIMENTAL_FILESYSTEM={{value}}
 
 ...

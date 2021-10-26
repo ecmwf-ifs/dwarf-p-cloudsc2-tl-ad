@@ -119,7 +119,7 @@ CONTAINS
     
     ZNORMG=0._JPRB
 
-    !$omp parallel default(shared) private(JKGLO,IBL,JROF,ICEND,TID,energy,power) &
+    !$omp parallel default(shared) private(JKGLO,IBL,JROF,ICEND,TID) &
     !$omp& private(ZQSAT) &
     !$omp& private(ZNORM1,ZNORM2,ZNORM3) &
     !$omp& private(ZAPH,ZAP,ZQ,ZZQSAT,ZT,ZL,ZI,ZLUDE,ZLU,ZMFU,ZMFD) &
@@ -134,8 +134,7 @@ CONTAINS
     TID = GET_THREAD_NUM()
     CALL TIMER%THREAD_START(TID)
 
-    !$omp do schedule(runtime) reduction(+:power_total,power_count) reduction(max:power_max) &
-    !$OMP& REDUCTION(MAX:ZNORMG)
+    !$omp do schedule(runtime) reduction(max:znormg)
     DO JKGLO=1,NGPTOT,NPROMA
        IBL=(JKGLO-1)/NPROMA+1
        ICEND=MIN(NPROMA,NGPTOT-JKGLO+1)

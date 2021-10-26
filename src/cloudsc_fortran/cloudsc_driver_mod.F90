@@ -100,7 +100,7 @@ CONTAINS
     ! Global timer for the parallel region
     CALL TIMER%START(NUMOMP)
 
-    !$omp parallel default(shared) private(JKGLO,IBL,ICEND,TID,energy,power) &
+    !$omp parallel default(shared) private(JKGLO,IBL,ICEND,TID) &
     !$omp& private(ZQSAT) &
     !$omp& num_threads(NUMOMP)
 
@@ -108,7 +108,7 @@ CONTAINS
     TID = GET_THREAD_NUM()
     CALL TIMER%THREAD_START(TID)
 
-    !$omp do schedule(runtime) reduction(+:power_total,power_count) reduction(max:power_max)
+    !$omp do schedule(runtime)
     DO JKGLO=1,NGPTOT,NPROMA
        IBL=(JKGLO-1)/NPROMA+1
        ICEND=MIN(NPROMA,NGPTOT-JKGLO+1)

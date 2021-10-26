@@ -64,48 +64,19 @@ if( MPI_Fortran_FOUND AND ENABLE_MPI )
 endif()
 
 ### HDF5
-if( NOT DEFINED ENABLE_HDF5 OR ENABLE_HDF5 )
-    ecbuild_find_package( NAME HDF5
-        COMPONENTS Fortran )
-endif()
-if( HDF5_FOUND AND ENABLE_HDF5 )
-    ecbuild_add_option( FEATURE HDF5
-        DESCRIPTION "HDF5" DEFAULT OFF
-        CONDITION HDF5_FOUND )
-    list(APPEND CLOUDSC_DEFINITIONS HAVE_HDF5 ${HDF5_Fortran_DEFINITIONS})
-endif()
+## Note that this dwarf fully depends on HDF5 input data
+ecbuild_find_package( NAME HDF5  COMPONENTS Fortran )
 
-# Add Serialbox utility package for platform-agnostic file I/O
-find_package( Serialbox )
-if( Serialbox_FOUND )
-    list(APPEND CLOUDSC_DEFINITIONS HAVE_SERIALBOX)
-endif()
-
-# Add option for single-precision builds
-ecbuild_add_option( FEATURE SINGLE_PRECISION
-    DESCRIPTION "Build CLOUDSC in single precision" DEFAULT OFF
-)
-if( HAVE_SINGLE_PRECISION )
-    list(APPEND CLOUDSC_DEFINITIONS SINGLE)
-endif()
+ecbuild_add_option( FEATURE HDF5
+    DESCRIPTION "HDF5" DEFAULT ON
+    CONDITION HDF5_FOUND )
+list(APPEND CLOUDSC_DEFINITIONS HAVE_HDF5 ${HDF5_Fortran_DEFINITIONS})
 
 # build executables
 add_subdirectory(src)
 
-# documentation
-find_package( Latex )
-ecbuild_add_option(FEATURE DOCS
-                   DESCRIPTION "Documentation"
-                   DEFAULT OFF
-                   CONDITION Latex_FOUND)
-
-
-if(HAVE_DOCS)
-  add_subdirectory(doc)
-endif()
-
 # finalize
-ecbuild_install_project(NAME dwarf-P-cloudMicrophysics-IFSScheme)
+ecbuild_install_project(NAME dwarf-P-cloudsc2-tl-ad)
 
 # print summary
 ecbuild_print_summary()
