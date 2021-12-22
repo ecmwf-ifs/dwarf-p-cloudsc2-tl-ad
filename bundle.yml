@@ -2,20 +2,20 @@
 ### Bundle
 
 name    : cloudsc-bundle
-version : 1.0.0-develop
+version : 1.0.0
 cmake : >
         CMAKE_LINK_DEPENDS_NO_SHARED=ON
 
 projects :
 
     - ecbuild :
-        git     : ${BITBUCKET}/escape/ecbuild
+        git     : ${GIT}/ecbuild
         version : develop
         bundle  : false
 
     - cloudsc-dwarf :
         # The CLOUDSC dwarf project with multiple implementations
-        dir     : $PWD
+        dir     : /Users/subbiali/Desktop/kilos/cloudsc2/main
         version : develop
         require : ecbuild
 
