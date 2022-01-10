@@ -2,3 +2,18 @@
 ecbundle/*
 build/*
 source/*
+
+# python cache
+__pycache__/
+.pytest_cache/
+
+# gt4py cache
+.gt_cache/
+gt_cache/
+.dace.conf
+
+# packaging
+*.egg-info
+
+# virtual environment
+venv/
