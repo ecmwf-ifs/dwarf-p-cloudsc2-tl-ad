@@ -11,6 +11,7 @@ from cloudsc2py.utils.timing import Timer
 from cloudsc2py.utils.validation import Validator
 
 import namelist_nl as nml
+import utils
 
 
 def main():
@@ -86,14 +87,16 @@ def main():
     )
 
     # warm-up cache
+    exec_info_back = nml.backend_options.exec_info.copy()
     diagnostics = saturation(state)
     state.update(diagnostics)
     tendencies, tmp = cloudsc(state, dt)
     diagnostics.update(tmp)
+    nml.backend_options.exec_info = exec_info_back
 
     # run
     with Timer.timing("run"):
-        for _ in range(nml.runs):
+        for _ in range(nml.nruns):
             saturation(state, out=diagnostics)
             cloudsc(
                 state,
@@ -103,10 +106,12 @@ def main():
             )
 
     # log
-    print("Simulation completed successfully. HOORAY!")
-    print(
-        f"Average run time ({nml.runs} runs): "
-        f"{Timer.get_time('run', units='ms') / nml.runs:.3f} ms"
+    print("Simulation(s) completed successfully. HOORAY!\n")
+    utils.log_performance(
+        nml.nruns,
+        Timer,
+        nml.backend_options.exec_info,
+        stencil_names=["saturation_nl", "cloudsc_nl"],
     )
 
     if nml.validate:
@@ -115,10 +120,11 @@ def main():
         failing_fields = validator.run(tendencies, diagnostics)
         if failing_fields:
             print(
-                f"Validation failed on the folowing fields: {', '.join(failing_fields)}."
+                f"\nValidation failed on the folowing fields: "
+                f"{', '.join(failing_fields)}."
             )
         else:
-            print(f"Validation completed successfully. HOORAY HOORAY!")
+            print(f"\nValidation completed successfully. HOORAY HOORAY!")
 
 
 if __name__ == "__main__":
