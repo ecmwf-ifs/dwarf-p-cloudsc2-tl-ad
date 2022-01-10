@@ -30,7 +30,7 @@ def get_array(
 
 def get_dataarray(
     grid: "Grid",
-    dims: Sequence[int],
+    dims: Sequence[str],
     units: str,
     data_shape: Optional[Sequence[int]] = None,
     *,
