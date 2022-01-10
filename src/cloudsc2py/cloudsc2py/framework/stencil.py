@@ -69,6 +69,7 @@ def compile_stencil(
     return gtscript.stencil(
         backend,
         definition,
+        name=name,
         build_info=backend_options.build_info,
         dtypes=backend_options.dtypes,
         externals=externals,
