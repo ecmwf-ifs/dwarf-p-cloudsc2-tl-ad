@@ -2,10 +2,11 @@
 
 MODULES=( )
 # MODULES=( daint-gpu cray-python/3.6.5.7 cudatoolkit )
-PYTHON=python3.9
-PIP_UPGRADE=0
+PYTHON=python
+PIP_UPGRADE=1
 VENV=venv
-FRESH_INSTALL=0
+FRESH_INSTALL=1
+EXTRAS=cuda
 
 function install()
 {
@@ -18,7 +19,7 @@ function install()
   fi
 
   # install cloudsc2py
-  pip install -e .
+  pip install -e .[$EXTRAS] || pip install -e .
 
   # install gt sources
   python -m gt4py.gt_src_manager install

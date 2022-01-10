@@ -65,6 +65,7 @@ class Validator:
         mi = min(src.shape[0], trg.shape[0])
         mk = min(src.shape[1], trg.shape[1])
         gt4py.storage.restore_numpy()
+        src.synchronize()
         out = np.allclose(
             np.asarray(src)[:mi, :mk], trg[:mi, :mk], equal_nan=True
         )
