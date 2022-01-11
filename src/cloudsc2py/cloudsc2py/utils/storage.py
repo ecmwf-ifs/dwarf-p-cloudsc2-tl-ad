@@ -5,6 +5,7 @@ from sympl._core.data_array import DataArray
 
 from gt4py.storage import zeros
 
+from cloudsc2py.framework.grid_operator import GridOperator
 from cloudsc2py.framework.options import StorageOptions
 
 if TYPE_CHECKING:
@@ -13,17 +14,21 @@ if TYPE_CHECKING:
 
 
 def get_array(
-    shape: Sequence[int],
+    grid: "Grid",
+    dims: Sequence[str],
+    data_shape: Optional[Sequence[int]] = None,
     *,
     backend: str,
     dtype: Type,
     storage_options: Optional[StorageOptions] = None,
 ) -> "Array":
+    go = GridOperator(grid)
     return zeros(
         backend,
         [0] * len(shape),
-        shape,
+        go.get_shape(dims, data_shape),
         dtype,
+        mask=go.get_mask(dims),
         managed_memory=storage_options.managed,
     )
 
@@ -38,29 +43,20 @@ def get_dataarray(
     dtype: Type,
     storage_options: Optional[StorageOptions] = None,
 ) -> DataArray:
-    grid_shape = tuple(
-        grid.dims_to_shape[dim] for dim in dims if dim in grid.dims_to_shape
-    )
-    data_shape = tuple(data_shape or ())
     array = get_array(
-        grid_shape + data_shape,
+        grid,
+        dims,
+        data_shape,
         backend=backend,
         dtype=dtype,
         storage_options=storage_options,
     )
-
-    grid_coords = [
-        grid.dims_to_coords[dim] for dim in dims if dim in grid.dims_to_coords
-    ]
-    data_coords = [range(s) for s in data_shape]
-    out = DataArray(
+    return DataArray(
         array,
         dims=dims,
-        coords=grid_coords + data_coords,
+        coords=GridOperator(grid).get_coords(dims, data_shape),
         attrs={"units": units},
     )
-
-    return out
 
 
 def get_dtype_from_name(

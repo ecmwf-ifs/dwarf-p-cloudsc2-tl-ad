@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-from typing import Dict, Union
+from typing import Dict, TypeVar, Union
 
 from sympl import DataArray as SymplDataArray
 
@@ -11,3 +11,4 @@ ArrayDict = Dict[str, Storage]
 DataArray = SymplDataArray
 DataArrayDict = Dict[str, Storage]
 ParameterDict = Dict[str, Union[bool, float, int]]
+Range = TypeVar("Range")

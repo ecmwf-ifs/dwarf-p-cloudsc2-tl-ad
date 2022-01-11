@@ -61,14 +61,16 @@ class Cloudsc(ImplicitTendencyComponent):
         # allocate temporary 2d arrays
         allocate_b = partial(
             get_array,
-            (self.grid.nx, self.grid.ny),
+            self.grid,
+            (self.grid.dims_x, self.grid.dims_y),
             backend=backend,
             dtype=self.so.dtypes.bool,
             storage_options=self.so,
         )
         allocate_f = partial(
             get_array,
-            (self.grid.nx, self.grid.ny),
+            self.grid,
+            (self.grid.dims_x, self.grid.dims_y),
             backend=backend,
             dtype=self.so.dtypes.float,
             storage_options=self.so,

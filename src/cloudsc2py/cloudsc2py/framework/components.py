@@ -7,6 +7,7 @@ from sympl._core.core_components import (
     ImplicitTendencyComponent as SymplImplicitTendencyComponent,
 )
 
+from cloudsc2py.framework.grid_operator import GridOperator
 from cloudsc2py.framework.options import (
     BackendOptions,
     StorageOptions,
@@ -48,22 +49,16 @@ class GridComponent:
             name, self.backend, self.bo, used_externals=self.used_externals
         )
 
-    def get_field_shape(
-        self, name: str, properties: "PropertyDict"
-    ) -> Sequence[int]:
-        grid_shape = tuple(
-            self.grid.dims_to_shape[dim]
-            for dim in properties[name]["dims"]
-            if dim in self.grid.dims_to_shape
-        )
-        data_shape = get_data_shape_from_name(name)
-        return *grid_shape, *data_shape
-
     def allocate(self, name: str, properties: "PropertyDict") -> "Array":
-        shape = self.get_field_shape(name, properties)
+        data_shape = get_data_shape_from_name(name)
         dtype = get_dtype_from_name(name, self.so)
         return get_array(
-            shape, backend=self.backend, dtype=dtype, storage_options=self.so
+            self.grid,
+            properties[name]["dims"],
+            data_shape,
+            backend=self.backend,
+            dtype=dtype,
+            storage_options=self.so,
         )
 
     @abc.abstractmethod
