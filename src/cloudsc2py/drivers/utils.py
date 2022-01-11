@@ -23,6 +23,7 @@ def log_performance(
 
     print(
         f"Average run time ({nruns} runs): {total_time / nruns:.3f} ms\n"
-        f"  - GT4Py: {call_time / nruns:.3f} ms\n"
+        f"  - GT4Py (stencil calculations): {cpp_time / nruns:.3f} ms\n"
+        f"  - GT4Py (bindings overhead): {(call_time - cpp_time) / nruns:.3f} ms\n"
         f"  - Framework: {(total_time - call_time) / nruns:.3f} ms"
     )
