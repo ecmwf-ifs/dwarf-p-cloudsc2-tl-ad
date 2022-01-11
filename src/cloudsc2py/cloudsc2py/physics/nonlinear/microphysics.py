@@ -14,7 +14,7 @@ if TYPE_CHECKING:
     from cloudsc2py.utils.typingx import ArrayDict, ParameterDict
 
 
-class Cloudsc(ImplicitTendencyComponent):
+class Cloudsc2NL(ImplicitTendencyComponent):
     def __init__(
         self,
         grid: "Grid",

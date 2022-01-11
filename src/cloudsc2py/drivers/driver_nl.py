@@ -3,7 +3,7 @@ import gt4py
 
 from cloudsc2py.framework.grid import VerticalSliceGrid
 from cloudsc2py.physics.common.diagnostics import EtaLevels
-from cloudsc2py.physics.nonlinear.microphysics import Cloudsc
+from cloudsc2py.physics.nonlinear.microphysics import Cloudsc2NL
 from cloudsc2py.physics.nonlinear.saturation import Saturation
 from cloudsc2py.state import get_accumulated_tendencies, get_initial_state
 from cloudsc2py.utils.io import HDF5Reader
@@ -70,7 +70,7 @@ def main():
     )
 
     # microphysics
-    cloudsc = Cloudsc(
+    cloudsc = Cloudsc2NL(
         grid,
         nml.ldphylin,
         nml.ldrain1d,
