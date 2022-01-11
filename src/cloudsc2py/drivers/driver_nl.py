@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 import gt4py
 
-from cloudsc2py.framework.grid import Grid
+from cloudsc2py.framework.grid import VerticalSliceGrid
 from cloudsc2py.physics.common.diagnostics import EtaLevels
 from cloudsc2py.physics.nonlinear.microphysics import Cloudsc
 from cloudsc2py.physics.nonlinear.saturation import Saturation
@@ -16,7 +16,7 @@ import utils
 
 def main():
     # grid
-    grid = Grid(nml.nx, nml.nz)
+    grid = VerticalSliceGrid(nml.nx, nml.nz)
 
     # input file
     hdf5_reader = HDF5Reader(nml.input_file)
