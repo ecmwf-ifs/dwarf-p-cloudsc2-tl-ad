@@ -23,12 +23,14 @@ def get_array(
     storage_options: Optional[StorageOptions] = None,
 ) -> "Array":
     go = GridOperator(grid)
+    shape = go.get_shape(dims, data_shape)
+    mask = go.get_mask(dims)
     return zeros(
         backend,
         [0] * len(shape),
-        go.get_shape(dims, data_shape),
+        shape,
         dtype,
-        mask=go.get_mask(dims),
+        mask=mask,
         managed_memory=storage_options.managed,
     )
 

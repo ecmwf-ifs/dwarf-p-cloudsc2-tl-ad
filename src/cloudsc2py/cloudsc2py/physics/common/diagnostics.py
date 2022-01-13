@@ -39,17 +39,15 @@ class EtaLevels(DiagnosticComponent):
     @property
     def input_properties(self) -> "PropertyDict":
         g = self.grid
-        out = {
+        return {
             "f_ap": {"dims": (g.dims_x, g.dims_y, g.dims_z), "units": "Pa"},
             "f_aph": {"dims": (g.dims_x, g.dims_y, g.dims_zh), "units": "Pa"},
         }
-        return out
 
     @property
     def diagnostic_properties(self) -> "PropertyDict":
         g = self.grid
-        out = {"f_eta": {"dims": (g.dims_z), "units": ""}}
-        return out
+        return {"f_eta": {"dims": (g.dims_z), "units": ""}}
 
     @property
     def used_externals(self) -> Sequence[str]:

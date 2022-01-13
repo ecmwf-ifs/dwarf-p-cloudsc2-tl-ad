@@ -51,26 +51,24 @@ class Saturation(DiagnosticComponent):
     @property
     def input_properties(self) -> "PropertyDict":
         g = self.grid
-        out = {
+        return {
             "f_ap": {"dims": (g.dims_x, g.dims_y, g.dims_z), "units": "Pa"},
             "f_t": {"dims": (g.dims_x, g.dims_y, g.dims_z), "units": "K"},
         }
-        return out
 
     @property
     def diagnostic_properties(self) -> "PropertyDict":
         g = self.grid
-        out = {
+        return {
             "f_qsat": {
                 "dims": (g.dims_x, g.dims_y, g.dims_z),
                 "units": "g g^-1",
             }
         }
-        return out
 
     @property
     def used_externals(self) -> Sequence[str]:
-        out = (
+        return (
             "KFLAG",
             "LDPHYLIN",
             "QMAX",
@@ -91,7 +89,6 @@ class Saturation(DiagnosticComponent):
             "foeewm",
             "foeewmcu",
         )
-        return out
 
     def array_call(self, state: "ArrayDict", out: "ArrayDict") -> None:
         self.saturation(

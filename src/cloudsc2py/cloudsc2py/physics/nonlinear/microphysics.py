@@ -97,7 +97,7 @@ class Cloudsc2NL(ImplicitTendencyComponent):
     def input_properties(self) -> "PropertyDict":
         dims = (self.grid.dims_x, self.grid.dims_y, self.grid.dims_z)
         dims_zh = (self.grid.dims_x, self.grid.dims_y, self.grid.dims_zh)
-        out = {
+        return {
             "f_eta": {"dims": dims[2:], "units": ""},
             "f_aph": {"dims": dims_zh, "units": "Pa"},
             "f_ap": {"dims": dims, "units": "Pa"},
@@ -116,7 +116,6 @@ class Cloudsc2NL(ImplicitTendencyComponent):
             "f_tnd_qi": {"dims": dims, "units": "K s^-1"},
             "f_supsat": {"dims": dims, "units": "g g^-1"},
         }
-        return out
 
     @property
     @ported_method(
@@ -124,13 +123,12 @@ class Cloudsc2NL(ImplicitTendencyComponent):
     )
     def tendency_properties(self) -> "PropertyDict":
         dims = (self.grid.dims_x, self.grid.dims_y, self.grid.dims_z)
-        out = {
+        return {
             "f_t": {"dims": dims, "units": "K s^-1"},
             "f_q": {"dims": dims, "units": "g g^-1 s^-1"},
             "f_ql": {"dims": dims, "units": "g g^-1 s^-1"},
             "f_qi": {"dims": dims, "units": "g g^-1 s^-1"},
         }
-        return out
 
     @property
     @ported_method(
@@ -139,7 +137,7 @@ class Cloudsc2NL(ImplicitTendencyComponent):
     def diagnostic_properties(self) -> "PropertyDict":
         dims = (self.grid.dims_x, self.grid.dims_y, self.grid.dims_z)
         dims_zh = (self.grid.dims_x, self.grid.dims_y, self.grid.dims_zh)
-        out = {
+        return {
             "f_clc": {"dims": dims, "units": ""},
             "f_fhpsl": {"dims": dims_zh, "units": "J m^-2 s^-1"},
             "f_fhpsn": {"dims": dims_zh, "units": "J m^-2 s^-1"},
@@ -147,11 +145,10 @@ class Cloudsc2NL(ImplicitTendencyComponent):
             "f_fplsn": {"dims": dims_zh, "units": "Kg m^-2 s^-1"},
             "f_covptot": {"dims": dims, "units": ""},
         }
-        return out
 
     @property
     def used_externals(self) -> Sequence[str]:
-        out = (
+        return (
             "LDRAIN1D",
             "LEVAPLS2",
             "LDPHYLIN",
@@ -192,7 +189,6 @@ class Cloudsc2NL(ImplicitTendencyComponent):
             "foealfa",
             "foeewm",
         )
-        return out
 
     def array_call(
         self,
