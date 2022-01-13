@@ -56,7 +56,7 @@ class Cloudsc2NL(ImplicitTendencyComponent):
         externals.update(yrphnc_parameters or {})
         self.bo.external_parameters.update(externals)
 
-        self.cloudsc = self.compile_stencil("cloudsc_nl")
+        self.cloudsc = self.compile_stencil("cloudsc2_nl")
 
         # allocate temporary 2d arrays
         allocate_b = partial(
@@ -239,8 +239,10 @@ class Cloudsc2NL(ImplicitTendencyComponent):
         )
 
     @staticmethod
-    @ported_method()
-    @stencil_collection("cloudsc_nl")
+    @ported_method(
+        from_file="cloudsc2_nl/cloudsc2.F90", from_line=235, to_line=735
+    )
+    @stencil_collection("cloudsc2_nl")
     def cloudsc_def(
         in_eta: gtscript.Field[gtscript.K, "ftype"],
         in_ap: gtscript.Field["ftype"],
@@ -321,19 +323,38 @@ class Cloudsc2NL(ImplicitTendencyComponent):
             foeewm,
         )
 
-        with computation(PARALLEL), interval(0, -1):
-            # set up constants required
-            ckcodtl = 2.0 * RKCONV * dt
-            ckcodti = 5.0 * RKCONV * dt
-            cons2 = 1.0 / (RG * dt)
-            cons3 = RLVTT / RCPD
-            meltp2 = RTT + 2.0
+        # set to zero precipitation fluxes at the top
+        with computation(FORWARD), interval(0, 1):
+            tmp_rfl = 0.0
+            tmp_sfl = 0.0
+            tmp_rfln = 0.0
+            tmp_sfln = 0.0
+            tmp_covptot = 0.0
+            tmp_covpclr = 0.0
 
-            # first guess values for T, q, ql and qi
+        with computation(PARALLEL), interval(0, -1):
+            # first guess values for T
             t = in_t + dt * in_tnd_t
+
+        # eta value at tropopause
+        with computation(FORWARD), interval(0, 1):
+            tmp_trpaus = 0.1
+        with computation(FORWARD), interval(0, -2):
+            if in_eta[0] > 0.1 and in_eta[0] < 0.4 and t[0, 0, 0] > t[0, 0, 1]:
+                tmp_trpaus = in_eta[0]
+
+        with computation(FORWARD), interval(0, -1):
+            # first guess values for q, ql and qi
             q = in_q + dt * in_tnd_q + in_supsat
             ql = in_ql + dt * in_tnd_ql
             qi = in_qi + dt * in_tnd_qi
+
+            # set up constants required
+            ckcodtl = 2 * RKCONV * dt
+            ckcodti = 5 * RKCONV * dt
+            cons2 = 1 / (RG * dt)
+            cons3 = RLVTT / RCPD
+            meltp2 = RTT + 2
 
             # parameter for cloud formation
             scalm = ZSCAL * max(in_eta - 0.2, ZEPS1) ** 0.2
@@ -349,30 +370,10 @@ class Cloudsc2NL(ImplicitTendencyComponent):
             out_clc = 0.0
             out_covptot = 0.0
 
-        # set to zero precipitation fluxes at the top
-        with computation(FORWARD), interval(0, 1):
-            tmp_rfl = 0.0
-            tmp_sfl = 0.0
-            tmp_rfln = 0.0
-            tmp_sfln = 0.0
-            out_fplsl = 0.0
-            out_fplsn = 0.0
-            tmp_covptot = 0.0
-            tmp_covpclr = 0.0
-
-        # eta value at tropopause
-        with computation(FORWARD), interval(0, 1):
-            tmp_trpaus = 0.1
-        with computation(FORWARD), interval(0, -2):
-            if in_eta[0] > 0.1 and in_eta[0] < 0.4 and t[0, 0, 0] > t[0, 0, 1]:
-                tmp_trpaus = in_eta[0]
-
-        # compute layer cloud amounts
-        with computation(PARALLEL), interval(0, -1):
             # calculate dqs/dT correction factor
             if __INLINED(LDPHYLIN or LDRAIN1D):
                 if t < RTT:
-                    fwat = 0.545 * (tanh(0.17 * (t - RLPTRC)) + 1.0)
+                    fwat = 0.545 * (tanh(0.17 * (t - RLPTRC)) + 1)
                     z3es = R3IES
                     z4es = R4IES
                 else:
@@ -387,9 +388,9 @@ class Cloudsc2NL(ImplicitTendencyComponent):
                 esdp = foeew / in_ap
             facw = R5LES / ((t - R4LES) ** 2)
             faci = R5IES / ((t - R4IES) ** 2)
-            fac = fwat * facw + (1.0 - fwat) * faci
-            dqsdtemp = fac * in_qsat / (1.0 - RETV * esdp)
-            corqs = 1.0 + cons3 * dqsdtemp
+            fac = fwat * facw + (1 - fwat) * faci
+            dqsdtemp = fac * in_qsat / (1 - RETV * esdp)
+            corqs = 1 + cons3 * dqsdtemp
 
             # use clipped state
             qlim = min(q, in_qsat)
@@ -411,11 +412,11 @@ class Cloudsc2NL(ImplicitTendencyComponent):
                     crh2 = rh3 + (rh2 - rh3) * (in_eta - tmp_trpaus) / deta2
                 else:
                     deta1 = 0.09 + 0.16 * (0.4 - tmp_trpaus) / 0.3
-                    bound2 = 1.0 - deta1
+                    bound2 = 1 - deta1
                     if in_eta < bound2:
                         crh2 = rh2
                     else:
-                        crh2 = rh1 + (rh2 - rh1) * sqrt((1.0 - in_eta) / deta1)
+                        crh2 = rh1 + (rh2 - rh1) * sqrt((1 - in_eta) / deta1)
 
             # allow ice supersaturation at cold temperatures
             if t < RTICE:
@@ -431,43 +432,35 @@ class Cloudsc2NL(ImplicitTendencyComponent):
                 qc = 0.0
             elif qt >= qsat:
                 out_clc = 1.0
-                qc = (1.0 - scalm) * (qsat - qcrit)
+                qc = (1 - scalm) * (qsat - qcrit)
             else:
                 qpd = qsat - qt
                 qcd = qsat - qcrit
-                out_clc = 1.0 - sqrt(qpd / (qcd - scalm * (qt - qcrit)))
-                qc = (scalm * qpd + (1.0 - scalm) * qcd) * (out_clc ** 2)
+                out_clc = 1 - sqrt(qpd / (qcd - scalm * (qt - qcrit)))
+                qc = (scalm * qpd + (1 - scalm) * qcd) * (out_clc ** 2)
 
-        with computation(PARALLEL):
             # add convective component
-            with interval(0, -2):
-                gdp = RG / (in_aph[0, 0, 1] - in_aph[0, 0, 0])
-                lude = dt * in_lude * gdp
-                lo1 = lude[0, 0, 0] >= RLMIN and in_lu[0, 0, 1] >= ZEPS2
-                if lo1:
-                    out_clc += (1.0 - out_clc[0, 0, 0]) * (
-                        1.0 - exp(-lude[0, 0, 0] / in_lu[0, 0, 1])
-                    )
-                    qc += lude
-            with interval(-2, -1):
-                gdp = RG / (in_aph[0, 0, 1] - in_aph[0, 0, 0])
-                lude = dt * in_lude * gdp
+            gdp = RG / (in_aph[0, 0, 1] - in_aph[0, 0, 0])
+            lude = dt * in_lude * gdp
+            lo1 = lude[0, 0, 0] >= RLMIN and in_lu[0, 0, 1] >= ZEPS2
+            if lo1:
+                out_clc += (1 - out_clc[0, 0, 0]) * (
+                    1 - exp(-lude[0, 0, 0] / in_lu[0, 0, 1])
+                )
+                qc += lude
 
-        with computation(FORWARD), interval(0, -1):
             # add compensating subsidence component
             rho = in_ap / (RD * t)
             rodqsdp = -rho * in_qsat / (in_ap - RETV * foeew)
-            ldcp = fwat * lvdcp + (1.0 - fwat) * lsdcp
-            dtdzmo = (
-                RG * (1.0 / RCPD - ldcp * rodqsdp) / (1.0 + ldcp * dqsdtemp)
-            )
+            ldcp = fwat * lvdcp + (1 - fwat) * lsdcp
+            dtdzmo = RG * (1 / RCPD - ldcp * rodqsdp) / (1 + ldcp * dqsdtemp)
             dqsdz = dqsdtemp * dtdzmo - RG * rodqsdp
             dqc = min(dt * dqsdz * (in_mfu + in_mfd) / rho, qc)
             qc -= dqc
 
             # new cloud liquid/ice contents and condensation rates (liquid/ice)
             qlwc = qc * fwat
-            qiwc = qc * (1.0 - fwat)
+            qiwc = qc * (1 - fwat)
             condl = (qlwc - ql) / dt
             condi = (qiwc - qi) / dt
 
@@ -477,7 +470,7 @@ class Cloudsc2NL(ImplicitTendencyComponent):
             tmp_covpclr = max(tmp_covptot - out_clc, 0.0)
 
             # melting of incoming snow
-            if tmp_sfl != 0.0:
+            if tmp_sfl != 0:
                 cons = cons2 * dp / lfdcp
                 snmlt = min(tmp_sfl, cons * max(t - meltp2, 0.0))
                 tmp_rfln = tmp_rfl + snmlt
@@ -494,7 +487,7 @@ class Cloudsc2NL(ImplicitTendencyComponent):
                 else:
                     lcrit = 2.0 * RCLCRIT
                 cldl = qlwc / out_clc
-                dl = ckcodtl * (1.0 - exp(-(cldl / lcrit) ** 2))
+                dl = ckcodtl * (1 - exp(-((cldl / lcrit) ** 2)))
                 prr = qlwc - out_clc * cldl * exp(-dl)
                 qlwc -= prr
             else:
@@ -505,12 +498,12 @@ class Cloudsc2NL(ImplicitTendencyComponent):
                 if __INLINED(LEVAPLS2 or LDRAIN1D):
                     icrit = 0.0001
                 else:
-                    icrit = 2.0 * RCLCRIT
+                    icrit = 2 * RCLCRIT
                 cldi = qiwc / out_clc
                 di = (
                     ckcodti
                     * exp(0.025 * (t - RTT))
-                    * (1.0 - exp(-((cldi / icrit) ** 2)))
+                    * (1 - exp(-((cldi / icrit) ** 2)))
                 )
                 prs = qiwc - out_clc * cldi * exp(-di)
                 qiwc -= prs
@@ -528,7 +521,7 @@ class Cloudsc2NL(ImplicitTendencyComponent):
                 rfreeze = 0.0
                 fwatr = 1.0
             tmp_rfln += fwatr * dr
-            tmp_sfln += (1.0 - fwatr) * dr
+            tmp_sfln += (1 - fwatr) * dr
 
             # precipitation evaporation
             prtot = tmp_rfln + tmp_sfln
@@ -541,7 +534,7 @@ class Cloudsc2NL(ImplicitTendencyComponent):
 
                 # this is the humidity in the moisest zcovpclr region
                 qe = in_qsat - (in_qsat - qlim) * tmp_covpclr / (
-                    (1.0 - out_clc) ** 2
+                    (1 - out_clc) ** 2
                 )
                 beta = (
                     RG
@@ -556,12 +549,12 @@ class Cloudsc2NL(ImplicitTendencyComponent):
                 )
 
                 # implicit solution
-                b = dt * beta * (in_qsat - qe) / (1.0 + dt * beta * corqs)
+                b = dt * beta * (in_qsat - qe) / (1 + dt * beta * corqs)
 
                 dtgdp = dt * RG / (in_aph[0, 0, 1] - in_aph[0, 0, 0])
                 dpr = min(tmp_covpclr * b / dtgdp, preclr)
                 preclr -= dpr
-                if preclr <= 0.0:
+                if preclr <= 0:
                     tmp_covptot = out_clc
                 out_covptot = tmp_covptot
 
@@ -588,7 +581,7 @@ class Cloudsc2NL(ImplicitTendencyComponent):
                 - (
                     lvdcp * evapr
                     + lsdcp * evaps
-                    + in_lude * (fwat * lvdcp + (1.0 - fwat) * lsdcp)
+                    + in_lude * (fwat * lvdcp + (1 - fwat) * lsdcp)
                     - (lsdcp - lvdcp) * rfreeze
                 )
                 * gdp
@@ -614,20 +607,20 @@ class Cloudsc2NL(ImplicitTendencyComponent):
             # 1
             foeew = R2ES * exp(z3es * (t - RTT) / (t - z4es))
             qsat = min(foeew / in_ap, ZQMAX)
-            cor = 1.0 / (1.0 - RETV * qsat)
+            cor = 1 / (1 - RETV * qsat)
             qsat *= cor
             z2s = z5alcp / ((t - z4es) ** 2)
-            cond1 = (q - qsat) / (1.0 + qsat * cor * z2s)
+            cond1 = (q - qsat) / (1 + qsat * cor * z2s)
             t += aldcp * cond1
             q -= cond1
 
             # 2
             foeew = R2ES * exp(z3es * (t - RTT) / (t - z4es))
             qsat = min(foeew / in_ap, ZQMAX)
-            cor = 1.0 / (1.0 - RETV * qsat)
+            cor = 1 / (1 - RETV * qsat)
             qsat *= cor
             z2s = z5alcp / ((t - z4es) ** 2)
-            cond1 = (q - qsat) / (1.0 + qsat * cor * z2s)
+            cond1 = (q - qsat) / (1 + qsat * cor * z2s)
             t += aldcp * cond1
             q -= cond1
 
@@ -641,9 +634,9 @@ class Cloudsc2NL(ImplicitTendencyComponent):
                 rfreeze2 = 0.0
                 fwatr = 1.0
             rn = fwatr * dr2
-            sn = (1.0 - fwatr) * dr2
+            sn = (1 - fwatr) * dr2
             condl += fwatr * dq / dt
-            condi += (1.0 - fwatr) * dq / dt
+            condi += (1 - fwatr) * dq / dt
             tmp_rfln += rn
             tmp_sfln += sn
             rfreeze += rfreeze2
@@ -656,7 +649,7 @@ class Cloudsc2NL(ImplicitTendencyComponent):
                 - (
                     lvdcp * evapr
                     + lsdcp * evaps
-                    + in_lude * (fwat * lvdcp + (1.0 - fwat) * lsdcp)
+                    + in_lude * (fwat * lvdcp + (1 - fwat) * lsdcp)
                     - (lsdcp - lvdcp) * rfreeze
                 )
                 * gdp
