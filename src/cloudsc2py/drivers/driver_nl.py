@@ -1,14 +1,12 @@
 # -*- coding: utf-8 -*-
-import gt4py
-
 from cloudsc2py.framework.grid import VerticalSliceGrid
 from cloudsc2py.physics.common.diagnostics import EtaLevels
 from cloudsc2py.physics.nonlinear.microphysics import Cloudsc2NL
 from cloudsc2py.physics.nonlinear.saturation import Saturation
+from cloudsc2py.physics.nonlinear.validation import Validator
 from cloudsc2py.state import get_accumulated_tendencies, get_initial_state
 from cloudsc2py.utils.io import HDF5Reader
 from cloudsc2py.utils.timing import Timer
-from cloudsc2py.utils.validation import Validator
 
 import namelist_nl as nml
 import utils
@@ -111,7 +109,7 @@ def main():
         nml.nruns,
         Timer,
         nml.backend_options.exec_info,
-        stencil_names=["saturation_nl", "cloudsc_nl"],
+        stencil_names=["saturation_nl", "cloudsc2_nl"],
     )
 
     if nml.validate:
@@ -120,7 +118,7 @@ def main():
         failing_fields = validator.run(tendencies, diagnostics)
         if failing_fields:
             print(
-                f"\nValidation failed on the folowing fields: "
+                f"\nValidation failed on the following fields: "
                 f"{', '.join(failing_fields)}."
             )
         else:

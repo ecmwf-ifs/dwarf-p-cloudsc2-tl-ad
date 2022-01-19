@@ -10,6 +10,8 @@ from cloudsc2py.utils.f2py import ported_method
 from cloudsc2py.utils.storage import get_array
 
 if TYPE_CHECKING:
+    from datetime import timedelta
+
     from cloudsc2py.framework.grid import Grid
     from cloudsc2py.utils.typingx import ArrayDict, ParameterDict
 
@@ -41,6 +43,7 @@ class Cloudsc2NL(ImplicitTendencyComponent):
         )
 
         externals = {
+            "ICALL": 0,
             "LDPHYLIN": ldphylin,
             "LDRAIN1D": ldrain1d,
             "ZEPS1": 1e-12,
@@ -54,7 +57,7 @@ class Cloudsc2NL(ImplicitTendencyComponent):
         externals.update(yrecldp_parameters or {})
         externals.update(yrephli_parameters or {})
         externals.update(yrphnc_parameters or {})
-        self.bo.external_parameters.update(externals)
+        self.bo.externals.update(externals)
 
         self.cloudsc = self.compile_stencil("cloudsc2_nl")
 
@@ -146,50 +149,6 @@ class Cloudsc2NL(ImplicitTendencyComponent):
             "f_covptot": {"dims": dims, "units": ""},
         }
 
-    @property
-    def used_externals(self) -> Sequence[str]:
-        return (
-            "LDRAIN1D",
-            "LEVAPLS2",
-            "LDPHYLIN",
-            "R2ES",
-            "R3IES",
-            "R3LES",
-            "R4IES",
-            "R4LES",
-            "R5ALSCP",
-            "R5ALVCP",
-            "R5IES",
-            "R5LES",
-            "RALSDCP",
-            "RALVDCP",
-            "RCLCRIT",
-            "RCPD",
-            "RD",
-            "RETV",
-            "RG",
-            "RKCONV",
-            "RLMIN",
-            "RLMLT",
-            "RLPTRC",
-            "RLSTT",
-            "RLVTT",
-            "RPECONS",
-            "RTICE",
-            "RTICECU",
-            "RTT",
-            "RTWAT",
-            "RTWAT_RTICE_R",
-            "RTWAT_RTICECU_R",
-            "RVTMP2",
-            "ZEPS1",
-            "ZEPS2",
-            "ZQMAX",
-            "ZSCAL",
-            "foealfa",
-            "foeewm",
-        )
-
     def array_call(
         self,
         state: "ArrayDict",
@@ -228,10 +187,6 @@ class Cloudsc2NL(ImplicitTendencyComponent):
             out_fplsn=out_diagnostics["f_fplsn"],
             out_covptot=out_diagnostics["f_covptot"],
             dt=timestep.total_seconds(),
-            ow_out_tnd_t=overwrite_tendencies["f_t"],
-            ow_out_tnd_q=overwrite_tendencies["f_q"],
-            ow_out_tnd_ql=overwrite_tendencies["f_ql"],
-            ow_out_tnd_qi=overwrite_tendencies["f_qi"],
             origin=(0, 0, 0),
             domain=(self.grid.nx, self.grid.ny, self.grid.nz + 1),
             validate_args=self.bo.validate_args,
@@ -242,7 +197,50 @@ class Cloudsc2NL(ImplicitTendencyComponent):
     @ported_method(
         from_file="cloudsc2_nl/cloudsc2.F90", from_line=235, to_line=735
     )
-    @stencil_collection("cloudsc2_nl")
+    @stencil_collection(
+        "cloudsc2_nl",
+        external_names=[
+            "ICALL",
+            "LDRAIN1D",
+            "LEVAPLS2",
+            "LDPHYLIN",
+            "R2ES",
+            "R3IES",
+            "R3LES",
+            "R4IES",
+            "R4LES",
+            "R5ALSCP",
+            "R5ALVCP",
+            "R5IES",
+            "R5LES",
+            "RALSDCP",
+            "RALVDCP",
+            "RCLCRIT",
+            "RCPD",
+            "RD",
+            "RETV",
+            "RG",
+            "RKCONV",
+            "RLMIN",
+            "RLMLT",
+            "RLPTRC",
+            "RLSTT",
+            "RLVTT",
+            "RPECONS",
+            "RTICE",
+            "RTICECU",
+            "RTT",
+            "RTWAT",
+            "RTWAT_RTICE_R",
+            "RTWAT_RTICECU_R",
+            "RVTMP2",
+            "ZEPS1",
+            "ZEPS2",
+            "ZQMAX",
+            "ZSCAL",
+            "cuadjtqs_nl",
+        ],
+    )
     def cloudsc_def(
         in_eta: gtscript.Field[gtscript.K, "ftype"],
         in_ap: gtscript.Field["ftype"],
@@ -280,48 +278,8 @@ class Cloudsc2NL(ImplicitTendencyComponent):
         out_covptot: gtscript.Field["ftype"],
         *,
         dt: "ftype",
-        ow_out_tnd_t: "btype",
-        ow_out_tnd_q: "btype",
-        ow_out_tnd_ql: "btype",
-        ow_out_tnd_qi: "btype",
     ):
-        from __externals__ import (
-            LDRAIN1D,
-            LEVAPLS2,
-            LDPHYLIN,
-            R2ES,
-            R3IES,
-            R3LES,
-            R4IES,
-            R4LES,
-            R5ALSCP,
-            R5ALVCP,
-            R5IES,
-            R5LES,
-            RALSDCP,
-            RALVDCP,
-            RCLCRIT,
-            RCPD,
-            RD,
-            RETV,
-            RG,
-            RKCONV,
-            RLMIN,
-            RLMLT,
-            RLPTRC,
-            RLSTT,
-            RLVTT,
-            RPECONS,
-            RTICE,
-            RTT,
-            RVTMP2,
-            ZQMAX,
-            ZEPS1,
-            ZEPS2,
-            ZSCAL,
-            foealfa,
-            foeewm,
-        )
+        from __externals__ import ext
 
         # set to zero precipitation fluxes at the top
         with computation(FORWARD), interval(0, 1):
@@ -350,46 +308,46 @@ class Cloudsc2NL(ImplicitTendencyComponent):
             qi = in_qi + dt * in_tnd_qi
 
             # set up constants required
-            ckcodtl = 2 * RKCONV * dt
-            ckcodti = 5 * RKCONV * dt
-            cons2 = 1 / (RG * dt)
-            cons3 = RLVTT / RCPD
-            meltp2 = RTT + 2
+            ckcodtl = 2 * ext.RKCONV * dt
+            ckcodti = 5 * ext.RKCONV * dt
+            cons2 = 1 / (ext.RG * dt)
+            cons3 = ext.RLVTT / ext.RCPD
+            meltp2 = ext.RTT + 2
 
             # parameter for cloud formation
-            scalm = ZSCAL * max(in_eta - 0.2, ZEPS1) ** 0.2
+            scalm = ext.ZSCAL * max(in_eta - 0.2, ext.ZEPS1) ** 0.2
 
             # thermodynamic constants
             dp = in_aph[0, 0, 1] - in_aph[0, 0, 0]
-            zz = RCPD + RCPD * RVTMP2 * q
-            lfdcp = RLMLT / zz
-            lsdcp = RLSTT / zz
-            lvdcp = RLVTT / zz
+            zz = ext.RCPD + ext.RCPD * ext.RVTMP2 * q
+            lfdcp = ext.RLMLT / zz
+            lsdcp = ext.RLSTT / zz
+            lvdcp = ext.RLVTT / zz
 
             # clear cloud and freezing arrays
             out_clc = 0.0
             out_covptot = 0.0
 
             # calculate dqs/dT correction factor
-            if __INLINED(LDPHYLIN or LDRAIN1D):
-                if t < RTT:
-                    fwat = 0.545 * (tanh(0.17 * (t - RLPTRC)) + 1)
-                    z3es = R3IES
-                    z4es = R4IES
+            if __INLINED(ext.LDPHYLIN or ext.LDRAIN1D):
+                if t < ext.RTT:
+                    fwat = 0.545 * (tanh(0.17 * (t - ext.RLPTRC)) + 1)
+                    z3es = ext.R3IES
+                    z4es = ext.R4IES
                 else:
                     fwat = 1.0
-                    z3es = R3LES
-                    z4es = R4LES
-                foeew = R2ES * exp(z3es * (t - RTT) / (t - z4es))
-                esdp = min(foeew / in_ap, ZQMAX)
+                    z3es = ext.R3LES
+                    z4es = ext.R4LES
+                foeew = ext.R2ES * exp(z3es * (t - ext.RTT) / (t - z4es))
+                esdp = min(foeew / in_ap, ext.ZQMAX)
             else:
-                fwat = foealfa(t)
-                foeew = foeewm(t)
+                fwat = ext.foealfa(t)
+                foeew = ext.foeewm(t)
                 esdp = foeew / in_ap
-            facw = R5LES / ((t - R4LES) ** 2)
-            faci = R5IES / ((t - R4IES) ** 2)
+            facw = ext.R5LES / ((t - ext.R4LES) ** 2)
+            faci = ext.R5IES / ((t - ext.R4IES) ** 2)
             fac = fwat * facw + (1 - fwat) * faci
-            dqsdtemp = fac * in_qsat / (1 - RETV * esdp)
+            dqsdtemp = fac * in_qsat / (1 - ext.RETV * esdp)
             corqs = 1 + cons3 * dqsdtemp
 
             # use clipped state
@@ -419,7 +377,7 @@ class Cloudsc2NL(ImplicitTendencyComponent):
                         crh2 = rh1 + (rh2 - rh1) * sqrt((1 - in_eta) / deta1)
 
             # allow ice supersaturation at cold temperatures
-            if t < RTICE:
+            if t < ext.RTICE:
                 qsat = in_qsat * (1.8 - 0.003 * t)
             else:
                 qsat = in_qsat
@@ -440,9 +398,9 @@ class Cloudsc2NL(ImplicitTendencyComponent):
                 qc = (scalm * qpd + (1 - scalm) * qcd) * (out_clc ** 2)
 
             # add convective component
-            gdp = RG / (in_aph[0, 0, 1] - in_aph[0, 0, 0])
+            gdp = ext.RG / (in_aph[0, 0, 1] - in_aph[0, 0, 0])
             lude = dt * in_lude * gdp
-            lo1 = lude[0, 0, 0] >= RLMIN and in_lu[0, 0, 1] >= ZEPS2
+            lo1 = lude[0, 0, 0] >= ext.RLMIN and in_lu[0, 0, 1] >= ext.ZEPS2
             if lo1:
                 out_clc += (1 - out_clc[0, 0, 0]) * (
                     1 - exp(-lude[0, 0, 0] / in_lu[0, 0, 1])
@@ -450,11 +408,15 @@ class Cloudsc2NL(ImplicitTendencyComponent):
                 qc += lude
 
             # add compensating subsidence component
-            rho = in_ap / (RD * t)
-            rodqsdp = -rho * in_qsat / (in_ap - RETV * foeew)
+            rho = in_ap / (ext.RD * t)
+            rodqsdp = -rho * in_qsat / (in_ap - ext.RETV * foeew)
             ldcp = fwat * lvdcp + (1 - fwat) * lsdcp
-            dtdzmo = RG * (1 / RCPD - ldcp * rodqsdp) / (1 + ldcp * dqsdtemp)
-            dqsdz = dqsdtemp * dtdzmo - RG * rodqsdp
+            dtdzmo = (
+                ext.RG
+                * (1 / ext.RCPD - ldcp * rodqsdp)
+                / (1 + ldcp * dqsdtemp)
+            )
+            dqsdz = dqsdtemp * dtdzmo - ext.RG * rodqsdp
             dqc = min(dt * dqsdz * (in_mfu + in_mfd) / rho, qc)
             qc -= dqc
 
@@ -481,11 +443,11 @@ class Cloudsc2NL(ImplicitTendencyComponent):
                 tmp_sfln = tmp_sfl
 
             # diagnostic calculation of rain production from cloud liquid water
-            if out_clc > ZEPS2:
-                if __INLINED(LEVAPLS2 or LDRAIN1D):
-                    lcrit = 1.9 * RCLCRIT
+            if out_clc > ext.ZEPS2:
+                if __INLINED(ext.LEVAPLS2 or ext.LDRAIN1D):
+                    lcrit = 1.9 * ext.RCLCRIT
                 else:
-                    lcrit = 2.0 * RCLCRIT
+                    lcrit = 2.0 * ext.RCLCRIT
                 cldl = qlwc / out_clc
                 dl = ckcodtl * (1 - exp(-((cldl / lcrit) ** 2)))
                 prr = qlwc - out_clc * cldl * exp(-dl)
@@ -494,15 +456,15 @@ class Cloudsc2NL(ImplicitTendencyComponent):
                 prr = 0.0
 
             # diagnostic calculation of snow production from cloud ice
-            if out_clc > ZEPS2:
-                if __INLINED(LEVAPLS2 or LDRAIN1D):
+            if out_clc > ext.ZEPS2:
+                if __INLINED(ext.LEVAPLS2 or ext.LDRAIN1D):
                     icrit = 0.0001
                 else:
-                    icrit = 2 * RCLCRIT
+                    icrit = 2 * ext.RCLCRIT
                 cldi = qiwc / out_clc
                 di = (
                     ckcodti
-                    * exp(0.025 * (t - RTT))
+                    * exp(0.025 * (t - ext.RTT))
                     * (1 - exp(-((cldi / icrit) ** 2)))
                 )
                 prs = qiwc - out_clc * cldi * exp(-di)
@@ -514,7 +476,7 @@ class Cloudsc2NL(ImplicitTendencyComponent):
             dr = cons2 * dp * (prr + prs)
 
             # rain fraction (different from cloud liquid water fraction!)
-            if t < RTT:
+            if t < ext.RTT:
                 rfreeze = cons2 * dp * prr
                 fwatr = 0.0
             else:
@@ -526,9 +488,9 @@ class Cloudsc2NL(ImplicitTendencyComponent):
             # precipitation evaporation
             prtot = tmp_rfln + tmp_sfln
             if (
-                prtot > ZEPS2
-                and tmp_covpclr > ZEPS2
-                and (LEVAPLS2 or LDRAIN1D)
+                prtot > ext.ZEPS2
+                and tmp_covpclr > ext.ZEPS2
+                and (ext.LEVAPLS2 or ext.LDRAIN1D)
             ):
                 preclr = prtot * tmp_covpclr / tmp_covptot
 
@@ -537,8 +499,8 @@ class Cloudsc2NL(ImplicitTendencyComponent):
                     (1 - out_clc) ** 2
                 )
                 beta = (
-                    RG
-                    * RPECONS
+                    ext.RG
+                    * ext.RPECONS
                     * (
                         sqrt(in_ap[0, 0, 0] / in_aph[0, 0, 1])
                         / 0.00509
@@ -551,7 +513,7 @@ class Cloudsc2NL(ImplicitTendencyComponent):
                 # implicit solution
                 b = dt * beta * (in_qsat - qe) / (1 + dt * beta * corqs)
 
-                dtgdp = dt * RG / (in_aph[0, 0, 1] - in_aph[0, 0, 0])
+                dtgdp = dt * ext.RG / (in_aph[0, 0, 1] - in_aph[0, 0, 0])
                 dpr = min(tmp_covpclr * b / dtgdp, preclr)
                 preclr -= dpr
                 if preclr <= 0:
@@ -593,41 +555,12 @@ class Cloudsc2NL(ImplicitTendencyComponent):
             qold = q
 
             # clipping of final qv
-            if t > RTT:
-                z3es = R3LES
-                z4es = R4LES
-                z5alcp = R5ALVCP
-                aldcp = RALVDCP
-            else:
-                z3es = R3IES
-                z4es = R4IES
-                z5alcp = R5ALSCP
-                aldcp = RALSDCP
-
-            # 1
-            foeew = R2ES * exp(z3es * (t - RTT) / (t - z4es))
-            qsat = min(foeew / in_ap, ZQMAX)
-            cor = 1 / (1 - RETV * qsat)
-            qsat *= cor
-            z2s = z5alcp / ((t - z4es) ** 2)
-            cond1 = (q - qsat) / (1 + qsat * cor * z2s)
-            t += aldcp * cond1
-            q -= cond1
-
-            # 2
-            foeew = R2ES * exp(z3es * (t - RTT) / (t - z4es))
-            qsat = min(foeew / in_ap, ZQMAX)
-            cor = 1 / (1 - RETV * qsat)
-            qsat *= cor
-            z2s = z5alcp / ((t - z4es) ** 2)
-            cond1 = (q - qsat) / (1 + qsat * cor * z2s)
-            t += aldcp * cond1
-            q -= cond1
+            t, q = ext.cuadjtqs_nl(in_ap, t, q)
 
             # update rain fraction and freezing
             dq = max(qold - q, 0.0)
             dr2 = cons2 * dp * dq
-            if t < RTT:
+            if t < ext.RTT:
                 rfreeze2 = fwat * dr2
                 fwatr = 0.0
             else:
@@ -673,5 +606,5 @@ class Cloudsc2NL(ImplicitTendencyComponent):
             with interval(1, None):
                 out_fplsl = fplsl[0, 0, -1]
                 out_fplsn = fplsn[0, 0, -1]
-                out_fhpsl = -out_fplsl * RLVTT
-                out_fhpsn = -out_fplsn * RLSTT
+                out_fhpsl = -out_fplsl * ext.RLVTT
+                out_fhpsn = -out_fplsn * ext.RLSTT

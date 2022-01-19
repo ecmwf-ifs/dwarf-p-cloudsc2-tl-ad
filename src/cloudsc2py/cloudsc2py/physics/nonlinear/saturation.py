@@ -45,7 +45,7 @@ class Saturation(DiagnosticComponent):
         externals = {"KFLAG": kflag, "LDPHYLIN": ldphylin, "QMAX": 0.5}
         externals.update(yoethf_parameters or {})
         externals.update(yomcst_parameters or {})
-        self.bo.external_parameters.update(externals)
+        self.bo.externals.update(externals)
         self.saturation = self.compile_stencil("saturation_nl")
 
     @property
@@ -66,30 +66,6 @@ class Saturation(DiagnosticComponent):
             }
         }
 
-    @property
-    def used_externals(self) -> Sequence[str]:
-        return (
-            "KFLAG",
-            "LDPHYLIN",
-            "QMAX",
-            "R2ES",
-            "R3IES",
-            "R3LES",
-            "R4IES",
-            "R4LES",
-            "RETV",
-            "RTICE",
-            "RTICECU",
-            "RTT",
-            "RTWAT",
-            "RTWAT_RTICE_R",
-            "RTWAT_RTICECU_R",
-            "foealfa",
-            "foealfcu",
-            "foeewm",
-            "foeewmcu",
-        )
-
     def array_call(self, state: "ArrayDict", out: "ArrayDict") -> None:
         self.saturation(
             in_ap=state["f_ap"],
@@ -105,40 +81,46 @@ class Saturation(DiagnosticComponent):
     @ported_method(
         from_file="clouds2_nl/satur.F90", from_line=106, to_line=140
     )
-    @stencil_collection("saturation_nl")
+    @stencil_collection(
+        "saturation_nl",
+        external_names=[
+            "KFLAG",
+            "LDPHYLIN",
+            "QMAX",
+            "R2ES",
+            "R3IES",
+            "R3LES",
+            "R4IES",
+            "R4LES",
+            "RETV",
+            "RTT",
+            "foealfa",
+            "foeewm",
+            "foeewmcu",
+        ],
+    )
     def saturation_def(
         in_ap: gtscript.Field["ftype"],
         in_t: gtscript.Field["ftype"],
         out_qsat: gtscript.Field["ftype"],
     ):
-        from __externals__ import (
-            KFLAG,
-            LDPHYLIN,
-            QMAX,
-            R2ES,
-            R3IES,
-            R3LES,
-            R4IES,
-            R4LES,
-            RETV,
-            RTICE,
-            RTT,
-            foealfa,
-            foeewm,
-            foeewmcu,
-        )
+        from __externals__ import ext
 
         with computation(PARALLEL), interval(...):
-            if __INLINED(LDPHYLIN):
-                alfa = foealfa(in_t)
-                foeewl = R2ES * exp(R3LES * (in_t - RTT) / (in_t - R4LES))
-                foeewi = R2ES * exp(R3IES * (in_t - RTT) / (in_t - R4IES))
+            if __INLINED(ext.LDPHYLIN):
+                alfa = ext.foealfa(in_t)
+                foeewl = ext.R2ES * exp(
+                    ext.R3LES * (in_t - ext.RTT) / (in_t - ext.R4LES)
+                )
+                foeewi = ext.R2ES * exp(
+                    ext.R3IES * (in_t - ext.RTT) / (in_t - ext.R4IES)
+                )
                 foeew = alfa * foeewl + (1 - alfa) * foeewi
-                qs = min(foeew / in_ap, QMAX)
+                qs = min(foeew / in_ap, ext.QMAX)
             else:
-                if __INLINED(KFLAG == 1):
-                    ew = foeewmcu(in_t)
+                if __INLINED(ext.KFLAG == 1):
+                    ew = ext.foeewmcu(in_t)
                 else:
-                    ew = foeewm(in_t)
-                qs = min(ew / in_ap, QMAX)
-            out_qsat = qs / (1.0 - RETV * qs)
+                    ew = ext.foeewm(in_t)
+                qs = min(ew / in_ap, ext.QMAX)
+            out_qsat = qs / (1.0 - ext.RETV * qs)

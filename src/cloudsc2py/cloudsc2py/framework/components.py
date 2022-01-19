@@ -45,9 +45,7 @@ class GridComponent:
         fill_dtypes(self.bo, self.so)
 
     def compile_stencil(self, name: str) -> "StencilObject":
-        return compile_stencil(
-            name, self.backend, self.bo, used_externals=self.used_externals
-        )
+        return compile_stencil(name, self.backend, self.bo, self.so)
 
     def allocate(self, name: str, properties: "PropertyDict") -> "Array":
         data_shape = get_data_shape_from_name(name)
@@ -60,10 +58,6 @@ class GridComponent:
             dtype=dtype,
             storage_options=self.so,
         )
-
-    @abc.abstractmethod
-    def used_externals(self) -> Sequence[str]:
-        pass
 
 
 class DiagnosticComponent(GridComponent, SymplDiagnosticComponent):

@@ -15,8 +15,7 @@ class BackendOptions:
     device_sync: bool = True
     dtypes: Mapping[str, Type] = field(default_factory=dict)
     exec_info: Optional[Mapping[str, Any]] = None
-    external_functions: Mapping[str, Any] = field(default_factory=dict)
-    external_parameters: Mapping[str, Any] = field(default_factory=dict)
+    externals: Mapping[str, Any] = field(default_factory=dict)
     rebuild: bool = False
     validate_args: bool = False
     verbose: bool = True

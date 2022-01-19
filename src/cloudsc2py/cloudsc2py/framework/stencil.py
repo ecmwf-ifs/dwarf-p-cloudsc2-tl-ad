@@ -1,4 +1,6 @@
 # -*- coding: utf-8 -*-
+from collections import namedtuple
+from copy import deepcopy
 from typing import Optional, Sequence, TYPE_CHECKING
 
 from gt4py import gtscript
@@ -17,26 +19,48 @@ PARAMETER_COLLECTION = {}
 STENCIL_COLLECTION = {}
 
 
-def function_collection(name: str):
+def function_collection(
+    name: str, external_names: Optional[Sequence[str]] = None
+):
     if name in FUNCTION_COLLECTION:
         raise RuntimeError(f"Another function called {name} found.")
 
     def core(definition):
-        FUNCTION_COLLECTION[name] = definition
+        FUNCTION_COLLECTION[name] = {
+            "definition": definition,
+            "external_names": external_names or (),
+        }
         return definition
 
     return core
 
 
-def stencil_collection(name: str):
+def stencil_collection(
+    name: str, external_names: Optional[Sequence[str]] = None
+):
     if name in STENCIL_COLLECTION:
         raise RuntimeError(f"Another stencil called {name} found.")
 
     def core(definition):
-        STENCIL_COLLECTION[name] = definition
+        STENCIL_COLLECTION[name] = {
+            "definition": definition,
+            "external_names": external_names or (),
+        }
         return definition
 
     return core
+
+
+def get_external_names(name, level=0, out=set()):
+    if level > 0:
+        out.add(name)
+    if name in STENCIL_COLLECTION:
+        for key in STENCIL_COLLECTION[name]["external_names"]:
+            get_external_names(key, level + 1, out)
+    elif name in FUNCTION_COLLECTION:
+        for key in FUNCTION_COLLECTION[name]["external_names"]:
+            get_external_names(key, level + 1, out)
+    return out
 
 
 def compile_stencil(
@@ -44,21 +68,28 @@ def compile_stencil(
     backend: str,
     backend_options: "BackendOptions",
     storage_options: Optional["StorageOptions"] = None,
-    used_externals: Optional[Sequence[str]] = None,
 ) -> "StencilObject":
-    definition = STENCIL_COLLECTION.get(name, None)
-    if definition is None:
+    stencil_info = STENCIL_COLLECTION.get(name, None)
+    if stencil_info is None:
         raise RuntimeError(f"Unknown stencil {name}.")
+    definition = stencil_info["definition"]
 
     if storage_options:
         fill_dtypes(backend_options, storage_options)
 
-    if used_externals:
-        collected_externals = PARAMETER_COLLECTION.copy()
-        collected_externals.update(backend_options.external_parameters)
-        collected_externals.update(FUNCTION_COLLECTION)
-        collected_externals.update(backend_options.external_functions)
-        externals = {key: collected_externals[key] for key in used_externals}
+    external_names = get_external_names(name)
+    if external_names:
+        collected_externals = {
+            key: FUNCTION_COLLECTION[key]["definition"]
+            for key in FUNCTION_COLLECTION
+        }
+        collected_externals.update(PARAMETER_COLLECTION)
+        collected_externals.update(backend_options.externals)
+        ext_type = namedtuple("ext_type", external_names)
+        ext = ext_type(
+            **{key: collected_externals[key] for key in external_names}
+        )
+        externals = {"ext": ext}
     else:
         externals = {}
 
