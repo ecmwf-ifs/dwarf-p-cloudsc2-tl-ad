@@ -17,6 +17,7 @@ if TYPE_CHECKING:
     from sympl._core.typingx import DataArrayDict
 
     from cloudsc2py.framework.grid import Grid
+    from cloudsc2py.framework.options import BackendOptions, StorageOptions
     from cloudsc2py.utils.typingx import ParameterDict
 
 
@@ -120,9 +121,7 @@ class TaylorTest:
         self.tends_nl_p = None
         self.tends_tl = None
 
-    def __call__(
-        self, state: "DataArrayDict", timestep: "timedelta"
-    ) -> Tuple[int, float]:
+    def __call__(self, state: "DataArrayDict", timestep: "timedelta") -> None:
         self.validate(self.run(state, timestep))
 
     @ported_method(
@@ -210,10 +209,8 @@ class TaylorTest:
         tend_names = ("f_t", "f_q", "f_ql", "f_qi")
         for name in tend_names:
             field_nl, field_nl_p, field_tl = self.get_fields(name, "tends")
-            norm = self.get_field_norm(
-                i, field_nl, field_nl_p, field_tl
-            )
-            total_count += (norm > 0)
+            norm = self.get_field_norm(i, field_nl, field_nl_p, field_tl)
+            total_count += norm > 0
             total_norm += norm
 
         diag_names = (
@@ -226,10 +223,8 @@ class TaylorTest:
         )
         for name in diag_names:
             field_nl, field_nl_p, field_tl = self.get_fields(name, "diags")
-            norm = self.get_field_norm(
-                i, field_nl, field_nl_p, field_tl
-            )
-            total_count += (norm > 0)
+            norm = self.get_field_norm(i, field_nl, field_nl_p, field_tl)
+            total_count += norm > 0
             total_norm += norm
 
         return total_norm / total_count if total_count > 0 else 0
