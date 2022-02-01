@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 from functools import partial
-from typing import Dict, Optional, Sequence, TYPE_CHECKING
+from typing import Dict, Optional, TYPE_CHECKING
 
 from gt4py import gtscript
 
@@ -15,7 +15,10 @@ from cloudsc2py.utils.storage import get_array
 if TYPE_CHECKING:
     from datetime import timedelta
 
+    from sympl._core.typingx import PropertyDict
+
     from cloudsc2py.framework.grid import Grid
+    from cloudsc2py.framework.options import BackendOptions, StorageOptions
     from cloudsc2py.utils.typingx import ArrayDict, ParameterDict
 
 
@@ -100,10 +103,10 @@ class Cloudsc2NL(ImplicitTendencyComponent):
             "f_lu": {"dims": dims, "units": "g g^-1"},
             "f_mfu": {"dims": dims, "units": "kg m^-2 s^-1"},
             "f_mfd": {"dims": dims, "units": "kg m^-2 s^-1"},
-            "f_tnd_t": {"dims": dims, "units": "K s^-1"},
-            "f_tnd_q": {"dims": dims, "units": "K s^-1"},
-            "f_tnd_ql": {"dims": dims, "units": "K s^-1"},
-            "f_tnd_qi": {"dims": dims, "units": "K s^-1"},
+            "f_cml_tnd_t": {"dims": dims, "units": "K s^-1"},
+            "f_cml_tnd_q": {"dims": dims, "units": "K s^-1"},
+            "f_cml_tnd_ql": {"dims": dims, "units": "K s^-1"},
+            "f_cml_tnd_qi": {"dims": dims, "units": "K s^-1"},
             "f_supsat": {"dims": dims, "units": "g g^-1"},
         }
 
@@ -158,10 +161,10 @@ class Cloudsc2NL(ImplicitTendencyComponent):
             in_mfd=state["f_mfd"],
             in_mfu=state["f_mfu"],
             in_supsat=state["f_supsat"],
-            in_tnd_t=state["f_tnd_t"],
-            in_tnd_q=state["f_tnd_q"],
-            in_tnd_ql=state["f_tnd_ql"],
-            in_tnd_qi=state["f_tnd_qi"],
+            in_tnd_t=state["f_cml_tnd_t"],
+            in_tnd_q=state["f_cml_tnd_q"],
+            in_tnd_ql=state["f_cml_tnd_ql"],
+            in_tnd_qi=state["f_cml_tnd_qi"],
             **self.temporary_fields,
             out_tnd_t=out_tendencies["f_t"],
             out_tnd_q=out_tendencies["f_q"],
@@ -674,4 +677,3 @@ class Cloudsc2NL(ImplicitTendencyComponent):
             rfln,
             sfln,
         )
-

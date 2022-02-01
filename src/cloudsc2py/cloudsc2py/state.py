@@ -202,10 +202,10 @@ def get_initial_state(
     tendencies = get_accumulated_tendencies(
         grid, hdf5_reader, backend=backend, storage_options=storage_options
     )
-    out["f_tnd_t"] = tendencies["f_t"]
-    out["f_tnd_q"] = tendencies["f_q"]
-    out["f_tnd_ql"] = tendencies["f_ql"]
-    out["f_tnd_qi"] = tendencies["f_qi"]
+    out["f_cml_tnd_t"] = tendencies["f_t"]
+    out["f_cml_tnd_q"] = tendencies["f_q"]
+    out["f_cml_tnd_ql"] = tendencies["f_ql"]
+    out["f_cml_tnd_qi"] = tendencies["f_qi"]
 
     out["time"] = datetime(1970, 1, 1)
 
