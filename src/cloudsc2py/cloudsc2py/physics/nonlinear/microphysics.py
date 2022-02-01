@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 from functools import partial
-from typing import Dict, Optional, Sequence, TYPE_CHECKING
+from typing import Dict, Optional, TYPE_CHECKING
 
 from gt4py import gtscript
 
@@ -12,7 +12,10 @@ from cloudsc2py.utils.storage import get_array
 if TYPE_CHECKING:
     from datetime import timedelta
 
+    from sympl._core.typingx import PropertyDict
+
     from cloudsc2py.framework.grid import Grid
+    from cloudsc2py.framework.options import BackendOptions, StorageOptions
     from cloudsc2py.utils.typingx import ArrayDict, ParameterDict
 
 
@@ -59,17 +62,9 @@ class Cloudsc2NL(ImplicitTendencyComponent):
         externals.update(yrphnc_parameters or {})
         self.bo.externals.update(externals)
 
-        self.cloudsc = self.compile_stencil("cloudsc2_nl")
+        self.cloudsc2 = self.compile_stencil("cloudsc2_nl")
 
         # allocate temporary 2d arrays
-        allocate_b = partial(
-            get_array,
-            self.grid,
-            (self.grid.dims_x, self.grid.dims_y),
-            backend=backend,
-            dtype=self.so.dtypes.bool,
-            storage_options=self.so,
-        )
         allocate_f = partial(
             get_array,
             self.grid,
@@ -81,9 +76,6 @@ class Cloudsc2NL(ImplicitTendencyComponent):
         self.temporary_fields = {
             "tmp_rfl": allocate_f(),
             "tmp_sfl": allocate_f(),
-            "tmp_rfln": allocate_f(),
-            "tmp_sfln": allocate_f(),
-            "tmp_covpclr": allocate_f(),
             "tmp_covptot": allocate_f(),
             "tmp_trpaus": allocate_f(),
         }
@@ -157,7 +149,7 @@ class Cloudsc2NL(ImplicitTendencyComponent):
         out_diagnostics: "ArrayDict",
         overwrite_tendencies: Dict[str, bool],
     ) -> None:
-        self.cloudsc(
+        self.cloudsc2(
             in_eta=state["f_eta"],
             in_ap=state["f_ap"],
             in_aph=state["f_aph"],
@@ -241,7 +233,7 @@ class Cloudsc2NL(ImplicitTendencyComponent):
             "cuadjtqs_nl",
         ],
     )
-    def cloudsc_def(
+    def cloudsc2_nl_def(
         in_eta: gtscript.Field[gtscript.K, "ftype"],
         in_ap: gtscript.Field["ftype"],
         in_aph: gtscript.Field["ftype"],
@@ -261,9 +253,6 @@ class Cloudsc2NL(ImplicitTendencyComponent):
         in_tnd_qi: gtscript.Field["ftype"],
         tmp_rfl: gtscript.Field[gtscript.IJ, "ftype"],
         tmp_sfl: gtscript.Field[gtscript.IJ, "ftype"],
-        tmp_rfln: gtscript.Field[gtscript.IJ, "ftype"],
-        tmp_sfln: gtscript.Field[gtscript.IJ, "ftype"],
-        tmp_covpclr: gtscript.Field[gtscript.IJ, "ftype"],
         tmp_covptot: gtscript.Field[gtscript.IJ, "ftype"],
         tmp_trpaus: gtscript.Field[gtscript.IJ, "ftype"],
         out_tnd_t: gtscript.Field["ftype"],
@@ -285,10 +274,7 @@ class Cloudsc2NL(ImplicitTendencyComponent):
         with computation(FORWARD), interval(0, 1):
             tmp_rfl = 0.0
             tmp_sfl = 0.0
-            tmp_rfln = 0.0
-            tmp_sfln = 0.0
             tmp_covptot = 0.0
-            tmp_covpclr = 0.0
 
         with computation(PARALLEL), interval(0, -1):
             # first guess values for T
@@ -429,18 +415,18 @@ class Cloudsc2NL(ImplicitTendencyComponent):
             # calculate precipitation overlap
             # simple form based on Maximum Overlap
             tmp_covptot = max(tmp_covptot, out_clc)
-            tmp_covpclr = max(tmp_covptot - out_clc, 0.0)
+            covpclr = max(tmp_covptot - out_clc, 0.0)
 
             # melting of incoming snow
             if tmp_sfl != 0:
                 cons = cons2 * dp / lfdcp
                 snmlt = min(tmp_sfl, cons * max(t - meltp2, 0.0))
-                tmp_rfln = tmp_rfl + snmlt
-                tmp_sfln = tmp_sfl - snmlt
+                rfln = tmp_rfl + snmlt
+                sfln = tmp_sfl - snmlt
                 t -= snmlt / cons
             else:
-                tmp_rfln = tmp_rfl
-                tmp_sfln = tmp_sfl
+                rfln = tmp_rfl
+                sfln = tmp_sfl
 
             # diagnostic calculation of rain production from cloud liquid water
             if out_clc > ext.ZEPS2:
@@ -482,20 +468,20 @@ class Cloudsc2NL(ImplicitTendencyComponent):
             else:
                 rfreeze = 0.0
                 fwatr = 1.0
-            tmp_rfln += fwatr * dr
-            tmp_sfln += (1 - fwatr) * dr
+            rfln += fwatr * dr
+            sfln += (1 - fwatr) * dr
 
             # precipitation evaporation
-            prtot = tmp_rfln + tmp_sfln
+            prtot = rfln + sfln
             if (
                 prtot > ext.ZEPS2
-                and tmp_covpclr > ext.ZEPS2
+                and covpclr > ext.ZEPS2
                 and (ext.LEVAPLS2 or ext.LDRAIN1D)
             ):
-                preclr = prtot * tmp_covpclr / tmp_covptot
+                preclr = prtot * covpclr / tmp_covptot
 
                 # this is the humidity in the moisest zcovpclr region
-                qe = in_qsat - (in_qsat - qlim) * tmp_covpclr / (
+                qe = in_qsat - (in_qsat - qlim) * covpclr / (
                     (1 - out_clc) ** 2
                 )
                 beta = (
@@ -505,7 +491,7 @@ class Cloudsc2NL(ImplicitTendencyComponent):
                         sqrt(in_ap[0, 0, 0] / in_aph[0, 0, 1])
                         / 0.00509
                         * preclr
-                        / tmp_covpclr
+                        / covpclr
                     )
                     ** 0.5777
                 )
@@ -514,19 +500,19 @@ class Cloudsc2NL(ImplicitTendencyComponent):
                 b = dt * beta * (in_qsat - qe) / (1 + dt * beta * corqs)
 
                 dtgdp = dt * ext.RG / (in_aph[0, 0, 1] - in_aph[0, 0, 0])
-                dpr = min(tmp_covpclr * b / dtgdp, preclr)
+                dpr = min(covpclr * b / dtgdp, preclr)
                 preclr -= dpr
                 if preclr <= 0:
                     tmp_covptot = out_clc
                 out_covptot = tmp_covptot
 
                 # warm proportion
-                evapr = dpr * tmp_rfln / prtot
-                tmp_rfln -= evapr
+                evapr = dpr * rfln / prtot
+                rfln -= evapr
 
                 # ice proportion
-                evaps = dpr * tmp_sfln / prtot
-                tmp_sfln -= evaps
+                evaps = dpr * sfln / prtot
+                sfln -= evaps
             else:
                 evapr = 0.0
                 evaps = 0.0
@@ -570,8 +556,8 @@ class Cloudsc2NL(ImplicitTendencyComponent):
             sn = (1 - fwatr) * dr2
             condl += fwatr * dq / dt
             condi += (1 - fwatr) * dq / dt
-            tmp_rfln += rn
-            tmp_sfln += sn
+            rfln += rn
+            sfln += sn
             rfreeze += rfreeze2
 
             # calculate output tendencies
@@ -591,12 +577,12 @@ class Cloudsc2NL(ImplicitTendencyComponent):
             out_tnd_qi = (qiwc - qi) / dt
 
             # these fluxes will later be shifted one level downward
-            fplsl = tmp_rfln
-            fplsn = tmp_sfln
+            fplsl = rfln
+            fplsn = sfln
 
             # record rain flux for next level
-            tmp_rfl = tmp_rfln
-            tmp_sfl = tmp_sfln
+            tmp_rfl = rfln
+            tmp_sfl = sfln
 
         # enthalpy fluxes due to precipitation
         with computation(FORWARD):
