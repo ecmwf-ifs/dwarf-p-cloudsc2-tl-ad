@@ -46,7 +46,7 @@ class Saturation(DiagnosticComponent):
         externals.update(yoethf_parameters or {})
         externals.update(yomcst_parameters or {})
         self.bo.externals.update(externals)
-        self.saturation = self.compile_stencil("saturation_nl")
+        self.saturation = self.compile_stencil("saturation")
 
     @property
     def input_properties(self) -> "PropertyDict":
@@ -82,7 +82,7 @@ class Saturation(DiagnosticComponent):
         from_file="clouds2_nl/satur.F90", from_line=106, to_line=140
     )
     @stencil_collection(
-        "saturation_nl",
+        "saturation",
         external_names=[
             "KFLAG",
             "LDPHYLIN",

@@ -6,11 +6,8 @@ from typing import Optional, Sequence, TYPE_CHECKING, Tuple
 import gt4py
 
 from cloudsc2py.physics.nonlinear.microphysics import Cloudsc2NL
-from cloudsc2py.physics.nonlinear.saturation import Saturation
-from cloudsc2py.physics.tangent_linear.increment import (
-    PerturbedState,
-    StateIncrement,
-)
+from cloudsc2py.physics.common.increment import PerturbedState, StateIncrement
+from cloudsc2py.physics.common.saturation import Saturation
 from cloudsc2py.physics.tangent_linear.microphysics import Cloudsc2TL
 from cloudsc2py.utils.f2py import ported_method
 

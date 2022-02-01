@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*-
 from cloudsc2py.framework.grid import VerticalSliceGrid
 from cloudsc2py.physics.common.diagnostics import EtaLevels
+from cloudsc2py.physics.common.saturation import Saturation
 from cloudsc2py.physics.nonlinear.microphysics import Cloudsc2NL
-from cloudsc2py.physics.nonlinear.saturation import Saturation
 from cloudsc2py.physics.nonlinear.validation import Validator
 from cloudsc2py.state import get_accumulated_tendencies, get_initial_state
 from cloudsc2py.utils.io import HDF5Reader
@@ -104,12 +104,12 @@ def main():
             )
 
     # log
-    print("Simulation(s) completed successfully. HOORAY!\n")
+    print("Simulation(s) completed successfully. HOORAY!")
     utils.log_performance(
         nml.nruns,
         Timer,
         nml.backend_options.exec_info,
-        stencil_names=["saturation_nl", "cloudsc2_nl"],
+        stencil_names=["saturation", "cloudsc2_nl"],
     )
 
     if nml.validate:
@@ -118,11 +118,11 @@ def main():
         failing_fields = validator.run(tendencies, diagnostics)
         if failing_fields:
             print(
-                f"\nValidation failed on the following fields: "
+                f"Validation failed on the following fields: "
                 f"{', '.join(failing_fields)}."
             )
         else:
-            print(f"\nValidation completed successfully. HOORAY HOORAY!")
+            print(f"Validation completed successfully. HOORAY HOORAY!")
 
 
 if __name__ == "__main__":
