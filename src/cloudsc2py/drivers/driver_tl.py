@@ -5,7 +5,7 @@ from cloudsc2py.physics.common.increment import PerturbedState, StateIncrement
 from cloudsc2py.physics.common.saturation import Saturation
 from cloudsc2py.physics.nonlinear.microphysics import Cloudsc2NL
 from cloudsc2py.physics.tangent_linear.microphysics import Cloudsc2TL
-from cloudsc2py.state import get_accumulated_tendencies, get_initial_state
+from cloudsc2py.state import get_initial_state
 from cloudsc2py.utils.io import HDF5Reader
 from cloudsc2py.utils.timing import Timer
 
@@ -22,12 +22,6 @@ def main():
 
     # state and accumulated tendencies
     state = get_initial_state(
-        grid,
-        hdf5_reader,
-        backend=nml.backend,
-        storage_options=nml.storage_options,
-    )
-    tendencies = get_accumulated_tendencies(
         grid,
         hdf5_reader,
         backend=nml.backend,
