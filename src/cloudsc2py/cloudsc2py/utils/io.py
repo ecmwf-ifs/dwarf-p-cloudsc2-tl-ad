@@ -308,7 +308,7 @@ class HDF5Reader:
             axes = [ds.shape.index(nlon + 1)]
         else:
             raise RuntimeError(
-                f"The field {name} has the unexpected shape {ds.shape}."
+                f"The field has the unexpected shape {ds.shape}."
             )
 
         if nlev in ds.shape:
@@ -317,7 +317,7 @@ class HDF5Reader:
             axes += [ds.shape.index(nlev + 1)]
         else:
             raise RuntimeError(
-                f"The field {name} has the unexpected shape {ds.shape}."
+                f"The field has the unexpected shape {ds.shape}."
             )
 
         axes += tuple({0, 1, 2} - set(axes))
@@ -325,7 +325,7 @@ class HDF5Reader:
         return np.transpose(ds[...], axes=axes)
 
     def _get_parameter_b(self, name: str) -> bool:
-        return self.f.get(name, self.default_dataset_b)[0]
+        return bool(self.f.get(name, self.default_dataset_b)[0])
 
     def _get_parameter_f(self, name: str) -> float:
         return self.f.get(name, self.default_dataset_f)[0]

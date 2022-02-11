@@ -36,4 +36,4 @@ ldphylin = True
 ldrain1d = False
 
 # timing
-nruns = 5
+nruns = 4

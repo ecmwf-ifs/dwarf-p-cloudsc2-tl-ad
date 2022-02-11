@@ -9,6 +9,6 @@ from gt4py.storage import Storage
 Array = Storage
 ArrayDict = Dict[str, Storage]
 DataArray = SymplDataArray
-DataArrayDict = Dict[str, Storage]
+DataArrayDict = Dict[str, DataArray]
 ParameterDict = Dict[str, Union[bool, float, int]]
 Range = TypeVar("Range")

@@ -1,15 +1,12 @@
 # -*- coding: utf-8 -*-
-import numpy as np
-
 from cloudsc2py.framework.grid import VerticalSliceGrid
 from cloudsc2py.physics.common.diagnostics import EtaLevels
 from cloudsc2py.physics.tangent_linear.validation import TaylorTest
-from cloudsc2py.state import get_accumulated_tendencies, get_initial_state
+from cloudsc2py.state import get_initial_state
 from cloudsc2py.utils.io import HDF5Reader
 from cloudsc2py.utils.timing import Timer
 
-import namelist_tt as nml
-import utils
+import namelist_taylor as nml
 
 
 def main():
@@ -21,12 +18,6 @@ def main():
 
     # state and accumulated tendencies
     state = get_initial_state(
-        grid,
-        hdf5_reader,
-        backend=nml.backend,
-        storage_options=nml.storage_options,
-    )
-    tendencies = get_accumulated_tendencies(
         grid,
         hdf5_reader,
         backend=nml.backend,
@@ -61,7 +52,7 @@ def main():
         nml.factor1,
         nml.factor2s,
         nml.kflag,
-        nml.ldphylin,
+        nml.lphylin,
         nml.ldrain1d,
         yoethf_params,
         yomcst_params,
