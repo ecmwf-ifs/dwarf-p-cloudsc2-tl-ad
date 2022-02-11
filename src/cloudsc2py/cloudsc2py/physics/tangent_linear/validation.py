@@ -5,10 +5,10 @@ from typing import Optional, Sequence, TYPE_CHECKING, Tuple
 
 import gt4py
 
-from cloudsc2py.physics.nonlinear.microphysics import Cloudsc2NL
+from cloudsc2py.physics.nonlinear.microphysics_ng import Cloudsc2NL
 from cloudsc2py.physics.common.increment import PerturbedState, StateIncrement
 from cloudsc2py.physics.common.saturation import Saturation
-from cloudsc2py.physics.tangent_linear.microphysics import Cloudsc2TL
+from cloudsc2py.physics.tangent_linear.microphysics_ng import Cloudsc2TL
 from cloudsc2py.utils.f2py import ported_method
 
 if TYPE_CHECKING:
@@ -28,7 +28,7 @@ class TaylorTest:
         factor1: float,
         factor2s: Sequence[float],
         kflag: int,
-        ldphylin: bool,
+        lphylin: bool,
         ldrain1d: bool,
         yoethf_parameters: Optional["ParameterDict"] = None,
         yomcst_parameters: Optional["ParameterDict"] = None,
@@ -49,7 +49,7 @@ class TaylorTest:
         self.saturation = Saturation(
             grid,
             kflag,
-            ldphylin,
+            lphylin,
             yoethf_parameters,
             yomcst_parameters,
             enable_checks=enable_checks,
@@ -61,7 +61,7 @@ class TaylorTest:
         # microphysics
         self.cloudsc2_nl = Cloudsc2NL(
             grid,
-            ldphylin,
+            lphylin,
             ldrain1d,
             yoethf_parameters,
             yomcst_parameters,
@@ -76,7 +76,7 @@ class TaylorTest:
         )
         self.cloudsc2_tl = Cloudsc2TL(
             grid,
-            ldphylin,
+            lphylin,
             ldrain1d,
             yoethf_parameters,
             yomcst_parameters,

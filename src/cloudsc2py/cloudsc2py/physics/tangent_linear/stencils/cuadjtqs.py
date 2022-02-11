@@ -8,7 +8,7 @@ from cloudsc2py.utils.f2py import ported_function
 @ported_function(
     from_file="cloudsc2_tl/cuadjtqstl.F90", from_line=337, to_line=369
 )
-@function_collection("cuadjtqs_tl_0", ["R2ES", "RETV", "ZQMAX"])
+@function_collection("cuadjtqs_tl_0", external_names=["R2ES", "RETV", "ZQMAX"])
 @gtscript.function
 def cuadjtqs_tl_0(ap, ap_i, t, t_i, q, q_i, z3es, z4es, z5alcp, zaldcp):
     from __externals__ import ext
@@ -44,7 +44,7 @@ def cuadjtqs_tl_0(ap, ap_i, t, t_i, q, q_i, z3es, z4es, z5alcp, zaldcp):
 )
 @function_collection(
     "cuadjtqs_tl",
-    [
+    external_names=[
         "ICALL",
         "R3IES",
         "R3LES",
