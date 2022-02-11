@@ -5,7 +5,6 @@ from cloudsc2py.framework.stencil import function_collection
 from cloudsc2py.utils.f2py import ported_function
 
 
-@staticmethod
 @ported_function(
     from_file="cloudsc2_nl/cloudsc2.F90", from_line=644, to_line=656
 )
@@ -25,7 +24,6 @@ def cuadjtqs_nl_0(ap, t, q, z3es, z4es, z5alcp, zaldcp):
     return t, q
 
 
-@staticmethod
 @ported_function(
     from_file="cloudsc2_nl/cloudsc2.F90", from_line=630, to_line=669
 )
