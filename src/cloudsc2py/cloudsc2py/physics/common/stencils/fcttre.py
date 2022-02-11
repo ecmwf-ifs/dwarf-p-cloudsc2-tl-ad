@@ -5,11 +5,12 @@ from cloudsc2py.framework.stencil import function_collection
 from cloudsc2py.utils.f2py import ported_function
 
 
-@staticmethod
 @ported_function(
     from_file="common/include/fcttre.func.h", from_line=73, to_line=75
 )
-@function_collection("foealfa", ["RTICE", "RTWAT", "RTWAT_RTICE_R"])
+@function_collection(
+    "foealfa", external_names=["RTICE", "RTWAT", "RTWAT_RTICE_R"]
+)
 @gtscript.function
 def foealfa(t):
     from __externals__ import ext
@@ -21,11 +22,12 @@ def foealfa(t):
     )
 
 
-@staticmethod
 @ported_function(
     from_file="common/include/fcttre.func.h", from_line=121, to_line=123
 )
-@function_collection("foealfcu", ["RTICECU", "RTWAT", "RTWAT_RTICECU_R"])
+@function_collection(
+    "foealfcu", external_names=["RTICECU", "RTWAT", "RTWAT_RTICECU_R"]
+)
 @gtscript.function
 def foealfcu(t):
     from __externals__ import ext
@@ -40,12 +42,20 @@ def foealfcu(t):
     )
 
 
-@staticmethod
 @ported_function(
     from_file="common/include/fcttre.func.h", from_line=80, to_line=83
 )
 @function_collection(
-    "foeewm", ["R2ES", "R3IES", "R3LES", "R4IES", "R4LES", "RTT", "foealfa"]
+    "foeewm",
+    external_names=[
+        "R2ES",
+        "R3IES",
+        "R3LES",
+        "R4IES",
+        "R4LES",
+        "RTT",
+        "foealfa",
+    ],
 )
 @gtscript.function
 def foeewm(t):
@@ -58,13 +68,20 @@ def foeewm(t):
     )
 
 
-@staticmethod
 @ported_function(
     from_file="common/include/fcttre.func.h", from_line=129, to_line=131
 )
 @function_collection(
     "foeewmcu",
-    ["R2ES", "R3IES", "R3LES", "R4IES", "R4LES", "RTT", "foealfcu"],
+    external_names=[
+        "R2ES",
+        "R3IES",
+        "R3LES",
+        "R4IES",
+        "R4LES",
+        "RTT",
+        "foealfcu",
+    ],
 )
 @gtscript.function
 def foeewmcu(t):

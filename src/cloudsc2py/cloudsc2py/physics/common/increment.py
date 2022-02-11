@@ -1,10 +1,7 @@
 # -*- coding: utf-8 -*-
 from typing import Optional, TYPE_CHECKING
 
-from gt4py import gtscript
-
 from cloudsc2py.framework.components import DiagnosticComponent
-from cloudsc2py.framework.stencil import stencil_collection
 from cloudsc2py.utils.f2py import ported_method
 
 if TYPE_CHECKING:
@@ -34,7 +31,7 @@ class StateIncrement(DiagnosticComponent):
             storage_options=storage_options,
         )
         self.f = factor
-        self.increment = self.compile_stencil("increment")
+        self.increment = self.compile_stencil("state_increment")
 
     @property
     @ported_method(
@@ -57,10 +54,10 @@ class StateIncrement(DiagnosticComponent):
             "f_lu": {"dims": dims, "units": "g g^-1"},
             "f_mfu": {"dims": dims, "units": "kg m^-2 s^-1"},
             "f_mfd": {"dims": dims, "units": "kg m^-2 s^-1"},
-            "f_cml_tnd_t": {"dims": dims, "units": "K s^-1"},
-            "f_cml_tnd_q": {"dims": dims, "units": "K s^-1"},
-            "f_cml_tnd_ql": {"dims": dims, "units": "K s^-1"},
-            "f_cml_tnd_qi": {"dims": dims, "units": "K s^-1"},
+            "f_tnd_cml_t": {"dims": dims, "units": "K s^-1"},
+            "f_tnd_cml_q": {"dims": dims, "units": "K s^-1"},
+            "f_tnd_cml_ql": {"dims": dims, "units": "K s^-1"},
+            "f_tnd_cml_qi": {"dims": dims, "units": "K s^-1"},
             "f_supsat": {"dims": dims, "units": "g g^-1"},
         }
 
@@ -85,10 +82,10 @@ class StateIncrement(DiagnosticComponent):
             "f_lu_i": {"dims": dims, "units": "g g^-1"},
             "f_mfu_i": {"dims": dims, "units": "kg m^-2 s^-1"},
             "f_mfd_i": {"dims": dims, "units": "kg m^-2 s^-1"},
-            "f_cml_tnd_t_i": {"dims": dims, "units": "K s^-1"},
-            "f_cml_tnd_q_i": {"dims": dims, "units": "K s^-1"},
-            "f_cml_tnd_ql_i": {"dims": dims, "units": "K s^-1"},
-            "f_cml_tnd_qi_i": {"dims": dims, "units": "K s^-1"},
+            "f_tnd_cml_t_i": {"dims": dims, "units": "K s^-1"},
+            "f_tnd_cml_q_i": {"dims": dims, "units": "K s^-1"},
+            "f_tnd_cml_ql_i": {"dims": dims, "units": "K s^-1"},
+            "f_tnd_cml_qi_i": {"dims": dims, "units": "K s^-1"},
             "f_supsat_i": {"dims": dims, "units": "g g^-1"},
         }
 
@@ -105,89 +102,33 @@ class StateIncrement(DiagnosticComponent):
             in_lu=state["f_lu"],
             in_mfu=state["f_mfu"],
             in_mfd=state["f_mfd"],
-            in_tnd_t=state["f_cml_tnd_t"],
-            in_tnd_q=state["f_cml_tnd_q"],
-            in_tnd_ql=state["f_cml_tnd_ql"],
-            in_tnd_qi=state["f_cml_tnd_qi"],
+            in_tnd_cml_t=state["f_tnd_cml_t"],
+            in_tnd_cml_q=state["f_tnd_cml_q"],
+            in_tnd_cml_ql=state["f_tnd_cml_ql"],
+            in_tnd_cml_qi=state["f_tnd_cml_qi"],
             in_supsat=state["f_supsat"],
-            out_aph=out["f_aph_i"],
-            out_ap=out["f_ap_i"],
-            out_q=out["f_q_i"],
-            out_qsat=out["f_qsat_i"],
-            out_t=out["f_t_i"],
-            out_ql=out["f_ql_i"],
-            out_qi=out["f_qi_i"],
-            out_lude=out["f_lude_i"],
-            out_lu=out["f_lu_i"],
-            out_mfu=out["f_mfu_i"],
-            out_mfd=out["f_mfd_i"],
-            out_tnd_t=out["f_cml_tnd_t_i"],
-            out_tnd_q=out["f_cml_tnd_q_i"],
-            out_tnd_ql=out["f_cml_tnd_ql_i"],
-            out_tnd_qi=out["f_cml_tnd_qi_i"],
-            out_supsat=out["f_supsat_i"],
+            out_aph_i=out["f_aph_i"],
+            out_ap_i=out["f_ap_i"],
+            out_q_i=out["f_q_i"],
+            out_qsat_i=out["f_qsat_i"],
+            out_t_i=out["f_t_i"],
+            out_ql_i=out["f_ql_i"],
+            out_qi_i=out["f_qi_i"],
+            out_lude_i=out["f_lude_i"],
+            out_lu_i=out["f_lu_i"],
+            out_mfu_i=out["f_mfu_i"],
+            out_mfd_i=out["f_mfd_i"],
+            out_tnd_cml_t_i=out["f_tnd_cml_t_i"],
+            out_tnd_cml_q_i=out["f_tnd_cml_q_i"],
+            out_tnd_cml_ql_i=out["f_tnd_cml_ql_i"],
+            out_tnd_cml_qi_i=out["f_tnd_cml_qi_i"],
+            out_supsat_i=out["f_supsat_i"],
             f=self.f,
             origin=(0, 0, 0),
             domain=(self.grid.nx, self.grid.ny, self.grid.nz + 1),
             validate_args=self.bo.validate_args,
             exec_info=self.bo.exec_info,
         )
-
-    @staticmethod
-    @stencil_collection("increment")
-    def increment_def(
-        in_aph: gtscript.Field["ftype"],
-        in_ap: gtscript.Field["ftype"],
-        in_q: gtscript.Field["ftype"],
-        in_qsat: gtscript.Field["ftype"],
-        in_t: gtscript.Field["ftype"],
-        in_ql: gtscript.Field["ftype"],
-        in_qi: gtscript.Field["ftype"],
-        in_lude: gtscript.Field["ftype"],
-        in_lu: gtscript.Field["ftype"],
-        in_mfu: gtscript.Field["ftype"],
-        in_mfd: gtscript.Field["ftype"],
-        in_tnd_t: gtscript.Field["ftype"],
-        in_tnd_q: gtscript.Field["ftype"],
-        in_tnd_ql: gtscript.Field["ftype"],
-        in_tnd_qi: gtscript.Field["ftype"],
-        in_supsat: gtscript.Field["ftype"],
-        out_aph: gtscript.Field["ftype"],
-        out_ap: gtscript.Field["ftype"],
-        out_q: gtscript.Field["ftype"],
-        out_qsat: gtscript.Field["ftype"],
-        out_t: gtscript.Field["ftype"],
-        out_ql: gtscript.Field["ftype"],
-        out_qi: gtscript.Field["ftype"],
-        out_lude: gtscript.Field["ftype"],
-        out_lu: gtscript.Field["ftype"],
-        out_mfu: gtscript.Field["ftype"],
-        out_mfd: gtscript.Field["ftype"],
-        out_tnd_t: gtscript.Field["ftype"],
-        out_tnd_q: gtscript.Field["ftype"],
-        out_tnd_ql: gtscript.Field["ftype"],
-        out_tnd_qi: gtscript.Field["ftype"],
-        out_supsat: gtscript.Field["ftype"],
-        *,
-        f: "ftype",
-    ):
-        with computation(PARALLEL), interval(...):
-            out_aph = f * in_aph
-            out_ap = f * in_ap
-            out_q = f * in_q
-            out_qsat = f * in_qsat
-            out_t = f * in_t
-            out_ql = f * in_ql
-            out_qi = f * in_qi
-            out_lude = f * in_lude
-            out_lu = f * in_lu
-            out_mfu = f * in_mfu
-            out_mfd = f * in_mfd
-            out_tnd_t = f * in_tnd_t
-            out_tnd_q = f * in_tnd_q
-            out_tnd_ql = f * in_tnd_ql
-            out_tnd_qi = f * in_tnd_qi
-            out_supsat = f * in_supsat
 
 
 class PerturbedState(DiagnosticComponent):
@@ -243,14 +184,14 @@ class PerturbedState(DiagnosticComponent):
             "f_mfu_i": {"dims": dims, "units": "kg m^-2 s^-1"},
             "f_mfd": {"dims": dims, "units": "kg m^-2 s^-1"},
             "f_mfd_i": {"dims": dims, "units": "kg m^-2 s^-1"},
-            "f_cml_tnd_t": {"dims": dims, "units": "K s^-1"},
-            "f_cml_tnd_t_i": {"dims": dims, "units": "K s^-1"},
-            "f_cml_tnd_q": {"dims": dims, "units": "K s^-1"},
-            "f_cml_tnd_q_i": {"dims": dims, "units": "K s^-1"},
-            "f_cml_tnd_ql": {"dims": dims, "units": "K s^-1"},
-            "f_cml_tnd_ql_i": {"dims": dims, "units": "K s^-1"},
-            "f_cml_tnd_qi": {"dims": dims, "units": "K s^-1"},
-            "f_cml_tnd_qi_i": {"dims": dims, "units": "K s^-1"},
+            "f_tnd_cml_t": {"dims": dims, "units": "K s^-1"},
+            "f_tnd_cml_t_i": {"dims": dims, "units": "K s^-1"},
+            "f_tnd_cml_q": {"dims": dims, "units": "K s^-1"},
+            "f_tnd_cml_q_i": {"dims": dims, "units": "K s^-1"},
+            "f_tnd_cml_ql": {"dims": dims, "units": "K s^-1"},
+            "f_tnd_cml_ql_i": {"dims": dims, "units": "K s^-1"},
+            "f_tnd_cml_qi": {"dims": dims, "units": "K s^-1"},
+            "f_tnd_cml_qi_i": {"dims": dims, "units": "K s^-1"},
             "f_supsat": {"dims": dims, "units": "g g^-1"},
             "f_supsat_i": {"dims": dims, "units": "g g^-1"},
         }
@@ -276,10 +217,10 @@ class PerturbedState(DiagnosticComponent):
             "f_lu": {"dims": dims, "units": "g g^-1"},
             "f_mfu": {"dims": dims, "units": "kg m^-2 s^-1"},
             "f_mfd": {"dims": dims, "units": "kg m^-2 s^-1"},
-            "f_cml_tnd_t": {"dims": dims, "units": "K s^-1"},
-            "f_cml_tnd_q": {"dims": dims, "units": "K s^-1"},
-            "f_cml_tnd_ql": {"dims": dims, "units": "K s^-1"},
-            "f_cml_tnd_qi": {"dims": dims, "units": "K s^-1"},
+            "f_tnd_cml_t": {"dims": dims, "units": "K s^-1"},
+            "f_tnd_cml_q": {"dims": dims, "units": "K s^-1"},
+            "f_tnd_cml_ql": {"dims": dims, "units": "K s^-1"},
+            "f_tnd_cml_qi": {"dims": dims, "units": "K s^-1"},
             "f_supsat": {"dims": dims, "units": "g g^-1"},
         }
 
@@ -307,14 +248,14 @@ class PerturbedState(DiagnosticComponent):
             in_mfu_i=state["f_mfu_i"],
             in_mfd=state["f_mfd"],
             in_mfd_i=state["f_mfd_i"],
-            in_tnd_t=state["f_cml_tnd_t"],
-            in_tnd_t_i=state["f_cml_tnd_t_i"],
-            in_tnd_q=state["f_cml_tnd_q"],
-            in_tnd_q_i=state["f_cml_tnd_q_i"],
-            in_tnd_ql=state["f_cml_tnd_ql"],
-            in_tnd_ql_i=state["f_cml_tnd_ql_i"],
-            in_tnd_qi=state["f_cml_tnd_qi"],
-            in_tnd_qi_i=state["f_cml_tnd_qi_i"],
+            in_tnd_cml_t=state["f_tnd_cml_t"],
+            in_tnd_cml_t_i=state["f_tnd_cml_t_i"],
+            in_tnd_cml_q=state["f_tnd_cml_q"],
+            in_tnd_cml_q_i=state["f_tnd_cml_q_i"],
+            in_tnd_cml_ql=state["f_tnd_cml_ql"],
+            in_tnd_cml_ql_i=state["f_tnd_cml_ql_i"],
+            in_tnd_cml_qi=state["f_tnd_cml_qi"],
+            in_tnd_cml_qi_i=state["f_tnd_cml_qi_i"],
             in_supsat=state["f_supsat"],
             in_supsat_i=state["f_supsat_i"],
             out_aph=out["f_aph"],
@@ -328,10 +269,10 @@ class PerturbedState(DiagnosticComponent):
             out_lu=out["f_lu"],
             out_mfu=out["f_mfu"],
             out_mfd=out["f_mfd"],
-            out_tnd_t=out["f_cml_tnd_t"],
-            out_tnd_q=out["f_cml_tnd_q"],
-            out_tnd_ql=out["f_cml_tnd_ql"],
-            out_tnd_qi=out["f_cml_tnd_qi"],
+            out_tnd_cml_t=out["f_tnd_cml_t"],
+            out_tnd_cml_q=out["f_tnd_cml_q"],
+            out_tnd_cml_ql=out["f_tnd_cml_ql"],
+            out_tnd_cml_qi=out["f_tnd_cml_qi"],
             out_supsat=out["f_supsat"],
             f=self.f,
             origin=(0, 0, 0),
@@ -339,75 +280,3 @@ class PerturbedState(DiagnosticComponent):
             validate_args=self.bo.validate_args,
             exec_info=self.bo.exec_info,
         )
-
-    @staticmethod
-    @stencil_collection("perturbed_state")
-    def pertubed_state_def(
-        in_aph: gtscript.Field["ftype"],
-        in_aph_i: gtscript.Field["ftype"],
-        in_ap: gtscript.Field["ftype"],
-        in_ap_i: gtscript.Field["ftype"],
-        in_q: gtscript.Field["ftype"],
-        in_q_i: gtscript.Field["ftype"],
-        in_qsat: gtscript.Field["ftype"],
-        in_qsat_i: gtscript.Field["ftype"],
-        in_t: gtscript.Field["ftype"],
-        in_t_i: gtscript.Field["ftype"],
-        in_ql: gtscript.Field["ftype"],
-        in_ql_i: gtscript.Field["ftype"],
-        in_qi: gtscript.Field["ftype"],
-        in_qi_i: gtscript.Field["ftype"],
-        in_lude: gtscript.Field["ftype"],
-        in_lude_i: gtscript.Field["ftype"],
-        in_lu: gtscript.Field["ftype"],
-        in_lu_i: gtscript.Field["ftype"],
-        in_mfu: gtscript.Field["ftype"],
-        in_mfu_i: gtscript.Field["ftype"],
-        in_mfd: gtscript.Field["ftype"],
-        in_mfd_i: gtscript.Field["ftype"],
-        in_tnd_t: gtscript.Field["ftype"],
-        in_tnd_t_i: gtscript.Field["ftype"],
-        in_tnd_q: gtscript.Field["ftype"],
-        in_tnd_q_i: gtscript.Field["ftype"],
-        in_tnd_ql: gtscript.Field["ftype"],
-        in_tnd_ql_i: gtscript.Field["ftype"],
-        in_tnd_qi: gtscript.Field["ftype"],
-        in_tnd_qi_i: gtscript.Field["ftype"],
-        in_supsat: gtscript.Field["ftype"],
-        in_supsat_i: gtscript.Field["ftype"],
-        out_aph: gtscript.Field["ftype"],
-        out_ap: gtscript.Field["ftype"],
-        out_q: gtscript.Field["ftype"],
-        out_qsat: gtscript.Field["ftype"],
-        out_t: gtscript.Field["ftype"],
-        out_ql: gtscript.Field["ftype"],
-        out_qi: gtscript.Field["ftype"],
-        out_lude: gtscript.Field["ftype"],
-        out_lu: gtscript.Field["ftype"],
-        out_mfu: gtscript.Field["ftype"],
-        out_mfd: gtscript.Field["ftype"],
-        out_tnd_t: gtscript.Field["ftype"],
-        out_tnd_q: gtscript.Field["ftype"],
-        out_tnd_ql: gtscript.Field["ftype"],
-        out_tnd_qi: gtscript.Field["ftype"],
-        out_supsat: gtscript.Field["ftype"],
-        *,
-        f: "ftype",
-    ):
-        with computation(PARALLEL), interval(...):
-            out_aph = in_aph + f * in_aph_i
-            out_ap = in_ap + f * in_ap_i
-            out_q = in_q + f * in_q_i
-            out_qsat = in_qsat + f * in_qsat_i
-            out_t = in_t + f * in_t_i
-            out_ql = in_ql + f * in_ql_i
-            out_qi = in_qi + f * in_qi_i
-            out_lude = in_lude + f * in_lude_i
-            out_lu = in_lu + f * in_lu_i
-            out_mfu = in_mfu + f * in_mfu_i
-            out_mfd = in_mfd + f * in_mfd_i
-            out_tnd_t = in_tnd_t + f * in_tnd_t_i
-            out_tnd_q = in_tnd_q + f * in_tnd_q_i
-            out_tnd_ql = in_tnd_ql + f * in_tnd_ql_i
-            out_tnd_qi = in_tnd_qi + f * in_tnd_qi_i
-            out_supsat = in_supsat + f * in_supsat_i
