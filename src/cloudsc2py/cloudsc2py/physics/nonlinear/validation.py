@@ -54,7 +54,7 @@ class Validator:
         trg_key: str,
         trg_data_index: Optional[int] = None,
     ) -> bool:
-        src = src_dict[src_key].data[:, 0, :]
+        src = src_dict[src_key].data
         trg = self.reader.get_field(trg_key)
         if trg.ndim == 3 and trg_data_index is not None:
             trg = trg[..., trg_data_index]
@@ -62,12 +62,11 @@ class Validator:
 
     @staticmethod
     def compare_field(src: "Array", trg: "Array") -> bool:
-        mi = min(src.shape[0], trg.shape[0])
-        mk = min(src.shape[1], trg.shape[1])
         gt4py.storage.restore_numpy()
         src.synchronize()
-        out = np.allclose(
-            np.asarray(src)[:mi, :mk], trg[:mi, :mk], equal_nan=True
-        )
+        src = np.asarray(src)[:, 0, :]
+        mi = min(src.shape[0], trg.shape[0])
+        mk = min(src.shape[1], trg.shape[1])
+        out = np.allclose(src[:mi, :mk], trg[:mi, :mk], equal_nan=True)
         gt4py.storage.prepare_numpy()
         return out
