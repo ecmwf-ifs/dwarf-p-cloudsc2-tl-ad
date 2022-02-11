@@ -30,10 +30,10 @@ storage_options = StorageOptions(
 
 # saturation
 kflag = 1
-ldphylin = True
+lphylin = True
 
 # microphysics
 ldrain1d = False
 
 # timing
-nruns = 4
+nruns = 2

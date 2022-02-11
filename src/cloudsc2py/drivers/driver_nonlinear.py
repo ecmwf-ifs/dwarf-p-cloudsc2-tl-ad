@@ -2,13 +2,13 @@
 from cloudsc2py.framework.grid import VerticalSliceGrid
 from cloudsc2py.physics.common.diagnostics import EtaLevels
 from cloudsc2py.physics.common.saturation import Saturation
-from cloudsc2py.physics.nonlinear.microphysics import Cloudsc2NL
+from cloudsc2py.physics.nonlinear.microphysics_ng import Cloudsc2NL
 from cloudsc2py.physics.nonlinear.validation import Validator
 from cloudsc2py.state import get_initial_state
 from cloudsc2py.utils.io import HDF5Reader
 from cloudsc2py.utils.timing import Timer
 
-import namelist_nl as nml
+import namelist_nonlinear as nml
 import utils
 
 
@@ -52,7 +52,7 @@ def main():
     saturation = Saturation(
         grid,
         nml.kflag,
-        nml.ldphylin,
+        nml.lphylin,
         yoethf_params,
         yomcst_params,
         enable_checks=nml.enable_checks,
@@ -64,7 +64,7 @@ def main():
     # microphysics
     cloudsc = Cloudsc2NL(
         grid,
-        nml.ldphylin,
+        nml.lphylin,
         nml.ldrain1d,
         yoethf_params,
         yomcst_params,

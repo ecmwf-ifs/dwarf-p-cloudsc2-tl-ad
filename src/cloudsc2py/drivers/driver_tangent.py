@@ -3,13 +3,13 @@ from cloudsc2py.framework.grid import VerticalSliceGrid
 from cloudsc2py.physics.common.diagnostics import EtaLevels
 from cloudsc2py.physics.common.increment import PerturbedState, StateIncrement
 from cloudsc2py.physics.common.saturation import Saturation
-from cloudsc2py.physics.nonlinear.microphysics import Cloudsc2NL
-from cloudsc2py.physics.tangent_linear.microphysics import Cloudsc2TL
+from cloudsc2py.physics.nonlinear.microphysics_ng import Cloudsc2NL
+from cloudsc2py.physics.tangent_linear.microphysics_ng import Cloudsc2TL
 from cloudsc2py.state import get_initial_state
 from cloudsc2py.utils.io import HDF5Reader
 from cloudsc2py.utils.timing import Timer
 
-import namelist_tl as nml
+import namelist_tangent as nml
 import utils
 
 
@@ -75,7 +75,7 @@ def main():
     saturation = Saturation(
         grid,
         nml.kflag,
-        nml.ldphylin,
+        nml.lphylin,
         yoethf_params,
         yomcst_params,
         enable_checks=nml.enable_checks,
@@ -87,7 +87,7 @@ def main():
     # microphysics
     cloudsc2_nl = Cloudsc2NL(
         grid,
-        nml.ldphylin,
+        nml.lphylin,
         nml.ldrain1d,
         yoethf_params,
         yomcst_params,
@@ -102,7 +102,7 @@ def main():
     )
     cloudsc2_tl = Cloudsc2TL(
         grid,
-        nml.ldphylin,
+        nml.lphylin,
         nml.ldrain1d,
         yoethf_params,
         yomcst_params,
@@ -164,7 +164,7 @@ def main():
             "saturation",
             "cloudsc2_nl",
             "cloudsc2_tl",
-            "increment",
+            "state_increment",
             "perturbed_state",
         ],
     )

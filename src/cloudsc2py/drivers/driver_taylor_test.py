@@ -6,7 +6,7 @@ from cloudsc2py.state import get_initial_state
 from cloudsc2py.utils.io import HDF5Reader
 from cloudsc2py.utils.timing import Timer
 
-import namelist_taylor as nml
+import namelist_taylor_test as nml
 
 
 def main():
