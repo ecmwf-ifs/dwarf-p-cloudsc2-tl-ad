@@ -29,7 +29,7 @@ def cuadjtqs_nl_0(ap, t, q, z3es, z4es, z5alcp, zaldcp):
 )
 @function_collection(
     "cuadjtqs_nl",
-    [
+    external_names=[
         "ICALL",
         "R3IES",
         "R3LES",
