@@ -16,7 +16,7 @@ input_file = "../../../config-files/input.h5"
 
 # backend and low-level details
 enable_checks = False
-backend = "gtc:gt:cpu_ifirst"
+backend = "gtc:gt:cpu_kfirst"
 backend_options = BackendOptions(
     exec_info={"__aggregate_data": True},
     rebuild=False,

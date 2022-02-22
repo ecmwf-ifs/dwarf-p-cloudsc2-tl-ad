@@ -1,5 +1,7 @@
 # -*- coding: utf-8 -*-
+import datetime
 import numpy as np
+import socket
 
 from cloudsc2py.framework.options import (
     BackendOptions,
@@ -37,3 +39,7 @@ ldrain1d = False
 
 # timing
 nruns = 5
+csv_file = (
+    f"timings/{socket.gethostname()}_ad_"
+    f"{datetime.date.today().strftime('%Y%m%d')}.csv"
+)
