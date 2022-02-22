@@ -210,7 +210,7 @@ class SymmetryTest:
         self,
         state_i: "DataArrayDict",
         tends_ad: "DataArrayDict",
-        diags_tl: "DataArrayDict",
+        diags_ad: "DataArrayDict",
     ) -> np.ndarray:
         out = None
 
@@ -237,7 +237,7 @@ class SymmetryTest:
         )
         for name in diag_names:
             field_a = self.get_field(name, state_i)
-            field_b = self.get_field(name, diags_tl)
+            field_b = self.get_field(name, diags_ad)
             out += np.sum(field_a * field_b, axis=1)
 
         return out
