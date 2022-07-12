@@ -3,7 +3,7 @@ from datetime import timedelta
 from functools import lru_cache
 import h5py
 import numpy as np
-from typing import Dict, Union
+from typing import Union
 
 from cloudsc2py.utils.f2py import ported_method
 
@@ -13,27 +13,25 @@ class HDF5Reader:
     default_dataset_f = [0.0]
     default_dataset_i = [0]
 
-    def __init__(self, filename):
+    def __init__(self, filename: str) -> None:
         self.f = h5py.File(filename)
 
-    def __del__(self):
+    def __del__(self) -> None:
         self.f.close()
 
-    def get_field(self, name):
+    def get_field(self, name: str):
         ds = self.f.get(name, None)
         if ds is None:
-            raise RuntimeError(f"Unknown field {name}.")
+            raise RuntimeError(f"Unknown field `{name}`.")
 
         if ds.ndim == 1:
-            return self._get_field_1d(ds)
+            return self._get_field_1d(ds, name)
         elif ds.ndim == 2:
-            return self._get_field_2d(ds)
+            return self._get_field_2d(ds, name)
         elif ds.ndim == 3:
-            return self._get_field_3d(ds)
+            return self._get_field_3d(ds, name)
         else:
-            raise RuntimeError(
-                f"The field {name} has the unexpected shape {ds.shape}."
-            )
+            raise RuntimeError(f"The field `{name}` has unexpected shape {ds.shape}.")
 
     @lru_cache
     def get_nlev(self) -> int:
@@ -46,10 +44,8 @@ class HDF5Reader:
     def get_timestep(self) -> timedelta:
         return timedelta(seconds=self._get_parameter_f("PTSPHY"))
 
-    @ported_method(
-        from_file="common/module/yoethf.F90", from_line=79, to_line=99
-    )
-    def get_yoethf_parameters(self) -> Dict[str, float]:
+    @ported_method(from_file="common/module/yoethf.F90", from_line=79, to_line=99)
+    def get_yoethf_parameters(self) -> dict[str, float]:
         out = {
             "R2ES": self._get_parameter_f("R2ES"),
             "R3LES": self._get_parameter_f("R3LES"),
@@ -74,10 +70,8 @@ class HDF5Reader:
         }
         return out
 
-    @ported_method(
-        from_file="common/module/yomcst.F90", from_line=167, to_line=177
-    )
-    def get_yomcst_parameters(self) -> Dict[str, float]:
+    @ported_method(from_file="common/module/yomcst.F90", from_line=167, to_line=177)
+    def get_yomcst_parameters(self) -> dict[str, float]:
         out = {
             "RG": self._get_parameter_f("RG"),
             "RD": self._get_parameter_f("RD"),
@@ -91,16 +85,12 @@ class HDF5Reader:
         }
         return out
 
-    @ported_method(
-        from_file="common/module/yoecld.F90", from_line=242, to_line=370
-    )
-    def get_yrecld_parameters(self) -> Dict[str, Union[bool]]:
+    @ported_method(from_file="common/module/yoecld.F90", from_line=242, to_line=370)
+    def get_yrecld_parameters(self) -> dict[str, Union[bool]]:
         pass
 
-    @ported_method(
-        from_file="common/module/yoecldp.F90", from_line=242, to_line=370
-    )
-    def get_yrecldp_parameters(self) -> Dict[str, Union[bool, float, int]]:
+    @ported_method(from_file="common/module/yoecldp.F90", from_line=242, to_line=370)
+    def get_yrecldp_parameters(self) -> dict[str, Union[bool, float, int]]:
         out = {
             "RAMID": self._get_parameter_f("YRECLDP_RAMID"),
             "RCLDIFF": self._get_parameter_f("YRECLDP_RCLDIFF"),
@@ -138,20 +128,14 @@ class HDF5Reader:
             "RCCNSU": self._get_parameter_f("YRECLDP_RCCNSU"),
             "RCLDTOPCF": self._get_parameter_f("YRECLDP_RCLDTOPCF"),
             "RDEPLIQREFRATE": self._get_parameter_f("YRECLDP_RDEPLIQREFRATE"),
-            "RDEPLIQREFDEPTH": self._get_parameter_f(
-                "YRECLDP_RDEPLIQREFDEPTH"
-            ),
+            "RDEPLIQREFDEPTH": self._get_parameter_f("YRECLDP_RDEPLIQREFDEPTH"),
             "RCL_KKAac": self._get_parameter_f("YRECLDP_RCL_KKAac"),
             "RCL_KKBac": self._get_parameter_f("YRECLDP_RCL_KKBac"),
             "RCL_KKAau": self._get_parameter_f("YRECLDP_RCL_KKAau"),
             "RCL_KKBauq": self._get_parameter_f("YRECLDP_RCL_KKBauq"),
             "RCL_KKBaun": self._get_parameter_f("YRECLDP_RCL_KKBaun"),
-            "RCL_KK_cloud_num_sea": self._get_parameter_f(
-                "YRECLDP_RCL_KK_cloud_num_sea"
-            ),
-            "RCL_KK_cloud_num_land": self._get_parameter_f(
-                "YRECLDP_RCL_KK_cloud_num_land"
-            ),
+            "RCL_KK_cloud_num_sea": self._get_parameter_f("YRECLDP_RCL_KK_cloud_num_sea"),
+            "RCL_KK_cloud_num_land": self._get_parameter_f("YRECLDP_RCL_KK_cloud_num_land"),
             "RCL_AI": self._get_parameter_f("YRECLDP_RCL_AI"),
             "RCL_BI": self._get_parameter_f("YRECLDP_RCL_BI"),
             "RCL_CI": self._get_parameter_f("YRECLDP_RCL_CI"),
@@ -233,10 +217,8 @@ class HDF5Reader:
         }
         return out
 
-    @ported_method(
-        from_file="common/module/yoephli.F90", from_line=79, to_line=97
-    )
-    def get_yrephli_parameters(self) -> Dict[str, Union[bool, float]]:
+    @ported_method(from_file="common/module/yoephli.F90", from_line=79, to_line=97)
+    def get_yrephli_parameters(self) -> dict[str, Union[bool, float]]:
         out = {
             "LTLEVOL": self._get_parameter_b("YREPHLI_LTLEVOL"),
             "LPHYLIN": self._get_parameter_b("YREPHLI_LPHYLIN"),
@@ -258,47 +240,40 @@ class HDF5Reader:
         return out
 
     @ported_method(from_file="cloudsc2_tl/dwarf_cloudsc.F90", from_line=103, to_line=105)
-    def get_yrncl_parameters(self) -> Dict[str, bool]:
+    def get_yrncl_parameters(self) -> dict[str, bool]:
         return {"LREGCL": False}
 
-    @ported_method(
-        from_file="common/module/yophnc.F90", from_line=10, to_line=80
-    )
-    @ported_method(
-        from_file="cloudsc2_nl/dwarf_cloudsc.F90", from_line=103, to_line=107
-    )
-    def get_yrphnc_parameters(self) -> Dict[str, bool]:
-        out = {"LEVAPLS2": False}
-        return out
+    @ported_method(from_file="common/module/yophnc.F90", from_line=10, to_line=80)
+    @ported_method(from_file="cloudsc2_nl/dwarf_cloudsc.F90", from_line=103, to_line=107)
+    def get_yrphnc_parameters(self) -> dict[str, bool]:
+        return {"LEVAPLS2": False}
 
-    def _get_field_1d(self, ds):
+    def _get_field_1d(self, ds: h5py.Dataset, name: str) -> np.ndarray:
         nlon = self.get_nlon()
         nlev = self.get_nlev()
         if nlon <= ds.shape[0] <= nlon + 1 or nlev <= ds.shape[0] <= nlev + 1:
             return ds[:]
         else:
             raise RuntimeError(
-                f"The field {name} is expected to have shape ({nlon}(+1),) or "
+                f"The field `{name}` is expected to have shape ({nlon}(+1),) or "
                 f"({nlev}(+1),), but has shape {ds.shape}."
             )
 
-    def _get_field_2d(self, ds):
+    def _get_field_2d(self, ds, name):
         nlon = self.get_nlon()
         nlev = self.get_nlev()
         if nlon <= ds.shape[0] <= nlon + 1 and nlev <= ds.shape[1] <= nlev + 1:
             return ds[...]
-        elif (
-            nlon <= ds.shape[1] <= nlon + 1 and nlev <= ds.shape[0] <= nlev + 1
-        ):
+        elif nlon <= ds.shape[1] <= nlon + 1 and nlev <= ds.shape[0] <= nlev + 1:
             return np.transpose(ds[...])
         else:
             raise RuntimeError(
-                f"The field {name} is expected to have shape "
+                f"The field `{name}` is expected to have shape "
                 f"({nlon}(+1), {nlev}(+1)) or ({nlev}(+1), {nlon}(+1)), "
                 f"but has shape {ds.shape}."
             )
 
-    def _get_field_3d(self, ds):
+    def _get_field_3d(self, ds, name):
         nlon = self.get_nlon()
         nlev = self.get_nlev()
 
@@ -307,18 +282,14 @@ class HDF5Reader:
         elif nlon + 1 in ds.shape:
             axes = [ds.shape.index(nlon + 1)]
         else:
-            raise RuntimeError(
-                f"The field has the unexpected shape {ds.shape}."
-            )
+            raise RuntimeError(f"The field `{name}` has unexpected shape {ds.shape}.")
 
         if nlev in ds.shape:
             axes += [ds.shape.index(nlev)]
         elif nlev + 1 in ds.shape:
             axes += [ds.shape.index(nlev + 1)]
         else:
-            raise RuntimeError(
-                f"The field has the unexpected shape {ds.shape}."
-            )
+            raise RuntimeError(f"The field `{name}` has unexpected shape {ds.shape}.")
 
         axes += tuple({0, 1, 2} - set(axes))
 
