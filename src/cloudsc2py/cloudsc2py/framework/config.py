@@ -1,10 +1,7 @@
 # -*- coding: utf-8 -*-
 from __future__ import annotations
 from pydantic import BaseModel
-from typing import TYPE_CHECKING
-
-if TYPE_CHECKING:
-    from typing import Any, Optional, Union
+from typing import Any, Optional, Union
 
 
 class DataTypes(BaseModel):

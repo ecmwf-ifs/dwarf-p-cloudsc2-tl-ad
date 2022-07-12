@@ -12,8 +12,8 @@ class DimSymbol:
     name: str
     offset: float
 
-    def __new__(cls, name: str, offset: float) -> DimSymbol:
-        key = hash((name, offset))
+    def __new__(cls, *args) -> DimSymbol:
+        key = hash(args)
         if key not in cls._instances:
             cls._instances[key] = super().__new__(cls)
         return cls._instances[key]

@@ -21,7 +21,7 @@ def zeros(
     data_shape: Optional[tuple[int, ...]] = None,
     *,
     gt4py_config: GT4PyConfig,
-    dtype: str = Literal["bool", "float", "int"],
+    dtype: Literal["bool", "float", "int"],
 ) -> gt4py.storage.Storage:
     grid = computational_grid.grids[grid_id]
     data_shape = data_shape or ()
@@ -62,7 +62,7 @@ def allocate_data_array(
     data_dims: Optional[tuple[str, ...]] = None,
     *,
     gt4py_config: GT4PyConfig,
-    dtype: str = Literal["bool", "float", "int"],
+    dtype: Literal["bool", "float", "int"],
 ) -> DataArray:
     buffer = zeros(
         computational_grid, grid_id, data_shape=data_shape, gt4py_config=gt4py_config, dtype=dtype

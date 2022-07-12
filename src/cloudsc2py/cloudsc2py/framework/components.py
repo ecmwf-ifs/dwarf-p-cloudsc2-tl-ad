@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+from __future__ import annotations
 from abc import abstractmethod
 from functools import cached_property
 from typing import Optional, TYPE_CHECKING
