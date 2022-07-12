@@ -64,6 +64,7 @@ class ComputationalGrid:
         self.grids = {
             (I, J, K): Grid((nx, ny, nz), ("x", "y", "z")),
             (I, J, K - 1 / 2): Grid((nx, ny, nz + 1), ("x", "y", "z_h")),
+            (K,): Grid((nz,), ("z",)),
         }
 
 
