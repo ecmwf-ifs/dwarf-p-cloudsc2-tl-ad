@@ -1,18 +1,23 @@
 # -*- coding: utf-8 -*-
+from __future__ import annotations
 from datetime import datetime
 import numpy as np
-from typing import Optional, TYPE_CHECKING
+from typing import TYPE_CHECKING
 
 import gt4py
 
+from cloudsc2py.framework.grid import I, J, K
 from cloudsc2py.framework.options import StorageOptions
 from cloudsc2py.utils.f2py import ported_function
-from cloudsc2py.utils.storage import get_dataarray
+from cloudsc2py.utils.storage import allocate_data_array
 
 if TYPE_CHECKING:
+    from typing import Optional
+
+    from sympl._core.data_array import DataArray
     from sympl._core.typingx import DataArrayDict
 
-    from cloudsc2py.framework.grid import Grid
+    from cloudsc2py.framework.grid import ComputationalGrid
     from cloudsc2py.utils.io import HDF5Reader
 
 
@@ -22,42 +27,43 @@ if TYPE_CHECKING:
     to_line=177,
 )
 def allocate_state(
-    grid: "Grid",
+    computational_grid: ComputationalGrid,
     *,
     backend: str = "numpy",
     storage_options: Optional[StorageOptions] = None,
-) -> "DataArrayDict":
+) -> dict[str, DataArray]:
     so = storage_options or StorageOptions()
 
-    def allocator(units):
-        return get_dataarray(
-            grid,
-            (grid.dims_x, grid.dims_y, grid.dims_z),
+    def allocator(units: str) -> DataArray:
+        return allocate_data_array(
+            computational_grid,
+            (I, J, K),
             units,
             backend=backend,
             dtype=so.dtypes.float,
-            storage_options=so,
+            storage_options=storage_options,
         )
 
-    def allocator_zh(units):
-        return get_dataarray(
-            grid,
-            (grid.dims_x, grid.dims_y, grid.dims_zh),
+    def allocator_zh(units: str) -> DataArray:
+        return allocate_data_array(
+            computational_grid,
+            (I, J, K - 1 / 2),
             units,
             backend=backend,
             dtype=so.dtypes.float,
-            storage_options=so,
+            storage_options=storage_options,
         )
 
-    def allocator_d(units):
-        return get_dataarray(
-            grid,
-            (grid.dims_x, grid.dims_y, grid.dims_zh, "d"),
+    def allocator_d(units: str) -> DataArray:
+        return allocate_data_array(
+            computational_grid,
+            (I, J, K),
             units,
             data_shape=(5,),
+            data_dims=("d",),
             backend=backend,
             dtype=so.dtypes.float,
-            storage_options=so,
+            storage_options=storage_options,
         )
 
     return {
@@ -77,33 +83,32 @@ def allocate_state(
     }
 
 
-@ported_function(
-    from_file="common/module/expand_mod.F90", from_line=134, to_line=171
-)
+@ported_function(from_file="common/module/expand_mod.F90", from_line=134, to_line=171)
 def allocate_tendencies(
-    grid: "Grid",
+    computational_grid: ComputationalGrid,
     *,
     backend: str = "numpy",
     storage_options: Optional[StorageOptions] = None,
-) -> "DataArrayDict":
+) -> dict[str, DataArray]:
     so = storage_options or StorageOptions()
 
-    def allocator_ik(units):
-        return get_dataarray(
-            grid,
-            (grid.dims_x, grid.dims_y, grid.dims_z),
+    def allocator_ik(units: str) -> DataArray:
+        return allocate_data_array(
+            computational_grid,
+            (I, J, K),
             units,
             backend=backend,
             dtype=so.dtypes.float,
             storage_options=so,
         )
 
-    def allocator_ikd(units):
-        return get_dataarray(
-            grid,
-            (grid.dims_x, grid.dims_y, grid.dims_z, "d"),
+    def allocator_ikd(units: str) -> DataArray:
+        return allocate_data_array(
+            computational_grid,
+            (I, J, K),
             units,
             data_shape=(5,),
+            data_dims=("d",),
             backend=backend,
             dtype=so.dtypes.float,
             storage_options=so,
@@ -119,16 +124,14 @@ def allocate_tendencies(
     }
 
 
-@ported_function(
-    from_file="common/module/expand_mod.F90", from_line=270, to_line=302
-)
+@ported_function(from_file="common/module/expand_mod.F90", from_line=270, to_line=302)
 def initialize(
-    dataarray_dict: "DataArrayDict",
-    hdf5_reader: "HDF5Reader",
-    dataarray_dict_key: str,
+    data_array_dict: dict[str, DataArray],
+    hdf5_reader: HDF5Reader,
+    data_array_dict_key: str,
     hdf5_reader_key: str,
 ) -> None:
-    field = dataarray_dict[dataarray_dict_key].data
+    field = data_array_dict[data_array_dict_key].data
     ni, _, nk = field.shape[:3]
     buffer = hdf5_reader.get_field(hdf5_reader_key)
     mi, mk = buffer.shape[:2]
@@ -146,43 +149,31 @@ def initialize(
     from_line=167,
     to_line=177,
 )
-def initialize_state(
-    state: "DataArrayDict", hdf5_reader: "HDF5Reader"
-) -> None:
+def initialize_state(state: dict[str, DataArray], hdf5_reader: HDF5Reader) -> None:
     for key in state:
         hdf5_reader_key = "P" + key.split("_", maxsplit=1)[1].upper()
         initialize(state, hdf5_reader, key, hdf5_reader_key)
 
 
-@ported_function(
-    from_file="common/module/expand_mod.F90", from_line=134, to_line=171
-)
-def initialize_tendencies(
-    tendencies: "DataArrayDict", hdf5_reader: "HDF5Reader"
-) -> None:
+@ported_function(from_file="common/module/expand_mod.F90", from_line=134, to_line=171)
+def initialize_tendencies(tendencies: dict[str, DataArray], hdf5_reader: HDF5Reader) -> None:
     for key in tendencies:
-        hdf5_reader_key = (
-            "TENDENCY_CML_" + key.split("_", maxsplit=1)[1].upper()
-        )
+        hdf5_reader_key = "TENDENCY_CML_" + key.split("_", maxsplit=1)[1].upper()
         initialize(tendencies, hdf5_reader, key, hdf5_reader_key)
 
 
 def get_accumulated_tendencies(
-    grid: "Grid",
-    hdf5_reader: "HDF5Reader",
+    computational_grid: ComputationalGrid,
+    hdf5_reader: HDF5Reader,
     *,
     backend: str = "numpy",
-    storage_options: Optional["StorageOptions"] = None,
-) -> "DataArrayDict":
+    storage_options: Optional[StorageOptions] = None,
+) -> dict[str, DataArray]:
 
     tendencies = allocate_tendencies(
-        grid, backend=backend, storage_options=storage_options
+        computational_grid, backend=backend, storage_options=storage_options
     )
-    out = {
-        key: tendencies[key]
-        for key in tendencies
-        if key not in ("f_ql", "f_qi")
-    }
+    out = {key: tendencies[key] for key in tendencies if key not in ("f_ql", "f_qi")}
     initialize_tendencies(out, hdf5_reader)
     out["f_ql"] = tendencies["f_ql"]
     out["f_qi"] = tendencies["f_qi"]
@@ -194,15 +185,13 @@ def get_accumulated_tendencies(
 
 
 def get_initial_state(
-    grid: "Grid",
-    hdf5_reader: "HDF5Reader",
+    computational_grid: ComputationalGrid,
+    hdf5_reader: HDF5Reader,
     *,
     backend: str = "numpy",
-    storage_options: Optional["StorageOptions"] = None,
-) -> "DataArrayDict":
-    state = allocate_state(
-        grid, backend=backend, storage_options=storage_options
-    )
+    storage_options: Optional[StorageOptions] = None,
+) -> DataArrayDict:
+    state = allocate_state(computational_grid, backend=backend, storage_options=storage_options)
 
     out = {key: state[key] for key in state if key not in ("f_ql", "f_qi")}
     initialize_state(out, hdf5_reader)
@@ -214,7 +203,7 @@ def get_initial_state(
     gt4py.storage.prepare_numpy()
 
     tendencies = get_accumulated_tendencies(
-        grid, hdf5_reader, backend=backend, storage_options=storage_options
+        computational_grid, hdf5_reader, backend=backend, storage_options=storage_options
     )
     out["f_tnd_cml_t"] = tendencies["f_t"]
     out["f_tnd_cml_q"] = tendencies["f_q"]
