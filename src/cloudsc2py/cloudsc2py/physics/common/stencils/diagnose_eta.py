@@ -10,10 +10,10 @@ from cloudsc2py.utils.f2py import ported_function
 )
 @stencil_collection(name="diagnose_eta")
 def diagnose_eta_def(
-    in_ap: gtscript.Field["ftype"],
-    out_eta: gtscript.Field[gtscript.K, "ftype"],
+    in_ap: gtscript.Field["float"],
+    out_eta: gtscript.Field[gtscript.K, "float"],
     *,
-    ap_top: "ftype",
+    ap_top: "float",
 ):
     with computation(FORWARD), interval(...):
         out_eta = in_ap / ap_top
