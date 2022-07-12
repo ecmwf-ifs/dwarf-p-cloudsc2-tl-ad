@@ -4,14 +4,12 @@ from typing import TYPE_CHECKING
 
 from gt4py import gtscript
 
-from cloudsc2py.framework.options import fill_dtypes
-
 if TYPE_CHECKING:
-    from typing import Any, Optional
+    from typing import Any
 
     from gt4py import StencilObject
 
-    from cloudsc2py.framework.options import BackendOptions, StorageOptions
+    from cloudsc2py.framework.config import GT4PyConfig
 
 
 FUNCTION_COLLECTION = {}
@@ -42,32 +40,28 @@ def stencil_collection(name: str):
 
 def compile_stencil(
     name: str,
-    backend: str,
-    backend_options: BackendOptions,
+    gt4py_config: GT4PyConfig,
     externals: dict[str, Any] = None,
-    storage_options: Optional[StorageOptions] = None,
 ) -> StencilObject:
     stencil_info = STENCIL_COLLECTION.get(name, None)
     if stencil_info is None:
         raise RuntimeError(f"Unknown stencil `{name}`.")
     definition = stencil_info["definition"]
 
-    if storage_options:
-        fill_dtypes(backend_options, storage_options)
-
+    dtypes = gt4py_config.dtypes.dict()
     externals = externals or {}
 
-    kwargs = backend_options.backend_opts.copy()
-    if backend not in ("debug", "numpy", "gtc:numpy"):
-        kwargs["verbose"] = backend_options.verbose
+    kwargs = gt4py_config.backend_opts.copy()
+    if gt4py_config.backend not in ("debug", "numpy", "gtc:numpy"):
+        kwargs["verbose"] = gt4py_config.verbose
 
     return gtscript.stencil(
-        backend,
+        gt4py_config.backend,
         definition,
         name=name,
-        build_info=backend_options.build_info,
-        dtypes=backend_options.dtypes,
+        build_info=gt4py_config.build_info,
+        dtypes=dtypes,
         externals=externals,
-        rebuild=backend_options.rebuild,
+        rebuild=gt4py_config.rebuild,
         **kwargs,
     )

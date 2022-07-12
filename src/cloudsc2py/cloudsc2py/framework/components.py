@@ -1,107 +1,127 @@
 # -*- coding: utf-8 -*-
-import abc
-from typing import Optional, Sequence, TYPE_CHECKING
+from abc import abstractmethod
+from functools import cached_property
+from typing import Optional, TYPE_CHECKING
 
 from sympl._core.core_components import (
     DiagnosticComponent as SymplDiagnosticComponent,
     ImplicitTendencyComponent as SymplImplicitTendencyComponent,
 )
 
-from cloudsc2py.framework.grid_operator import GridOperator
-from cloudsc2py.framework.options import (
-    BackendOptions,
-    StorageOptions,
-    fill_dtypes,
-)
+from cloudsc2py.framework.config import GT4PyConfig
 from cloudsc2py.framework.stencil import compile_stencil
-from cloudsc2py.utils.storage import (
-    get_array,
-    get_data_shape_from_name,
-    get_dtype_from_name,
-)
+from cloudsc2py.framework.storage import get_data_shape_from_name, get_dtype_from_name, zeros
 
 if TYPE_CHECKING:
-    from sympl._core.typingx import PropertyDict
+    from typing import Any
 
     from gt4py import StencilObject
+    from gt4py.storage import Storage
+    from sympl._core.typingx import PropertyDict
 
-    from cloudsc2py.framework.grid import Grid
-    from cloudsc2py.utils.typingx import Array
+    from cloudsc2py.framework.grid import ComputationalGrid
 
 
-class GridComponent:
-    def __init__(
-        self,
-        grid: "Grid",
-        *,
-        backend: str = "numpy",
-        backend_options: Optional[BackendOptions] = None,
-        storage_options: Optional[StorageOptions] = None,
-    ) -> None:
-        self.grid = grid
-        self.backend = backend
-        self.bo = backend_options or BackendOptions()
-        self.so = storage_options or StorageOptions()
-        fill_dtypes(self.bo, self.so)
+class ComputationalGridComponent:
+    def __init__(self, computational_grid: ComputationalGrid, *, gt4py_config: GT4PyConfig) -> None:
+        self.computational_grid = computational_grid
+        self.gt4py_config = gt4py_config
 
-    def compile_stencil(self, name: str) -> "StencilObject":
-        return compile_stencil(name, self.backend, self.bo, self.so)
+    def compile_stencil(
+        self, name: str, externals: Optional[dict[str, Any]] = None
+    ) -> StencilObject:
+        return compile_stencil(name, self.gt4py_config, externals)
 
-    def allocate(self, name: str, properties: "PropertyDict") -> "Array":
+    def fill_properties_with_dims(self, properties: PropertyDict) -> PropertyDict:
+        for field_name, field_prop in properties.items():
+            field_prop["dims"] = self.computational_grid.grids[field_prop["grid"]].dims
+        return properties
+
+    def allocate(self, name: str, properties: PropertyDict) -> Storage:
         data_shape = get_data_shape_from_name(name)
-        dtype = get_dtype_from_name(name, self.so)
-        return get_array(
-            self.grid,
-            properties[name]["dims"],
+        dtype = get_dtype_from_name(name)
+        return zeros(
+            self.computational_grid,
+            properties[name]["grid"],
             data_shape,
-            backend=self.backend,
+            gt4py_config=self.gt4py_config,
             dtype=dtype,
-            storage_options=self.so,
         )
 
 
-class DiagnosticComponent(GridComponent, SymplDiagnosticComponent):
+class DiagnosticComponent(ComputationalGridComponent, SymplDiagnosticComponent):
     def __init__(
         self,
-        grid: "Grid",
+        computational_grid: ComputationalGrid,
         *,
         enable_checks: bool = True,
-        backend: str = "numpy",
-        backend_options: Optional[BackendOptions] = None,
-        storage_options: Optional[StorageOptions] = None,
+        gt4py_config: GT4PyConfig,
     ) -> None:
-        super().__init__(
-            grid,
-            backend=backend,
-            backend_options=backend_options,
-            storage_options=storage_options,
-        )
-        super(GridComponent, self).__init__(enable_checks=enable_checks)
+        super().__init__(computational_grid, gt4py_config=gt4py_config)
+        super(ComputationalGridComponent, self).__init__(enable_checks=enable_checks)
 
-    def allocate_diagnostic(self, name: str) -> "Array":
+    @cached_property
+    def input_properties(self) -> PropertyDict:
+        return self.fill_properties_with_dims(self._input_properties)
+
+    @abstractmethod
+    @cached_property
+    def _input_properties(self) -> PropertyDict:
+        ...
+
+    def allocate_diagnostic(self, name: str) -> Storage:
         return self.allocate(name, self.diagnostic_properties)
 
+    @cached_property
+    def diagnostic_properties(self) -> PropertyDict:
+        return self.fill_properties_with_dims(self._diagnostic_properties)
 
-class ImplicitTendencyComponent(GridComponent, SymplImplicitTendencyComponent):
+    @abstractmethod
+    @cached_property
+    def _diagnostic_properties(self) -> PropertyDict:
+        ...
+
+
+class ImplicitTendencyComponent(ComputationalGridComponent, SymplImplicitTendencyComponent):
     def __init__(
         self,
-        grid: "Grid",
+        computational_grid: ComputationalGrid,
         *,
         enable_checks: bool = True,
-        backend: str = "numpy",
-        backend_options: Optional[BackendOptions] = None,
-        storage_options: Optional[StorageOptions] = None,
+        gt4py_config: GT4PyConfig,
     ) -> None:
-        super().__init__(
-            grid,
-            backend=backend,
-            backend_options=backend_options,
-            storage_options=storage_options,
-        )
-        super(GridComponent, self).__init__(enable_checks=enable_checks)
+        super().__init__(computational_grid, gt4py_config=gt4py_config)
+        super(ComputationalGridComponent, self).__init__(enable_checks=enable_checks)
 
-    def allocate_tendency(self, name: str) -> "Array":
+    @cached_property
+    def input_properties(self) -> PropertyDict:
+        return self.fill_properties_with_dims(self._input_properties)
+
+    @abstractmethod
+    @cached_property
+    def _input_properties(self) -> PropertyDict:
+        ...
+
+    def allocate_tendency(self, name: str) -> Storage:
         return self.allocate(name, self.tendency_properties)
 
-    def allocate_diagnostic(self, name: str) -> "Array":
+    @cached_property
+    def tendency_properties(self) -> PropertyDict:
+        return self.fill_properties_with_dims(self._tendency_properties)
+
+    @abstractmethod
+    @cached_property
+    def _tendency_properties(self) -> PropertyDict:
+        ...
+
+    def allocate_diagnostic(self, name: str) -> Storage:
         return self.allocate(name, self.diagnostic_properties)
+
+    @cached_property
+    def diagnostic_properties(self) -> PropertyDict:
+        return self.fill_properties_with_dims(self._diagnostic_properties)
+
+    @abstractmethod
+    @cached_property
+    def _diagnostic_properties(self) -> PropertyDict:
+        ...

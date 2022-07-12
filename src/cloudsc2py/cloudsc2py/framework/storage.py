@@ -7,11 +7,11 @@ import gt4py
 from sympl._core.data_array import DataArray
 
 from cloudsc2py.framework.grid import get_mask
-from cloudsc2py.framework.options import StorageOptions
 
 if TYPE_CHECKING:
-    from typing import Optional
+    from typing import Literal, Optional
 
+    from cloudsc2py.framework.config import GT4PyConfig
     from cloudsc2py.framework.grid import ComputationalGrid, DimSymbol
 
 
@@ -20,21 +20,21 @@ def zeros(
     grid_id: tuple[DimSymbol, ...],
     data_shape: Optional[tuple[int, ...]] = None,
     *,
-    backend: str,
-    dtype: type,
-    storage_options: Optional[StorageOptions] = None,
+    gt4py_config: GT4PyConfig,
+    dtype: str = Literal["bool", "float", "int"],
 ) -> gt4py.storage.Storage:
     grid = computational_grid.grids[grid_id]
     data_shape = data_shape or ()
     shape = grid.shape + data_shape
+    dtype = gt4py_config.dtypes.dict()[dtype]
     mask = get_mask(grid_id, data_shape)
     return gt4py.storage.zeros(
-        backend,
+        gt4py_config.backend,
         [0] * len(shape),
         shape,
         dtype,
         mask=mask,
-        managed_memory=storage_options.managed,
+        managed_memory=gt4py_config.managed,
     )
 
 
@@ -61,30 +61,24 @@ def allocate_data_array(
     data_shape: Optional[tuple[int, ...]] = None,
     data_dims: Optional[tuple[str, ...]] = None,
     *,
-    backend: str,
-    dtype: type,
-    storage_options: Optional[StorageOptions] = None,
+    gt4py_config: GT4PyConfig,
+    dtype: str = Literal["bool", "float", "int"],
 ) -> DataArray:
     buffer = zeros(
-        computational_grid,
-        grid_id,
-        data_shape=data_shape,
-        backend=backend,
-        dtype=dtype,
-        storage_options=storage_options,
+        computational_grid, grid_id, data_shape=data_shape, gt4py_config=gt4py_config, dtype=dtype
     )
     return get_data_array(buffer, computational_grid, grid_id, units, data_dims=data_dims)
 
 
-def get_dtype_from_name(field_name: str, storage_options: StorageOptions) -> type:
+def get_dtype_from_name(field_name: str) -> str:
     if field_name.startswith("b"):
-        return storage_options.dtypes.bool
+        return "bool"
     elif field_name.startswith("f"):
-        return storage_options.dtypes.float
+        return "float"
     elif field_name.startswith("i"):
-        return storage_options.dtypes.integer
+        return "int"
     else:
-        raise RuntimeError(f"Cannot retrieve dtype for field {field_name}.")
+        raise RuntimeError(f"Cannot retrieve dtype for field `{field_name}`.")
 
 
 def get_data_shape_from_name(field_name: str) -> tuple[int]:
