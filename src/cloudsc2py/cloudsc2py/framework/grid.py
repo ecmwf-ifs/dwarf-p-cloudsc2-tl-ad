@@ -45,14 +45,17 @@ K = DimSymbol("K", 0)
 class Grid:
     """Grid of points."""
 
-    def __init__(self, shape: tuple[int, ...], dims: tuple[str, ...]) -> None:
+    def __init__(
+        self, shape: tuple[int, ...], dims: tuple[str, ...], storage_shape: tuple[int, ...] = None
+    ) -> None:
         assert len(shape) == len(dims)
         self.shape = shape
         self.dims = dims
+        self.storage_shape = storage_shape or self.shape
 
     @cached_property
     def coords(self) -> tuple[np.ndarray, ...]:
-        return tuple(np.arange(size) for size in self.shape)
+        return tuple(np.arange(size) for size in self.storage_shape)
 
 
 class ComputationalGrid:
@@ -62,9 +65,10 @@ class ComputationalGrid:
 
     def __init__(self, nx: int, ny: int, nz: int) -> None:
         self.grids = {
-            (I, J, K): Grid((nx, ny, nz), ("x", "y", "z")),
+            (I, J, K): Grid((nx, ny, nz), ("x", "y", "z"), (nx, ny, nz + 1)),
             (I, J, K - 1 / 2): Grid((nx, ny, nz + 1), ("x", "y", "z_h")),
-            (K,): Grid((nz,), ("z",)),
+            (I, J): Grid((nx, ny), ("x", "y")),
+            (K,): Grid((nz,), ("z",), (nz + 1,)),
         }
 
 
