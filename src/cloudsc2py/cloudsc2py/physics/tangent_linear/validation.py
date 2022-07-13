@@ -1,66 +1,65 @@
 # -*- coding: utf-8 -*-
+from __future__ import annotations
 import numpy as np
 import sys
-from typing import Optional, Sequence, TYPE_CHECKING, Tuple
+from typing import TYPE_CHECKING
 
 import gt4py
 
-from cloudsc2py.physics.nonlinear.microphysics_ng import Cloudsc2NL
 from cloudsc2py.physics.common.increment import PerturbedState, StateIncrement
 from cloudsc2py.physics.common.saturation import Saturation
-from cloudsc2py.physics.tangent_linear.microphysics_ng import Cloudsc2TL
+from cloudsc2py.physics.nonlinear.microphysics import Cloudsc2NL
+from cloudsc2py.physics.tangent_linear.microphysics import Cloudsc2TL
 from cloudsc2py.utils.f2py import ported_method
 
 if TYPE_CHECKING:
     from datetime import timedelta
+    from typing import Optional
 
     from sympl._core.typingx import DataArrayDict
 
-    from cloudsc2py.framework.grid import Grid
-    from cloudsc2py.framework.options import BackendOptions, StorageOptions
+    from cloudsc2py.framework.config import GT4PyConfig
+    from cloudsc2py.framework.grid import ComputationalGrid
     from cloudsc2py.utils.typingx import ParameterDict
 
 
 class TaylorTest:
     def __init__(
         self,
-        grid: "Grid",
+        computational_grid: ComputationalGrid,
         factor1: float,
-        factor2s: Sequence[float],
+        factor2s: tuple[float, ...],
         kflag: int,
         lphylin: bool,
         ldrain1d: bool,
-        yoethf_parameters: Optional["ParameterDict"] = None,
-        yomcst_parameters: Optional["ParameterDict"] = None,
-        yrecld_parameters: Optional["ParameterDict"] = None,
-        yrecldp_parameters: Optional["ParameterDict"] = None,
-        yrephli_parameters: Optional["ParameterDict"] = None,
-        yrncl_parameters: Optional["ParameterDict"] = None,
-        yrphnc_parameters: Optional["ParameterDict"] = None,
+        yoethf_parameters: Optional[ParameterDict] = None,
+        yomcst_parameters: Optional[ParameterDict] = None,
+        yrecld_parameters: Optional[ParameterDict] = None,
+        yrecldp_parameters: Optional[ParameterDict] = None,
+        yrephli_parameters: Optional[ParameterDict] = None,
+        yrncl_parameters: Optional[ParameterDict] = None,
+        yrphnc_parameters: Optional[ParameterDict] = None,
+        *,
         enable_checks: bool = True,
-        backend: str = "numpy",
-        backend_options: Optional["BackendOptions"] = None,
-        storage_options: Optional["StorageOptions"] = None,
+        gt4py_config: GT4PyConfig,
     ) -> None:
         self.f1 = factor1
         self.f2s = factor2s
 
         # saturation
         self.saturation = Saturation(
-            grid,
+            computational_grid,
             kflag,
             lphylin,
             yoethf_parameters,
             yomcst_parameters,
             enable_checks=enable_checks,
-            backend=backend,
-            backend_options=backend_options,
-            storage_options=storage_options,
+            gt4py_config=gt4py_config,
         )
 
         # microphysics
         self.cloudsc2_nl = Cloudsc2NL(
-            grid,
+            computational_grid,
             lphylin,
             ldrain1d,
             yoethf_parameters,
@@ -70,12 +69,10 @@ class TaylorTest:
             yrephli_parameters,
             yrphnc_parameters,
             enable_checks=enable_checks,
-            backend=backend,
-            backend_options=backend_options,
-            storage_options=storage_options,
+            gt4py_config=gt4py_config,
         )
         self.cloudsc2_tl = Cloudsc2TL(
-            grid,
+            computational_grid,
             lphylin,
             ldrain1d,
             yoethf_parameters,
@@ -86,28 +83,16 @@ class TaylorTest:
             yrncl_parameters,
             yrphnc_parameters,
             enable_checks=enable_checks,
-            backend=backend,
-            backend_options=backend_options,
-            storage_options=storage_options,
+            gt4py_config=gt4py_config,
         )
 
         # perturbation
         self.state_increment = StateIncrement(
-            grid,
-            factor1,
-            enable_checks=enable_checks,
-            backend=backend,
-            backend_options=backend_options,
-            storage_options=storage_options,
+            computational_grid, factor1, enable_checks=enable_checks, gt4py_config=gt4py_config
         )
         self.perturbed_states = [
             PerturbedState(
-                grid,
-                factor2,
-                enable_checks=enable_checks,
-                backend=backend,
-                backend_options=backend_options,
-                storage_options=storage_options,
+                computational_grid, factor2, enable_checks=enable_checks, gt4py_config=gt4py_config
             )
             for factor2 in factor2s
         ]
@@ -121,7 +106,7 @@ class TaylorTest:
         self.tends_nl_p = None
         self.tends_tl = None
 
-    def __call__(self, state: "DataArrayDict", timestep: "timedelta") -> None:
+    def __call__(self, state: DataArrayDict, timestep: timedelta) -> None:
         self.validate(self.run(state, timestep))
 
     @ported_method(
@@ -129,7 +114,7 @@ class TaylorTest:
         from_line=126,
         to_line=231,
     )
-    def run(self, state: "DataArrayDict", timestep: "timedelta") -> np.ndarray:
+    def run(self, state: DataArrayDict, timestep: timedelta) -> np.ndarray:
         diags_sat = self.saturation(state)
         state.update(diags_sat)
 
@@ -145,20 +130,13 @@ class TaylorTest:
             state_p["time"] = state["time"]
             state_p["f_eta"] = state["f_eta"]
             self.tends_nl_p, self.diags_nl_p = self.cloudsc2_nl(
-                state_p,
-                timestep,
-                out_tendencies=self.tends_nl_p,
-                out_diagnostics=self.diags_nl_p,
+                state_p, timestep, out_tendencies=self.tends_nl_p, out_diagnostics=self.diags_nl_p
             )
             norms[i] = self.get_norm(i)
 
         return norms
 
-    @ported_method(
-        from_file="cloudsc2_tl/cloudsc_driver_tl_mod.F90",
-        from_line=275,
-        to_line=313,
-    )
+    @ported_method(from_file="cloudsc2_tl/cloudsc_driver_tl_mod.F90", from_line=275, to_line=313)
     def validate(self, norms: np.ndarray) -> None:
         print(">>> Taylor test: Start")
         start = -1
@@ -195,11 +173,7 @@ class TaylorTest:
         print("<<< Taylor test: End")
         print(log)
 
-    @ported_method(
-        from_file="cloudsc2_tl/cloudsc_driver_tl_mod.F90",
-        from_line=233,
-        to_line=245,
-    )
+    @ported_method(from_file="cloudsc2_tl/cloudsc_driver_tl_mod.F90", from_line=233, to_line=245)
     def get_norm(self, i: int) -> float:
         assert self.diags_nl is not None, "Did you execute the run() method?"
 
@@ -213,14 +187,7 @@ class TaylorTest:
             total_count += norm > 0
             total_norm += norm
 
-        diag_names = (
-            "f_clc",
-            "f_fhpsl",
-            "f_fhpsn",
-            "f_fplsl",
-            "f_fplsn",
-            "f_covptot",
-        )
+        diag_names = ("f_clc", "f_fhpsl", "f_fhpsn", "f_fplsl", "f_fplsn", "f_covptot")
         for name in diag_names:
             field_nl, field_nl_p, field_tl = self.get_fields(name, "diags")
             norm = self.get_field_norm(i, field_nl, field_nl_p, field_tl)
@@ -229,9 +196,7 @@ class TaylorTest:
 
         return total_norm / total_count if total_count > 0 else 0
 
-    def get_fields(
-        self, name: str, dct_name: str
-    ) -> Tuple[np.ndarray, np.ndarray, np.ndarray]:
+    def get_fields(self, name: str, dct_name: str) -> tuple[np.ndarray, np.ndarray, np.ndarray]:
         gt4py.storage.restore_numpy()
 
         dct_nl = getattr(self, dct_name + "_nl")
@@ -253,17 +218,9 @@ class TaylorTest:
 
         return field_nl, field_nl_p, field_tl
 
-    @ported_method(
-        from_file="cloudsc2_tl/cloudsc_driver_tl_mod.F90",
-        from_line=21,
-        to_line=31,
-    )
+    @ported_method(from_file="cloudsc2_tl/cloudsc_driver_tl_mod.F90", from_line=21, to_line=31)
     def get_field_norm(
-        self,
-        i: int,
-        field_nl: np.ndarray,
-        field_nl_p: np.ndarray,
-        field_tl: np.ndarray,
+        self, i: int, field_nl: np.ndarray, field_nl_p: np.ndarray, field_tl: np.ndarray
     ) -> float:
         den = np.abs(self.f2s[i] * np.sum(field_tl))
         if den > sys.float_info.epsilon:

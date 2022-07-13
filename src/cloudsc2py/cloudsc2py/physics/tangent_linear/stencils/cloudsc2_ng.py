@@ -2,74 +2,73 @@
 from gt4py import gtscript
 
 from cloudsc2py.framework.stencil import stencil_collection
+from cloudsc2py.physics.tangent_linear.stencils.cloudsc2_ng_0 import cloudsc2_tl_ng_0
 from cloudsc2py.utils.f2py import ported_function
 
 
-@ported_function(
-    from_file="cloudsc2_tl/cloudsc2tl.F90", from_line=321, to_line=1113
-)
-@stencil_collection(
-    "cloudsc2_tl_ng", external_names=["RLSTT", "RLVTT", "cloudsc2_tl_0"]
-)
+@ported_function(from_file="cloudsc2_tl/cloudsc2tl.F90", from_line=321, to_line=1113)
+@stencil_collection("cloudsc2_tl_ng")
 def cloudsc2_tl_ng_def(
-    in_eta: gtscript.Field[gtscript.K, "ftype"],
-    in_ap: gtscript.Field["ftype"],
-    in_ap_i: gtscript.Field["ftype"],
-    in_aph: gtscript.Field["ftype"],
-    in_aph_i: gtscript.Field["ftype"],
-    in_t: gtscript.Field["ftype"],
-    in_t_i: gtscript.Field["ftype"],
-    in_q: gtscript.Field["ftype"],
-    in_q_i: gtscript.Field["ftype"],
-    in_qsat: gtscript.Field["ftype"],
-    in_qsat_i: gtscript.Field["ftype"],
-    in_ql: gtscript.Field["ftype"],
-    in_ql_i: gtscript.Field["ftype"],
-    in_qi: gtscript.Field["ftype"],
-    in_qi_i: gtscript.Field["ftype"],
-    in_lu: gtscript.Field["ftype"],
-    in_lu_i: gtscript.Field["ftype"],
-    in_lude: gtscript.Field["ftype"],
-    in_lude_i: gtscript.Field["ftype"],
-    in_mfd: gtscript.Field["ftype"],
-    in_mfd_i: gtscript.Field["ftype"],
-    in_mfu: gtscript.Field["ftype"],
-    in_mfu_i: gtscript.Field["ftype"],
-    in_supsat: gtscript.Field["ftype"],
-    in_supsat_i: gtscript.Field["ftype"],
-    in_tnd_cml_t: gtscript.Field["ftype"],
-    in_tnd_cml_t_i: gtscript.Field["ftype"],
-    in_tnd_cml_q: gtscript.Field["ftype"],
-    in_tnd_cml_q_i: gtscript.Field["ftype"],
-    in_tnd_cml_ql: gtscript.Field["ftype"],
-    in_tnd_cml_ql_i: gtscript.Field["ftype"],
-    in_tnd_cml_qi: gtscript.Field["ftype"],
-    in_tnd_cml_qi_i: gtscript.Field["ftype"],
-    tmp_trpaus: gtscript.Field[gtscript.IJ, "ftype"],
-    out_tnd_t: gtscript.Field["ftype"],
-    out_tnd_t_i: gtscript.Field["ftype"],
-    out_tnd_q: gtscript.Field["ftype"],
-    out_tnd_q_i: gtscript.Field["ftype"],
-    out_tnd_ql: gtscript.Field["ftype"],
-    out_tnd_ql_i: gtscript.Field["ftype"],
-    out_tnd_qi: gtscript.Field["ftype"],
-    out_tnd_qi_i: gtscript.Field["ftype"],
-    out_clc: gtscript.Field["ftype"],
-    out_clc_i: gtscript.Field["ftype"],
-    out_fhpsl: gtscript.Field["ftype"],
-    out_fhpsl_i: gtscript.Field["ftype"],
-    out_fhpsn: gtscript.Field["ftype"],
-    out_fhpsn_i: gtscript.Field["ftype"],
-    out_fplsl: gtscript.Field["ftype"],
-    out_fplsl_i: gtscript.Field["ftype"],
-    out_fplsn: gtscript.Field["ftype"],
-    out_fplsn_i: gtscript.Field["ftype"],
-    out_covptot: gtscript.Field["ftype"],
-    out_covptot_i: gtscript.Field["ftype"],
+    in_eta: gtscript.Field[gtscript.K, "float"],
+    in_ap: gtscript.Field["float"],
+    in_ap_i: gtscript.Field["float"],
+    in_aph: gtscript.Field["float"],
+    in_aph_i: gtscript.Field["float"],
+    in_t: gtscript.Field["float"],
+    in_t_i: gtscript.Field["float"],
+    in_q: gtscript.Field["float"],
+    in_q_i: gtscript.Field["float"],
+    in_qsat: gtscript.Field["float"],
+    in_qsat_i: gtscript.Field["float"],
+    in_ql: gtscript.Field["float"],
+    in_ql_i: gtscript.Field["float"],
+    in_qi: gtscript.Field["float"],
+    in_qi_i: gtscript.Field["float"],
+    in_lu: gtscript.Field["float"],
+    in_lu_i: gtscript.Field["float"],
+    in_lude: gtscript.Field["float"],
+    in_lude_i: gtscript.Field["float"],
+    in_mfd: gtscript.Field["float"],
+    in_mfd_i: gtscript.Field["float"],
+    in_mfu: gtscript.Field["float"],
+    in_mfu_i: gtscript.Field["float"],
+    in_supsat: gtscript.Field["float"],
+    in_supsat_i: gtscript.Field["float"],
+    in_tnd_cml_t: gtscript.Field["float"],
+    in_tnd_cml_t_i: gtscript.Field["float"],
+    in_tnd_cml_q: gtscript.Field["float"],
+    in_tnd_cml_q_i: gtscript.Field["float"],
+    in_tnd_cml_ql: gtscript.Field["float"],
+    in_tnd_cml_ql_i: gtscript.Field["float"],
+    in_tnd_cml_qi: gtscript.Field["float"],
+    in_tnd_cml_qi_i: gtscript.Field["float"],
+    tmp_aph_s: gtscript.Field[gtscript.IJ, "float"],
+    tmp_aph_s_i: gtscript.Field[gtscript.IJ, "float"],
+    tmp_trpaus: gtscript.Field[gtscript.IJ, "float"],
+    out_tnd_t: gtscript.Field["float"],
+    out_tnd_t_i: gtscript.Field["float"],
+    out_tnd_q: gtscript.Field["float"],
+    out_tnd_q_i: gtscript.Field["float"],
+    out_tnd_ql: gtscript.Field["float"],
+    out_tnd_ql_i: gtscript.Field["float"],
+    out_tnd_qi: gtscript.Field["float"],
+    out_tnd_qi_i: gtscript.Field["float"],
+    out_clc: gtscript.Field["float"],
+    out_clc_i: gtscript.Field["float"],
+    out_fhpsl: gtscript.Field["float"],
+    out_fhpsl_i: gtscript.Field["float"],
+    out_fhpsn: gtscript.Field["float"],
+    out_fhpsn_i: gtscript.Field["float"],
+    out_fplsl: gtscript.Field["float"],
+    out_fplsl_i: gtscript.Field["float"],
+    out_fplsn: gtscript.Field["float"],
+    out_fplsn_i: gtscript.Field["float"],
+    out_covptot: gtscript.Field["float"],
+    out_covptot_i: gtscript.Field["float"],
     *,
-    dt: "ftype",
+    dt: "float",
 ):
-    from __externals__ import ext
+    from __externals__ import RLSTT, RLVTT
 
     with computation(PARALLEL), interval(0, -1):
         # first guess values for T
@@ -104,7 +103,7 @@ def cloudsc2_tl_ng_def(
                 rfl_i,
                 sfl,
                 sfl_i,
-            ) = ext.cloudsc2_tl_0(
+            ) = cloudsc2_tl_ng_0(
                 in_eta,
                 in_ap,
                 in_ap_i,
@@ -134,6 +133,8 @@ def cloudsc2_tl_ng_def(
                 in_tnd_cml_ql_i,
                 in_tnd_cml_qi,
                 in_tnd_cml_qi_i,
+                tmp_aph_s,
+                tmp_aph_s_i,
                 tmp_trpaus,
                 dt,
                 covptot=0.0,
@@ -169,7 +170,7 @@ def cloudsc2_tl_ng_def(
                 rfl_i,
                 sfl,
                 sfl_i,
-            ) = ext.cloudsc2_tl_0(
+            ) = cloudsc2_tl_ng_0(
                 in_eta,
                 in_ap,
                 in_ap_i,
@@ -199,6 +200,8 @@ def cloudsc2_tl_ng_def(
                 in_tnd_cml_ql_i,
                 in_tnd_cml_qi,
                 in_tnd_cml_qi_i,
+                tmp_aph_s,
+                tmp_aph_s_i,
                 tmp_trpaus,
                 dt,
                 covptot=covptot[0, 0, -1],
@@ -214,16 +217,16 @@ def cloudsc2_tl_ng_def(
             out_fplsl_i = rfl_i[0, 0, -1]
             out_fplsn = sfl[0, 0, -1]
             out_fplsn_i = sfl_i[0, 0, -1]
-            out_fhpsl = -out_fplsl * ext.RLVTT
-            out_fhpsl_i = -out_fplsl_i * ext.RLVTT
-            out_fhpsn = -out_fplsn * ext.RLSTT
-            out_fhpsn_i = -out_fplsn_i * ext.RLSTT
+            out_fhpsl = -out_fplsl * RLVTT
+            out_fhpsl_i = -out_fplsl_i * RLVTT
+            out_fhpsn = -out_fplsn * RLSTT
+            out_fhpsn_i = -out_fplsn_i * RLSTT
         with interval(-1, None):
             out_fplsl = rfl[0, 0, -1]
             out_fplsl_i = rfl_i[0, 0, -1]
             out_fplsn = sfl[0, 0, -1]
             out_fplsn_i = sfl_i[0, 0, -1]
-            out_fhpsl = -out_fplsl * ext.RLVTT
-            out_fhpsl_i = -out_fplsl_i * ext.RLVTT
-            out_fhpsn = -out_fplsn * ext.RLSTT
-            out_fhpsn_i = -out_fplsn_i * ext.RLSTT
+            out_fhpsl = -out_fplsl * RLVTT
+            out_fhpsl_i = -out_fplsl_i * RLVTT
+            out_fhpsn = -out_fplsn * RLSTT
+            out_fhpsn_i = -out_fplsn_i * RLSTT

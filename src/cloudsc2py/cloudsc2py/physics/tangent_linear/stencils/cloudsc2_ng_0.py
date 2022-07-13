@@ -2,48 +2,12 @@
 from gt4py import gtscript
 
 from cloudsc2py.framework.stencil import function_collection
+from cloudsc2py.physics.tangent_linear.stencils.cuadjtqs import cuadjtqs_tl
 from cloudsc2py.utils.f2py import ported_function
 
 
-@ported_function(
-    from_file="cloudsc2_tl/cloudsc2tl.F90", from_line=321, to_line=1113
-)
-@function_collection(
-    "cloudsc2_tl_0",
-    external_names=[
-        "LPHYLIN",
-        "LDRAIN1D",
-        "LEVAPLS2",
-        "LREGCL",
-        "R2ES",
-        "R3IES",
-        "R3LES",
-        "R4IES",
-        "R4LES",
-        "R5IES",
-        "R5LES",
-        "RCLCRIT",
-        "RCPD",
-        "RD",
-        "RETV",
-        "RG",
-        "RKCONV",
-        "RLMIN",
-        "RLMLT",
-        "RLPTRC",
-        "RLSTT",
-        "RLVTT",
-        "RPECONS",
-        "RTICE",
-        "RTT",
-        "RVTMP2",
-        "ZEPS1",
-        "ZEPS2",
-        "ZQMAX",
-        "ZSCAL",
-        "cuadjtqs_tl",
-    ],
-)
+@ported_function(from_file="cloudsc2_tl/cloudsc2tl.F90", from_line=321, to_line=1113)
+@function_collection("cloudsc2_tl_0")
 @gtscript.function
 def cloudsc2_tl_ng_0(
     in_eta,
@@ -75,6 +39,8 @@ def cloudsc2_tl_ng_0(
     in_tnd_cml_ql_i,
     in_tnd_cml_qi,
     in_tnd_cml_qi_i,
+    tmp_aph_s,
+    tmp_aph_s_i,
     tmp_trpaus,
     dt,
     covptot,
@@ -86,7 +52,38 @@ def cloudsc2_tl_ng_0(
     t,
     t_i,
 ):
-    from __externals__ import ext
+    from __externals__ import (
+        LPHYLIN,
+        LDRAIN1D,
+        LEVAPLS2,
+        LREGCL,
+        R2ES,
+        R3IES,
+        R3LES,
+        R4IES,
+        R4LES,
+        R5IES,
+        R5LES,
+        RCLCRIT,
+        RCPD,
+        RD,
+        RETV,
+        RG,
+        RKCONV,
+        RLMIN,
+        RLMLT,
+        RLPTRC,
+        RLSTT,
+        RLVTT,
+        RPECONS,
+        RTICE,
+        RTT,
+        RVTMP2,
+        ZEPS1,
+        ZEPS2,
+        ZQMAX,
+        ZSCAL,
+    )
 
     # first guess values for q, ql and qi
     q = in_q + dt * in_tnd_cml_q + in_supsat
@@ -97,65 +94,58 @@ def cloudsc2_tl_ng_0(
     qi_i = in_qi_i + dt * in_tnd_cml_qi_i
 
     # set up constants required
-    ckcodtl = 2 * ext.RKCONV * dt
-    ckcodti = 5 * ext.RKCONV * dt
+    ckcodtl = 2 * RKCONV * dt
+    ckcodti = 5 * RKCONV * dt
     ckcodtla = ckcodtl / 100
     ckcodtia = ckcodti / 100
-    cons2 = 1 / (ext.RG * dt)
-    cons3 = ext.RLVTT / ext.RCPD
-    meltp2 = ext.RTT + 2
+    cons2 = 1 / (RG * dt)
+    cons3 = RLVTT / RCPD
+    meltp2 = RTT + 2
 
     # parameter for cloud formation
-    scalm = ext.ZSCAL * max(in_eta - 0.2, ext.ZEPS1) ** 0.2
+    scalm = ZSCAL * max(in_eta - 0.2, ZEPS1) ** 0.2
 
     # thermodynamic constants
     dp = in_aph[0, 0, 1] - in_aph[0, 0, 0]
     dp_i = in_aph_i[0, 0, 1] - in_aph_i[0, 0, 0]
-    zz = ext.RCPD + ext.RCPD * ext.RVTMP2 * q
-    zz_i = (
-        -ext.RCPD
-        * ext.RVTMP2
-        * q_i
-        / (ext.RCPD + ext.RCPD * ext.RVTMP2 * q) ** 2
-    )
-    lfdcp = ext.RLMLT / zz
-    lfdcp_i = ext.RLMLT * zz_i
-    lsdcp = ext.RLSTT / zz
-    lsdcp_i = ext.RLSTT * zz_i
-    lvdcp = ext.RLVTT / zz
-    lvdcp_i = ext.RLVTT * zz_i
+    zz = RCPD + RCPD * RVTMP2 * q
+    zz_i = -RCPD * RVTMP2 * q_i / (RCPD + RCPD * RVTMP2 * q) ** 2
+    lfdcp = RLMLT / zz
+    lfdcp_i = RLMLT * zz_i
+    lsdcp = RLSTT / zz
+    lsdcp_i = RLSTT * zz_i
+    lvdcp = RLVTT / zz
+    lvdcp_i = RLVTT * zz_i
 
     # calculate dqs/dT correction factor
-    if t < ext.RTT:
-        fwat = 0.545 * (tanh(0.17 * (t - ext.RLPTRC)) + 1)
-        fwat_i = 0.545 * 0.17 * t_i / (cosh(0.17 * (t - ext.RLPTRC)) ** 2)
-        z3es = ext.R3IES
-        z4es = ext.R4IES
+    if t < RTT:
+        fwat = 0.545 * (tanh(0.17 * (t - RLPTRC)) + 1)
+        fwat_i = 0.545 * 0.17 * t_i / (cosh(0.17 * (t - RLPTRC)) ** 2)
+        z3es = R3IES
+        z4es = R4IES
     else:
         fwat = 1.0
         fwat_i = 0.0
-        z3es = ext.R3LES
-        z4es = ext.R4LES
-    foeew = ext.R2ES * exp(z3es * (t - ext.RTT) / (t - z4es))
-    foeew_i = z3es * (ext.RTT - z4es) * t_i * foeew / (t - z4es) ** 2
+        z3es = R3LES
+        z4es = R4LES
+    foeew = R2ES * exp(z3es * (t - RTT) / (t - z4es))
+    foeew_i = z3es * (RTT - z4es) * t_i * foeew / (t - z4es) ** 2
     esdp = foeew / in_ap
     esdp_i = foeew_i / in_ap - foeew * in_ap_i / (in_ap ** 2)
-    if esdp > ext.ZQMAX:
-        esdp = ext.ZQMAX
+    if esdp > ZQMAX:
+        esdp = ZQMAX
         esdp_i = 0.0
 
-    facw = ext.R5LES / (t - ext.R4LES) ** 2
-    facw_i = -2 * ext.R5LES * t_i / (t - ext.R4LES) ** 3
-    faci = ext.R5IES / (t - ext.R4IES) ** 2
-    faci_i = -2 * ext.R5IES * t_i / (t - ext.R4IES) ** 3
+    facw = R5LES / (t - R4LES) ** 2
+    facw_i = -2 * R5LES * t_i / (t - R4LES) ** 3
+    faci = R5IES / (t - R4IES) ** 2
+    faci_i = -2 * R5IES * t_i / (t - R4IES) ** 3
     fac = fwat * facw + (1 - fwat) * faci
     fac_i = fwat_i * (facw - faci) + fwat * facw_i + (1 - fwat) * faci_i
-    cor = 1 / (1 - ext.RETV * esdp)
-    cor_i = ext.RETV * esdp_i / (1 - ext.RETV * esdp) ** 2
+    cor = 1 / (1 - RETV * esdp)
+    cor_i = RETV * esdp_i / (1 - RETV * esdp) ** 2
     dqsdtemp = fac * cor * in_qsat
-    dqsdtemp_i = (
-        fac_i * cor * in_qsat + fac * cor_i * in_qsat + fac * cor * in_qsat_i
-    )
+    dqsdtemp_i = fac_i * cor * in_qsat + fac * cor_i * in_qsat + fac * cor * in_qsat_i
     corqs = 1 + cons3 * dqsdtemp
     corqs_i = cons3 * dqsdtemp_i
 
@@ -170,9 +160,7 @@ def cloudsc2_tl_ng_0(
     # set up critical value of humidity
     rh1 = 1.0
     rh2 = (
-        0.35
-        + 0.14 * ((tmp_trpaus - 0.25) / 0.15) ** 2
-        + 0.04 * min(tmp_trpaus - 0.25, 0.0) / 0.15
+        0.35 + 0.14 * ((tmp_trpaus - 0.25) / 0.15) ** 2 + 0.04 * min(tmp_trpaus - 0.25, 0.0) / 0.15
     )
     rh3 = 1.0
     if in_eta < tmp_trpaus:
@@ -191,7 +179,7 @@ def cloudsc2_tl_ng_0(
                 crh2 = rh1 + (rh2 - rh1) * ((1 - in_eta) / deta1) ** 0.5
 
     # allow ice supersaturation at cold temperatures
-    if t < ext.RTICE:
+    if t < RTICE:
         qsat = in_qsat * (1.8 - 0.003 * t)
         qsat_i = in_qsat_i * (1.8 - 0.003 * t) - 0.003 * in_qsat * t_i
     else:
@@ -222,15 +210,12 @@ def cloudsc2_tl_ng_0(
         out_clc = 1 - tmp1
         out_clc_i = (
             -(0.5 / tmp1)
-            * (
-                qpd_i * (qcd - scalm * (qt - qcrit))
-                - qpd * (qcd_i - scalm * (qt_i - qcrit_i))
-            )
+            * (qpd_i * (qcd - scalm * (qt - qcrit)) - qpd * (qcd_i - scalm * (qt_i - qcrit_i)))
             / (qcd - scalm * (qt - qcrit)) ** 2
         )
 
         # regularization of cloud fraction perturbation
-        if __INLINED(ext.LREGCL):
+        if __INLINED(LREGCL):
             rat = qpd / qcd
             yyy = min(
                 0.3,
@@ -244,20 +229,14 @@ def cloudsc2_tl_ng_0(
         ) * out_clc * out_clc_i
 
     # add convective component
-    gdp = ext.RG / (in_aph[0, 0, 1] - in_aph[0, 0, 0])
-    gdp_i = (
-        -ext.RG
-        * (in_aph_i[0, 0, 1] - in_aph_i[0, 0, 0])
-        / (in_aph[0, 0, 1] - in_aph[0, 0, 0]) ** 2
-    )
+    gdp = RG / (in_aph[0, 0, 1] - in_aph[0, 0, 0])
+    gdp_i = -RG * (in_aph_i[0, 0, 1] - in_aph_i[0, 0, 0]) / (in_aph[0, 0, 1] - in_aph[0, 0, 0]) ** 2
     lude = dt * in_lude * gdp
     lude_i = dt * (in_lude_i * gdp + in_lude * gdp_i)
-    lo1 = lude[0, 0, 0] >= ext.RLMIN and in_lu[0, 0, 1] >= ext.ZEPS2
+    lo1 = lude[0, 0, 0] >= RLMIN and in_lu[0, 0, 1] >= ZEPS2
     if lo1:
         tmp2 = exp(-lude[0, 0, 0] / in_lu[0, 0, 1])
-        out_clc_i += -out_clc_i[0, 0, 0] * (1 - tmp2) + (
-            1 - out_clc[0, 0, 0]
-        ) * tmp2 * (
+        out_clc_i += -out_clc_i[0, 0, 0] * (1 - tmp2) + (1 - out_clc[0, 0, 0]) * tmp2 * (
             lude_i[0, 0, 0] / in_lu[0, 0, 1]
             - lude[0, 0, 0] * in_lu_i[0, 0, 1] / in_lu[0, 0, 1] ** 2
         )
@@ -266,41 +245,38 @@ def cloudsc2_tl_ng_0(
         qc_i += lude_i
 
     # add compensating subsidence component
-    rho = in_ap / (ext.RD * t)
-    rho_i = (in_ap_i - in_ap * t_i / t) / (ext.RD * t)
+    rho = in_ap / (RD * t)
+    rho_i = (in_ap_i - in_ap * t_i / t) / (RD * t)
 
-    fac2 = in_ap - ext.RETV * foeew
+    fac2 = in_ap - RETV * foeew
     rodqsdp = -rho * in_qsat / fac2
     rodqsdp_i = (
-        -rho_i * in_qsat
-        - rho * in_qsat_i
-        + rho * in_qsat * (in_ap_i - ext.RETV * foeew_i) / fac2
+        -rho_i * in_qsat - rho * in_qsat_i + rho * in_qsat * (in_ap_i - RETV * foeew_i) / fac2
     ) / fac2
 
     ldcp = fwat * lvdcp + (1 - fwat) * lsdcp
     ldcp_i = fwat_i * (lvdcp - lsdcp) + fwat * lvdcp_i + (1 - fwat) * lsdcp_i
 
     fac3 = 1 + ldcp * dqsdtemp
-    dtdzmo = ext.RG * (1 / ext.RCPD - ldcp * rodqsdp) / fac3
+    dtdzmo = RG * (1 / RCPD - ldcp * rodqsdp) / fac3
     dtdzmo_i = (
         -(
-            ext.RG * (ldcp_i * rodqsdp + ldcp * rodqsdp_i)
+            RG * (ldcp_i * rodqsdp + ldcp * rodqsdp_i)
             + dtdzmo * (ldcp_i * dqsdtemp + ldcp * dqsdtemp_i)
         )
         / fac3
     )
 
-    dqsdz = dqsdtemp * dtdzmo - ext.RG * rodqsdp
-    dqsdz_i = dqsdtemp_i * dtdzmo + dqsdtemp * dtdzmo_i - ext.RG * rodqsdp_i
+    dqsdz = dqsdtemp * dtdzmo - RG * rodqsdp
+    dqsdz_i = dqsdtemp_i * dtdzmo + dqsdtemp * dtdzmo_i - RG * rodqsdp_i
 
     tmp3 = dt * dqsdz * (in_mfu + in_mfd) / rho
     if tmp3 < qc:
         dqc = tmp3
         dqc_i = (
-            dt * (dqsdz_i * (in_mfu + in_mfd) + dqsdz * (in_mfu_i + in_mfd_i))
-            - dqc * rho_i
+            dt * (dqsdz_i * (in_mfu + in_mfd) + dqsdz * (in_mfu_i + in_mfd_i)) - dqc * rho_i
         ) / rho
-        if __INLINED(ext.LREGCL):
+        if __INLINED(LREGCL):
             dqc_i *= 0.1
     else:
         dqc = qc
@@ -366,12 +342,12 @@ def cloudsc2_tl_ng_0(
         sfln = sfl
         sfln_i = sfl_i
 
-    if out_clc > ext.ZEPS2:
+    if out_clc > ZEPS2:
         # diagnostic calculation of rain production from cloud liquid water
-        if __INLINED(ext.LEVAPLS2 or ext.LDRAIN1D):
-            lcrit = 1.9 * ext.RCLCRIT
+        if __INLINED(LEVAPLS2 or LDRAIN1D):
+            lcrit = 1.9 * RCLCRIT
         else:
-            lcrit = 2.0 * ext.RCLCRIT
+            lcrit = 2.0 * RCLCRIT
 
         # in-cloud liquid
         cldl = qlwc / out_clc
@@ -379,55 +355,45 @@ def cloudsc2_tl_ng_0(
 
         ltmp4 = exp(-((cldl / lcrit) ** 2))
         dl = ckcodtl * (1 - ltmp4)
-        if __INLINED(ext.LREGCL):
+        if __INLINED(LREGCL):
             dl_i = (2 * ckcodtla / lcrit ** 2) * ltmp4 * cldl * cldl_i
         else:
             dl_i = (2 * ckcodtl / lcrit ** 2) * ltmp4 * cldl * cldl_i
 
         ltmp5 = exp(-dl)
         prr = qlwc - out_clc * cldl * ltmp5
-        prr_i = qlwc_i - ltmp5 * (
-            out_clc_i * cldl + out_clc * cldl_i - out_clc * cldl * dl_i
-        )
+        prr_i = qlwc_i - ltmp5 * (out_clc_i * cldl + out_clc * cldl_i - out_clc * cldl * dl_i)
         qlwc -= prr
         qlwc_i -= prr_i
 
         # diagnostic calculation of snow production from cloud ice
-        if __INLINED(ext.LEVAPLS2 or ext.LDRAIN1D):
+        if __INLINED(LEVAPLS2 or LDRAIN1D):
             icrit = 0.0001
         else:
-            icrit = 2.0 * ext.RCLCRIT
+            icrit = 2.0 * RCLCRIT
 
         cldi = qiwc / out_clc
         cldi_i = qiwc_i / out_clc - qiwc * out_clc_i / out_clc ** 2
 
         itmp41 = exp(-((cldi / icrit) ** 2))
-        itmp42 = exp(0.025 * (t - ext.RTT))
+        itmp42 = exp(0.025 * (t - RTT))
         di = ckcodti * itmp42 * (1 - itmp41)
-        if __INLINED(ext.LREGCL):
+        if __INLINED(LREGCL):
             di_i = (
                 ckcodtia
                 * itmp42
-                * (
-                    itmp41 * (2 * cldi * cldi_i / icrit ** 2 - 0.025 * t_i)
-                    + 0.025 * t_i
-                )
+                * (itmp41 * (2 * cldi * cldi_i / icrit ** 2 - 0.025 * t_i) + 0.025 * t_i)
             )
         else:
             di_i = (
                 ckcodti
                 * itmp42
-                * (
-                    0.025 * t_i * (1 - itmp41)
-                    + itmp41 * (2 * cldi * cldi_i / icrit ** 2)
-                )
+                * (0.025 * t_i * (1 - itmp41) + itmp41 * (2 * cldi * cldi_i / icrit ** 2))
             )
 
         itmp5 = exp(-di)
         prs = qiwc - out_clc * cldi * itmp5
-        prs_i = qiwc_i - itmp5 * (
-            out_clc_i * cldi + out_clc * cldi_i - out_clc * cldi * di_i
-        )
+        prs_i = qiwc_i - itmp5 * (out_clc_i * cldi + out_clc * cldi_i - out_clc * cldi * di_i)
         qiwc -= prs
         qiwc_i -= prs_i
     else:
@@ -441,7 +407,7 @@ def cloudsc2_tl_ng_0(
     dr_i = cons2 * (dp_i * (prr + prs) + dp * (prr_i + prs_i))
 
     # rain fraction (different from cloud liquid water fraction!)
-    if t < ext.RTT:
+    if t < RTT:
         rfreeze = cons2 * dp * prr
         rfreeze_i = cons2 * (dp_i * prr + dp * prr_i)
         fwatr = 0.0
@@ -459,11 +425,7 @@ def cloudsc2_tl_ng_0(
     # precipitation evaporation
     prtot = rfln + sfln
     prtot_i = rfln_i + sfln_i
-    if (
-        prtot > ext.ZEPS2
-        and covpclr > ext.ZEPS2
-        and (ext.LEVAPLS2 or ext.LDRAIN1D)
-    ):
+    if prtot > ZEPS2 and covpclr > ZEPS2 and (LEVAPLS2 or LDRAIN1D):
         # note: the code never enters this branch when input data
         # are retrieved from input.h5
         preclr = prtot * covpclr / covptotn
@@ -475,38 +437,24 @@ def cloudsc2_tl_ng_0(
         qe = in_qsat - (in_qsat - qlim) * covpclr / (1 - out_clc) ** 2
         qe_i = (
             in_qsat_i
-            - (
-                in_qsat_i * covpclr
-                - qlim_i * covpclr
-                + (in_qsat - qlim) * covpclr_i
-            )
+            - (in_qsat_i * covpclr - qlim_i * covpclr + (in_qsat - qlim) * covpclr_i)
             / (1 - out_clc) ** 2
             - 2 * (in_qsat - qlim) * covpclr * out_clc_i / (1 - out_clc) ** 3
         )
 
-        tmp6 = sqrt(in_ap[0, 0, 0] / in_aph[0, 0, 1])
-        beta = (
-            ext.RG
-            * ext.RPECONS
-            * (tmp6 * preclr / (0.00509 * covpclr)) ** 0.5777
-        )
+        tmp6 = sqrt(in_ap / tmp_aph_s)
+        beta = RG * RPECONS * (tmp6 * preclr / (0.00509 * covpclr)) ** 0.5777
         beta_i = (
             0.5777
-            * ext.RG
-            * ext.RPECONS
-            / (0.00509 ** 0.5777)
-            * (covpclr / (tmp6 * preclr)) ** 0.4223
+            * RG
+            * RPECONS
+            / 0.00509
+            * (0.00509 * covpclr / (tmp6 * preclr)) ** 0.4223
             * (
                 (
-                    0.5
-                    / tmp6
-                    * (
-                        in_ap_i[0, 0, 0] * in_aph[0, 0, 1]
-                        - in_ap[0, 0, 0] * in_aph_i[0, 0, 1]
-                    )
-                    / in_aph_i[0, 0, 1] ** 2
-                    * preclr
-                    + tmp6 * preclr_i
+                    tmp6 * preclr_i
+                    + 0.5 * preclr * in_ap_i / tmp6
+                    - 0.5 * preclr * tmp6 * tmp_aph_s_i / tmp_aph_s
                 )
                 / covpclr
                 - tmp6 * preclr * covpclr_i / covpclr ** 2
@@ -520,10 +468,10 @@ def cloudsc2_tl_ng_0(
             - dt * b * (beta_i * corqs + beta * corqs_i)
         ) / (1 + dt * beta * corqs)
 
-        dtgdp = dt * ext.RG / (in_aph[0, 0, 1] - in_aph[0, 0, 0])
+        dtgdp = dt * RG / (in_aph[0, 0, 1] - in_aph[0, 0, 0])
         dtgdp_i = (
             dt
-            * ext.RG
+            * RG
             * (in_aph_i[0, 0, 0] - in_aph_i[0, 0, 1])
             / (in_aph[0, 0, 1] - in_aph[0, 0, 0]) ** 2
         )
@@ -585,12 +533,7 @@ def cloudsc2_tl_ng_0(
             + lsdcp_i * evaps
             + lsdcp * evaps_i
             + in_lude_i * (fwat * lvdcp + (1 - fwat) * lsdcp)
-            + in_lude
-            * (
-                fwat_i * (lvdcp - lsdcp)
-                + fwat * lvdcp_i
-                + (1 - fwat) * lsdcp_i
-            )
+            + in_lude * (fwat_i * (lvdcp - lsdcp) + fwat * lvdcp_i + (1 - fwat) * lsdcp_i)
             - (lsdcp_i - lvdcp_i) * rfreeze
             - (lsdcp - lvdcp) * rfreeze_i
         )
@@ -607,12 +550,12 @@ def cloudsc2_tl_ng_0(
     qold_i = q_i
 
     # clipping of final qv
-    t, t_i, q, q_i = ext.cuadjtqs_tl(in_ap, in_ap_i, t, t_i, q, q_i)
+    t, t_i, q, q_i = cuadjtqs_tl(in_ap, in_ap_i, t, t_i, q, q_i)
 
     if qold > q:
         dq = qold - q
         dq_i = qold_i - q_i
-        if __INLINED(ext.LREGCL):
+        if __INLINED(LREGCL):
             dq_i *= 0.7
     else:
         dq = 0.0
@@ -622,7 +565,7 @@ def cloudsc2_tl_ng_0(
 
     # update rain fraction and freezing
     # note: impact of new temperature t_i on fwat_i is neglected here
-    if t < ext.RTT:
+    if t < RTT:
         rfreeze2 = fwat * dr2
         rfreeze2_i = fwat_i * dr2 + fwat * dr2_i
         fwatr = 0.0
@@ -676,12 +619,7 @@ def cloudsc2_tl_ng_0(
             + lsdcp_i * evaps
             + lsdcp * evaps_i
             + in_lude_i * (fwat * lvdcp + (1 - fwat) * lsdcp)
-            + in_lude
-            * (
-                fwat_i * (lvdcp - lsdcp)
-                + fwat * lvdcp_i
-                + (1 - fwat) * lsdcp_i
-            )
+            + in_lude * (fwat_i * (lvdcp - lsdcp) + fwat * lvdcp_i + (1 - fwat) * lsdcp_i)
             - (lsdcp_i - lvdcp_i) * rfreeze
             - (lsdcp - lvdcp) * rfreeze_i
         )
