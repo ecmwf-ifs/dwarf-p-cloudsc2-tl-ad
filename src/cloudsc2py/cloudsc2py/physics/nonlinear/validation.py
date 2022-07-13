@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+from __future__ import annotations
 import numpy as np
 from typing import Optional, Sequence, TYPE_CHECKING
 
@@ -14,9 +15,7 @@ class Validator:
     def __init__(self, reference_filename: str) -> None:
         self.reader = HDF5Reader(reference_filename)
 
-    def run(
-        self, tendencies: "DataArrayDict", diagnostics: "DataArrayDict"
-    ) -> Sequence[str]:
+    def run(self, tendencies: DataArrayDict, diagnostics: DataArrayDict) -> Sequence[str]:
         failing_fields = []
 
         # tendencies
@@ -28,9 +27,7 @@ class Validator:
         }
         data_indices = {"f_q": None, "f_qi": 1, "f_ql": 0, "f_t": None}
         for src_key, trg_key in trg_keys.items():
-            if not self.validate_field(
-                tendencies, src_key, trg_key, data_indices[src_key]
-            ):
+            if not self.validate_field(tendencies, src_key, trg_key, data_indices[src_key]):
                 failing_fields.append(src_key)
 
         # diagnostics
@@ -49,7 +46,7 @@ class Validator:
 
     def validate_field(
         self,
-        src_dict: "DataArrayDict",
+        src_dict: DataArrayDict,
         src_key: str,
         trg_key: str,
         trg_data_index: Optional[int] = None,
@@ -61,7 +58,7 @@ class Validator:
         return self.compare_field(src, trg)
 
     @staticmethod
-    def compare_field(src: "Array", trg: "Array") -> bool:
+    def compare_field(src: gt4py.storage.Storage, trg: np.ndarray) -> bool:
         gt4py.storage.restore_numpy()
         src.synchronize()
         src = np.asarray(src)[:, 0, :]
