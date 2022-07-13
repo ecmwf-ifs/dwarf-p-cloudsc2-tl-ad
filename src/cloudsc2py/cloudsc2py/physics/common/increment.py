@@ -8,13 +8,10 @@ from cloudsc2py.framework.grid import I, J, K
 from cloudsc2py.utils.f2py import ported_method
 
 if TYPE_CHECKING:
-    from typing import Optional
-
     from sympl._core.typingx import PropertyDict
 
     from cloudsc2py.framework.config import GT4PyConfig
     from cloudsc2py.framework.grid import ComputationalGrid
-    from cloudsc2py.framework.options import BackendOptions, StorageOptions
     from cloudsc2py.utils.typingx import StorageDict
 
 
@@ -55,7 +52,7 @@ class StateIncrement(DiagnosticComponent):
 
     @cached_property
     @ported_method(from_file="cloudsc2_tl/cloudsc_driver_tl_mod.F90", from_line=155, to_line=171)
-    def diagnostic_properties(self) -> PropertyDict:
+    def _diagnostic_properties(self) -> PropertyDict:
         return {
             "f_aph_i": {"grid": (I, J, K - 1 / 2), "units": "Pa"},
             "f_ap_i": {"grid": (I, J, K), "units": "Pa"},
