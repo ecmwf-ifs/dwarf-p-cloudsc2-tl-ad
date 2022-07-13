@@ -80,5 +80,6 @@ def get_mask(grid_id: tuple[DimSymbol, ...], data_shape: tuple[int, ...]) -> lis
             if dim_symbol.name == target_name:
                 out.append(True)
                 break
-        out.append(False)
+        else:
+            out.append(False)
     return out + [True] * len(data_shape)
