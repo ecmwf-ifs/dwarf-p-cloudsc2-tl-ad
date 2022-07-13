@@ -8,7 +8,7 @@ import gt4py
 from cloudsc2py.utils.io import HDF5Reader
 
 if TYPE_CHECKING:
-    from sympl._core.typingx import Array, DataArrayDict
+    from sympl._core.typingx import DataArrayDict
 
 
 class Validator:

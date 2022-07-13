@@ -1,4 +1,6 @@
 # -*- coding: utf-8 -*-
+from __future__ import annotations
+
 from sympl._core.time import Timer as SymplTimer
 
 
@@ -6,7 +8,7 @@ class TimerContextManager:
     def __init__(self, label: str) -> None:
         self.label = label
 
-    def __enter__(self) -> "Timer":
+    def __enter__(self) -> type[Timer]:
         Timer.start(self.label)
         return Timer
 

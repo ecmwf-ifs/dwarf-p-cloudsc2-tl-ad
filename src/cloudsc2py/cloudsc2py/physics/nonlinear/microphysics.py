@@ -2,7 +2,6 @@
 from __future__ import annotations
 from functools import cached_property
 from itertools import repeat
-import numpy as np
 from typing import TYPE_CHECKING
 
 from cloudsc2py.framework.components import ImplicitTendencyComponent
