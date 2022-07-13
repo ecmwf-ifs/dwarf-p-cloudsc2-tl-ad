@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 from __future__ import annotations
+from contextlib import contextmanager
 import numpy as np
 from typing import TYPE_CHECKING
 
@@ -85,3 +86,33 @@ def get_data_shape_from_name(field_name: str) -> tuple[int]:
     data_dims = field_name.split("_", maxsplit=1)[0][1:]
     out = tuple(int(c) for c in data_dims)
     return out
+
+
+TEMPORARY_STORAGE_POOL: dict[int, list[gt4py.storage.Storage]] = {}
+
+
+@contextmanager
+def managed_temporary_storage(
+    computational_grid: ComputationalGrid, *grids: tuple[DimSymbol, ...], gt4py_config: GT4PyConfig
+):
+    grid_hashes = []
+    storages = []
+    for grid_id in grids:
+        grid = computational_grid.grids[grid_id]
+        grid_hash = hash(grid.shape + grid_id)
+        pool = TEMPORARY_STORAGE_POOL.setdefault(grid_hash, [])
+        if len(pool) > 0:
+            storage = pool.pop()
+        else:
+            storage = zeros(computational_grid, grid_id, gt4py_config=gt4py_config, dtype="float")
+        grid_hashes.append(grid_hash)
+        storages.append(storage)
+
+    try:
+        if len(storages) == 1:
+            yield storages[0]
+        else:
+            yield storages
+    finally:
+        for grid_hash, storage in zip(grid_hashes, storages):
+            TEMPORARY_STORAGE_POOL[grid_hash].append(storage)
