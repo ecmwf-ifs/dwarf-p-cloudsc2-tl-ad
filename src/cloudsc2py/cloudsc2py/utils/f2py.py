@@ -1,6 +1,10 @@
 # -*- coding: utf-8 -*-
-from enum import Enum
-from typing import Callable, Optional, Sequence, Union
+from __future__ import annotations
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from collections.abc import Callable, Sequence
+    from typing import Optional, Union
 
 
 def ported_object(
@@ -24,7 +28,7 @@ def ported_object(
         return core
 
 
-# convenient aliasing to improve readability
+# convenient aliases to improve readability
 ported_class = ported_object
 ported_function = ported_object
 ported_method = ported_object

@@ -11,4 +11,5 @@ ArrayDict = Dict[str, Storage]
 DataArray = SymplDataArray
 DataArrayDict = Dict[str, DataArray]
 ParameterDict = Dict[str, Union[bool, float, int]]
+StorageDict = dict[str, Storage]
 Range = TypeVar("Range")
