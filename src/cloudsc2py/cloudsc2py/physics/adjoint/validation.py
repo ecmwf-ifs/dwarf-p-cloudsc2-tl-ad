@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 from __future__ import annotations
 import numpy as np
+import sys
 from typing import TYPE_CHECKING
 
 import gt4py
@@ -107,10 +108,6 @@ class SymmetryTest:
         state.update(diags_tl)
         tends_ad, diags_ad = self.cloudsc2_ad(state, timestep)
 
-        # field = tends_ad["f_cml_ql_i"].data
-        # for k in range(137, -1, -1):
-        #     print(k+1, " ", field[0, 0, k])
-
         return state_i, tends_tl, diags_tl, tends_ad, diags_ad
 
     @ported_method(from_file="cloudsc2_ad/cloudsc_driver_ad_mod.F90", from_line=260, to_line=294)
@@ -136,7 +133,7 @@ class SymmetryTest:
         #     print("The symmetry test failed.")
         # print(f"The error is {norm3.max()} times the machine epsilon.")
 
-        out = np.where(np.isclose(norm1, norm2) is False)[0]
+        out = np.where(np.isclose(norm1, norm2) == False)[0]
         if out.size == 0:
             print("The symmetry test passed. HOORAY!")
         else:
