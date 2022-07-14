@@ -1,18 +1,21 @@
 # -*- coding: utf-8 -*-
+from __future__ import annotations
 import os
 import pandas as pd
-from typing import Dict, Optional, Sequence, TYPE_CHECKING, Type, Union
+from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
+    from typing import Optional, Union
+
     from cloudsc2py.utils.timing import Timer
 
 
 def log_performance(
     backend: str,
-    exec_info: Dict[str, Union[bool, Dict[str, Union[bool, float]]]],
+    exec_info: dict[str, Union[bool, dict[str, Union[bool, float]]]],
     nruns: int,
-    timer: Type["Timer"],
-    stencil_names: Sequence[str],
+    timer: type[Timer],
+    stencil_names: tuple[str, ...],
     csv_file: Optional[str] = None,
 ) -> None:
     if nruns > 0:
@@ -22,10 +25,10 @@ def log_performance(
 
 
 def collect_timings(
-    exec_info: Dict[str, Union[bool, Dict[str, Union[bool, float]]]],
-    timer: Type["Timer"],
-    stencil_names: Sequence[str],
-) -> Dict[str, float]:
+    exec_info: dict[str, Union[bool, dict[str, Union[bool, float]]]],
+    timer: type[Timer],
+    stencil_names: tuple[str, ...],
+) -> dict[str, float]:
     total_time = timer.get_time("run", units="ms")
     cpp_time = 0.0
     call_time = 0.0
@@ -44,7 +47,7 @@ def collect_timings(
     return out
 
 
-def print_timings(nruns: int, timings: Dict[str, float]) -> None:
+def print_timings(nruns: int, timings: dict[str, float]) -> None:
     print(
         f"\nAverage run time ({nruns} runs):"
         f" {timings['total'] / nruns:.3f} ms\n"
@@ -54,9 +57,7 @@ def print_timings(nruns: int, timings: Dict[str, float]) -> None:
     )
 
 
-def save_timings(
-    backend: str, nruns: int, csv_file: str, timings: Dict[str, float]
-) -> None:
+def save_timings(backend: str, nruns: int, csv_file: str, timings: dict[str, float]) -> None:
     to_csv(csv_file, backend, timings["total"] / nruns)
 
 

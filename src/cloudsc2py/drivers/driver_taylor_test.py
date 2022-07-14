@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-from cloudsc2py.framework.grid import VerticalSliceGrid
+from cloudsc2py.framework.grid import ComputationalGrid
 from cloudsc2py.physics.common.diagnostics import EtaLevels
 from cloudsc2py.physics.tangent_linear.validation import TaylorTest
 from cloudsc2py.state import get_initial_state
@@ -11,18 +11,13 @@ import namelist_taylor_test as nml
 
 def main():
     # grid
-    grid = VerticalSliceGrid(nml.nx, nml.nz)
+    computational_grid = ComputationalGrid(nml.nx, 1, nml.nz)
 
     # input file
     hdf5_reader = HDF5Reader(nml.input_file)
 
     # state and accumulated tendencies
-    state = get_initial_state(
-        grid,
-        hdf5_reader,
-        backend=nml.backend,
-        storage_options=nml.storage_options,
-    )
+    state = get_initial_state(computational_grid, hdf5_reader, gt4py_config=nml.gt4py_config)
 
     # parameters
     yoethf_params = hdf5_reader.get_yoethf_parameters()
@@ -38,17 +33,13 @@ def main():
 
     # diagnose reference eta-levels
     eta_levels = EtaLevels(
-        grid,
-        enable_checks=nml.enable_checks,
-        backend=nml.backend,
-        backend_options=nml.backend_options,
-        storage_options=nml.storage_options,
+        computational_grid, enable_checks=nml.enable_checks, gt4py_config=nml.gt4py_config
     )
     state.update(eta_levels(state))
 
     # taylor test
     tt = TaylorTest(
-        grid,
+        computational_grid,
         nml.factor1,
         nml.factor2s,
         nml.kflag,
@@ -62,9 +53,7 @@ def main():
         yrncl_params,
         yrphnc_params,
         enable_checks=nml.enable_checks,
-        backend=nml.backend,
-        backend_options=nml.backend_options,
-        storage_options=nml.storage_options,
+        gt4py_config=nml.gt4py_config,
     )
     with Timer.timing("run"):
         tt(state, dt)

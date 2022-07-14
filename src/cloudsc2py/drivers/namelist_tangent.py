@@ -3,11 +3,7 @@ import datetime
 import numpy as np
 import socket
 
-from cloudsc2py.framework.options import (
-    BackendOptions,
-    DataTypes,
-    StorageOptions,
-)
+from cloudsc2py.framework.config import DataTypes, GT4PyConfig
 
 # grid size
 nx = 16384
@@ -18,16 +14,13 @@ input_file = "../../../config-files/input.h5"
 
 # backend and low-level details
 enable_checks = False
-backend = "gtc:gt:cpu_kfirst"
-backend_options = BackendOptions(
+gt4py_config = GT4PyConfig(
+    backend="dace:cpu",
+    dtypes=DataTypes(bool=bool, float=np.float64, int=int),
     exec_info={"__aggregate_data": True},
     rebuild=False,
-    verbose=True,
     validate_args=False,
-)
-storage_options = StorageOptions(
-    default_origin=(0, 0, 0),
-    dtypes=DataTypes(bool=bool, float=np.float64, integer=int),
+    verbose=True,
 )
 
 # saturation
@@ -38,8 +31,5 @@ lphylin = True
 ldrain1d = False
 
 # timing
-nruns = 2
-csv_file = (
-    f"timings/{socket.gethostname()}_tl_"
-    f"{datetime.date.today().strftime('%Y%m%d')}.csv"
-)
+nruns = 10
+csv_file = f"timings/{socket.gethostname()}_tl_" f"{datetime.date.today().strftime('%Y%m%d')}.csv"

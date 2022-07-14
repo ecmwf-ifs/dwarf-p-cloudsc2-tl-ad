@@ -1,11 +1,7 @@
 # -*- coding: utf-8 -*-
 import numpy as np
 
-from cloudsc2py.framework.options import (
-    BackendOptions,
-    DataTypes,
-    StorageOptions,
-)
+from cloudsc2py.framework.config import DataTypes, GT4PyConfig
 
 # grid size
 nx = 100
@@ -16,16 +12,13 @@ input_file = "../../../config-files/input.h5"
 
 # backend and low-level details
 enable_checks = False
-backend = "gtc:gt:cpu_kfirst"
-backend_options = BackendOptions(
+gt4py_config = GT4PyConfig(
+    backend="gt:cpu_kfirst",
+    dtypes=DataTypes(bool=bool, float=np.float64, int=int),
     exec_info={"__aggregate_data": True},
     rebuild=False,
-    verbose=True,
     validate_args=False,
-)
-storage_options = StorageOptions(
-    default_origin=(0, 0, 0),
-    dtypes=DataTypes(bool=bool, float=np.float64, integer=int),
+    verbose=True,
 )
 
 # saturation
