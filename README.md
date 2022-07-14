@@ -1,14 +1,24 @@
-Dwarf-P-cloudsc2-tl-ad
------------------------------------
-Contact: Michael Lange (michael.lange@ecmwf.int),
-Filip Vana (filip.vana@ecmwf.int),
+# dwarf-p-cloudsc2-tl-ad
+
+`dwarf-p-cloudsc2-tl-ad` is intended to test tangent-linear and adjoint
+version of the CLOUDSC2 cloud microphysics scheme of the IFS.
+
+*This package is made available to support research collaborations and is not
+officially supported by ECMWF*
+
+## Contact
+
+Michael Lange (michael.lange@ecmwf.int),
 Willem Deconinck (willem.deconinck@ecmwf.int)
+Balthasar Reuter (balthasar.reuter@ecmwf.int),
 
-Dwarf-P-cloudsc2-tl-ad is intended to test tangent-linear and adjoint
-version of the CLOUDSC2 cloud microphysics scheme.
+## Licence
 
-Prototypes available
---------------------
+`dwarf-p-cloudsc2-tl-ad` is distributed under the Apache Licence Version 2.0.
+See [LICENSE](LICENSE) file for details.
+
+## Prototypes available
+
 - **dwarf-cloudsc2-nl**: The nonlinear forward run only. This has been created
   from the original CLOUDSC dwarf. _The reference results have not been updated,
   so errors are expected._
@@ -16,22 +26,17 @@ Prototypes available
   test to validate the TL code.
 - **dwarf-cloudsc2-ad**: Adjoint test of CLOUDSC2 that validates adjoint symmetry.
 
-Download and Installation
--------------------------
+## Download and Installation
+
 The preferred method to install the CLOUDSC dwarf uses the bundle
 definition shipped in the main repository. For this please
-```
-git clone ssh://git@git.ecmwf.int/escape/dwarf-p-cloudsc2-tl-ad.git cloudsc2-tl-ad
-cd cloudsc2-tl-ad
-```
-Then simply install the bundle via:
+install the bundle via:
 ```
 ./cloudsc-bundle create  # Checks out dependency packages
 ./cloudsc-bundle build [--build-type=debug|bit|release] [--arch=$PWD/arch/ecmwf/machine/compiler/version/env.sh]
 ```
 
-Example usage and verification
-------------------------------
+## Example usage and verification
 
 Following the build, please run the following to set up the environment:
 ```
