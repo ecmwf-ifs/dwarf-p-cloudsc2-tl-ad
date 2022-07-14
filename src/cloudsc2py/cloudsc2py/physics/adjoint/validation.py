@@ -1,64 +1,62 @@
 # -*- coding: utf-8 -*-
+from __future__ import annotations
 import numpy as np
-import sys
-from typing import Optional, TYPE_CHECKING, Tuple
+from typing import TYPE_CHECKING
 
 import gt4py
 
-from cloudsc2py.physics.adjoint.microphysics_ng import Cloudsc2AD
+from cloudsc2py.physics.adjoint.microphysics import Cloudsc2AD
 from cloudsc2py.physics.common.increment import StateIncrement
 from cloudsc2py.physics.common.saturation import Saturation
-from cloudsc2py.physics.tangent_linear.microphysics_ng import Cloudsc2TL
+from cloudsc2py.physics.tangent_linear.microphysics import Cloudsc2TL
 from cloudsc2py.utils.f2py import ported_method
 
 if TYPE_CHECKING:
     from datetime import timedelta
+    from typing import Optional
 
     from sympl._core.typingx import DataArrayDict
 
-    from cloudsc2py.framework.grid import Grid
-    from cloudsc2py.framework.options import BackendOptions, StorageOptions
+    from cloudsc2py.framework.config import GT4PyConfig
+    from cloudsc2py.framework.grid import ComputationalGrid
     from cloudsc2py.utils.typingx import ParameterDict
 
 
 class SymmetryTest:
     def __init__(
         self,
-        grid: "Grid",
+        computational_grid: ComputationalGrid,
         factor: float,
         kflag: int,
         lphylin: bool,
         ldrain1d: bool,
-        yoethf_parameters: Optional["ParameterDict"] = None,
-        yomcst_parameters: Optional["ParameterDict"] = None,
-        yrecld_parameters: Optional["ParameterDict"] = None,
-        yrecldp_parameters: Optional["ParameterDict"] = None,
-        yrephli_parameters: Optional["ParameterDict"] = None,
-        yrncl_parameters: Optional["ParameterDict"] = None,
-        yrphnc_parameters: Optional["ParameterDict"] = None,
+        yoethf_parameters: Optional[ParameterDict] = None,
+        yomcst_parameters: Optional[ParameterDict] = None,
+        yrecld_parameters: Optional[ParameterDict] = None,
+        yrecldp_parameters: Optional[ParameterDict] = None,
+        yrephli_parameters: Optional[ParameterDict] = None,
+        yrncl_parameters: Optional[ParameterDict] = None,
+        yrphnc_parameters: Optional[ParameterDict] = None,
+        *,
         enable_checks: bool = True,
-        backend: str = "numpy",
-        backend_options: Optional["BackendOptions"] = None,
-        storage_options: Optional["StorageOptions"] = None,
+        gt4py_config: GT4PyConfig,
     ) -> None:
         self.f = factor
 
         # saturation
         self.saturation = Saturation(
-            grid,
+            computational_grid,
             kflag,
             lphylin,
             yoethf_parameters,
             yomcst_parameters,
             enable_checks=enable_checks,
-            backend=backend,
-            backend_options=backend_options,
-            storage_options=storage_options,
+            gt4py_config=gt4py_config,
         )
 
         # microphysics
         self.cloudsc2_tl = Cloudsc2TL(
-            grid,
+            computational_grid,
             lphylin,
             ldrain1d,
             yoethf_parameters,
@@ -69,12 +67,10 @@ class SymmetryTest:
             yrncl_parameters,
             yrphnc_parameters,
             enable_checks=enable_checks,
-            backend=backend,
-            backend_options=backend_options,
-            storage_options=storage_options,
+            gt4py_config=gt4py_config,
         )
         self.cloudsc2_ad = Cloudsc2AD(
-            grid,
+            computational_grid,
             lphylin,
             ldrain1d,
             yoethf_parameters,
@@ -85,39 +81,21 @@ class SymmetryTest:
             yrncl_parameters,
             yrphnc_parameters,
             enable_checks=enable_checks,
-            backend=backend,
-            backend_options=backend_options,
-            storage_options=storage_options,
+            gt4py_config=gt4py_config,
         )
 
         # perturbation
         self.state_increment = StateIncrement(
-            grid,
-            factor,
-            enable_checks=enable_checks,
-            backend=backend,
-            backend_options=backend_options,
-            storage_options=storage_options,
+            computational_grid, factor, enable_checks=enable_checks, gt4py_config=gt4py_config
         )
 
-    def __call__(self, state: "DataArrayDict", timestep: "timedelta") -> None:
+    def __call__(self, state: DataArrayDict, timestep: timedelta) -> None:
         self.validate(*self.run(state, timestep))
-        # self.run(state, timestep)
 
-    @ported_method(
-        from_file="cloudsc2_ad/cloudsc_driver_ad_mod.F90",
-        from_line=22,
-        to_line=297,
-    )
+    @ported_method(from_file="cloudsc2_ad/cloudsc_driver_ad_mod.F90", from_line=22, to_line=297)
     def run(
-        self, state: "DataArrayDict", timestep: "timedelta"
-    ) -> Tuple[
-        "DataArrayDict",
-        "DataArrayDict",
-        "DataArrayDict",
-        "DataArrayDict",
-        "DataArrayDict",
-    ]:
+        self, state: DataArrayDict, timestep: timedelta
+    ) -> tuple[DataArrayDict, DataArrayDict, DataArrayDict, DataArrayDict, DataArrayDict]:
         diags_sat = self.saturation(state)
         state.update(diags_sat)
 
@@ -135,18 +113,14 @@ class SymmetryTest:
 
         return state_i, tends_tl, diags_tl, tends_ad, diags_ad
 
-    @ported_method(
-        from_file="cloudsc2_ad/cloudsc_driver_ad_mod.F90",
-        from_line=260,
-        to_line=294,
-    )
+    @ported_method(from_file="cloudsc2_ad/cloudsc_driver_ad_mod.F90", from_line=260, to_line=294)
     def validate(
         self,
-        state_i: "DataArrayDict",
-        tends_tl: "DataArrayDict",
-        diags_tl: "DataArrayDict",
-        tends_ad: "DataArrayDict",
-        diags_ad: "DataArrayDict",
+        state_i: DataArrayDict,
+        tends_tl: DataArrayDict,
+        diags_tl: DataArrayDict,
+        tends_ad: DataArrayDict,
+        diags_ad: DataArrayDict,
     ) -> None:
         norm1 = self.get_norm1(tends_tl, diags_tl)
         norm2 = self.get_norm2(state_i, tends_ad, diags_ad)
@@ -162,7 +136,7 @@ class SymmetryTest:
         #     print("The symmetry test failed.")
         # print(f"The error is {norm3.max()} times the machine epsilon.")
 
-        out = np.where(np.isclose(norm1, norm2) == False)[0]
+        out = np.where(np.isclose(norm1, norm2) is False)[0]
         if out.size == 0:
             print("The symmetry test passed. HOORAY!")
         else:
@@ -171,46 +145,26 @@ class SymmetryTest:
                 f"{', '.join([str(idx+1) for idx in out])}."
             )
 
-    @ported_method(
-        from_file="cloudsc2_ad/cloudsc_driver_ad_mod.F90",
-        from_line=183,
-        to_line=195,
-    )
-    def get_norm1(
-        self, tends_tl: "DataArrayDict", diags_tl: "DataArrayDict"
-    ) -> np.ndarray:
+    @ported_method(from_file="cloudsc2_ad/cloudsc_driver_ad_mod.F90", from_line=183, to_line=195)
+    def get_norm1(self, tends_tl: DataArrayDict, diags_tl: DataArrayDict) -> np.ndarray:
         out = None
 
         tend_names = ("f_t_i", "f_q_i", "f_ql_i", "f_qi_i")
         for name in tend_names:
             field = self.get_field(name, tends_tl)
             out = np.zeros(field.shape[0]) if out is None else out
-            out += np.sum(field * field, axis=1)
+            out += np.sum(field ** 2, axis=1)
 
-        diag_names = (
-            "f_clc_i",
-            "f_fhpsl_i",
-            "f_fhpsn_i",
-            "f_fplsl_i",
-            "f_fplsn_i",
-            "f_covptot_i",
-        )
+        diag_names = ("f_clc_i", "f_fhpsl_i", "f_fhpsn_i", "f_fplsl_i", "f_fplsn_i", "f_covptot_i")
         for name in diag_names:
             field = self.get_field(name, diags_tl)
             out += np.sum(field ** 2, axis=1)
 
         return out
 
-    @ported_method(
-        from_file="cloudsc2_ad/cloudsc_driver_ad_mod.F90",
-        from_line=239,
-        to_line=256,
-    )
+    @ported_method(from_file="cloudsc2_ad/cloudsc_driver_ad_mod.F90", from_line=239, to_line=256)
     def get_norm2(
-        self,
-        state_i: "DataArrayDict",
-        tends_ad: "DataArrayDict",
-        diags_ad: "DataArrayDict",
+        self, state_i: DataArrayDict, tends_ad: DataArrayDict, diags_ad: DataArrayDict
     ) -> np.ndarray:
         out = None
 
@@ -243,7 +197,7 @@ class SymmetryTest:
         return out
 
     @staticmethod
-    def get_field(name: str, dct: "DataArrayDict") -> np.ndarray:
+    def get_field(name: str, dct: DataArrayDict) -> np.ndarray:
         gt4py.storage.restore_numpy()
         field = dct[name].data
         field.synchronize()
@@ -252,9 +206,7 @@ class SymmetryTest:
         return field
 
     @staticmethod
-    def add_tendencies_to_state(
-        state: "DataArrayDict", tends_tl: "DataArrayDict"
-    ) -> None:
+    def add_tendencies_to_state(state: DataArrayDict, tends_tl: DataArrayDict) -> None:
         state["f_tnd_t"] = tends_tl["f_t"]
         state["f_tnd_t_i"] = tends_tl["f_t_i"]
         state["f_tnd_q"] = tends_tl["f_q"]
