@@ -61,25 +61,6 @@ class Cloudsc2TL(ImplicitTendencyComponent):
 
         self.cloudsc2 = self.compile_stencil("cloudsc2_tl", externals)
 
-        # # allocate temporary 2d arrays
-        # allocate_f = partial(
-        #     get_array,
-        #     self.grid,
-        #     (self.grid.dims_x, self.grid.dims_y),
-        #     backend=backend,
-        #     dtype=self.so.dtypes.float,
-        #     storage_options=self.so,
-        # )
-        # self.temporary_fields = {
-        #     "tmp_rfl": allocate_f(),
-        #     "tmp_rfl_i": allocate_f(),
-        #     "tmp_sfl": allocate_f(),
-        #     "tmp_sfl_i": allocate_f(),
-        #     "tmp_covptot": allocate_f(),
-        #     "tmp_covptot_i": allocate_f(),
-        #     "tmp_trpaus": allocate_f(),
-        # }
-
     @cached_property
     @ported_method(from_file="cloudsc2_tl/cloudsc2tl.F90", from_line=53, to_line=78)
     def _input_properties(self) -> PropertyDict:
