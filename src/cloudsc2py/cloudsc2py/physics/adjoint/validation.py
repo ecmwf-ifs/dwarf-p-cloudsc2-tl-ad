@@ -139,7 +139,8 @@ class SymmetryTest:
         else:
             print(
                 f"The symmetry test failed on the following columns: "
-                f"{', '.join([str(idx+1) for idx in out])}."
+                f"{', '.join([str(idx+1) for idx in out])}.\n"
+                f"Failure rate: {out.size / norm1.size * 100} %."
             )
 
     @ported_method(from_file="cloudsc2_ad/cloudsc_driver_ad_mod.F90", from_line=183, to_line=195)
