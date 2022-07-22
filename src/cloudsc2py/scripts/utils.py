@@ -7,9 +7,7 @@ from typing import Callable, Optional
 from drivers.utils import to_csv
 
 
-def run_fortran(
-    mode: str, num_threads: int, nx: int, csv_file: Optional[str] = None
-) -> None:
+def run_fortran(mode: str, num_threads: int, nx: int, csv_file: Optional[str] = None) -> None:
     # run and profile
     out = subprocess.run(
         [
@@ -42,7 +40,7 @@ def run_python(
     # get correct driver
     driver_core = get_driver_core(mode)
     # run and profile
-    driver_core(backend, nx, nz, nruns, csv_file)
+    driver_core(nx, nz, backend, nruns, csv_file)
     # re-enable printing
     sys.stdout = stdout
 
@@ -61,11 +59,4 @@ def get_driver_core(mode: str) -> Callable:
 
 if __name__ == "__main__":
     run_fortran("nl", 1, 16384, "test.csv")
-    run_python(
-        "nl",
-        "gtc:gt:cpu_ifirst",
-        16384,
-        137,
-        5,
-        "test.csv",
-    )
+    run_python("nl", "gt:cpu_kfirst", 16384, 137, 5, "test.csv")

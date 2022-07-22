@@ -19,7 +19,11 @@ if TYPE_CHECKING:
     from typing import Optional
 
 
-def core(nx: int, nz: int, nruns: int, csv_file: Optional[str]) -> None:
+def core(nx: int, nz: int, backend: Optional[str], nruns: int, csv_file: Optional[str]) -> None:
+    # set the backend
+    if backend is not None:
+        nml.gt4py_config.backend = backend
+
     # grid
     computational_grid = ComputationalGrid(nx, 1, nz)
 
@@ -149,13 +153,11 @@ def main(
     # parse input arguments
     nx = nx if nx > 0 else nml.nx
     nz = nz if nz > 0 else nml.nz
-    if backend is not None:
-        nml.gt4py_config.backend = backend
     nruns = nruns if nruns > 0 else nml.nruns
     csv_file = csv_file if csv_file != "" else nml.csv_file
 
     # core
-    core(nx, nz, nruns, csv_file)
+    core(nx, nz, backend, nruns, csv_file)
 
 
 if __name__ == "__main__":
