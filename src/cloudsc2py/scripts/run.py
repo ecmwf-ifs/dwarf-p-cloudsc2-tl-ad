@@ -5,6 +5,8 @@ import itertools
 import os
 import socket
 
+from cloudsc2py.framework.storage import managed_temporary_storage_pool
+
 from scripts.utils import run_fortran, run_python
 
 
@@ -47,17 +49,18 @@ def main(num_threads: int = 1) -> None:
         print(sep)
 
         for backend in backend_l:
-            # python: warm-up cache
-            run_python(mode, backend, nx, nz, nruns=5, csv_file=None)
+            with managed_temporary_storage_pool():
+                # python: warm-up cache
+                run_python(mode, backend, nx, nz, nruns=5, csv_file=None)
 
-            for i in range(nruns):
-                # python: run and profile
-                run_python(mode, backend, nx, nz, nruns=5, csv_file=csv_file)
-                print(
-                    f"{mode:4.4s} | {str(nx):9.9s} | {backend:17.17s} | "
-                    f"{str(num_threads):7.7s} | {i}"
-                )
-            print(sep)
+                for i in range(nruns):
+                    # python: run and profile
+                    run_python(mode, backend, nx, nz, nruns=5, csv_file=csv_file)
+                    print(
+                        f"{mode:4.4s} | {str(nx):9.9s} | {backend:17.17s} | "
+                        f"{str(num_threads):7.7s} | {i}"
+                    )
+                print(sep)
 
 
 if __name__ == "__main__":

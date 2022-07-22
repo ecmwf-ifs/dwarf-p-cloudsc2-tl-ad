@@ -116,3 +116,18 @@ def managed_temporary_storage(
     finally:
         for grid_hash, storage in zip(grid_hashes, storages):
             TEMPORARY_STORAGE_POOL[grid_hash].append(storage)
+
+
+@contextmanager
+def managed_temporary_storage_pool():
+    """
+    Context manager clearing the pool of temporary storages on entry and exit.
+
+    Useful when running multiple simulations using different backends within the same session.
+    All simulations using the same backend should be wrapped by this context manager.
+    """
+    try:
+        TEMPORARY_STORAGE_POOL.clear()
+        yield None
+    finally:
+        TEMPORARY_STORAGE_POOL.clear()
