@@ -16,7 +16,7 @@ reference_file = "../../../config-files/reference.h5"
 # backend and low-level details
 enable_checks = False
 gt4py_config = GT4PyConfig(
-    backend="gt:gpu",
+    backend="gt:cpu_kfirst",
     dtypes=DataTypes(bool=bool, float=np.float64, int=int),
     exec_info={"__aggregate_data": True},
     rebuild=False,
