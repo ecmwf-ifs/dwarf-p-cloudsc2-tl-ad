@@ -11,9 +11,13 @@ __pycache__/
 .gt_cache/
 gt_cache/
 .dace.conf
+.dacecache
 
 # packaging
 *.egg-info
 
 # virtual environment
 venv/
+
+# diagnostics
+timings/
