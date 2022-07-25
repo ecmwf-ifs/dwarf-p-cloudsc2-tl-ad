@@ -91,9 +91,7 @@ def get_figure_and_axes(
     elif (fig is not None) and (ax is None):
         try:
             out_fig = fig
-            out_ax = out_fig.add_subplot(
-                nrows, ncols, index, projection=projection
-            )
+            out_ax = out_fig.add_subplot(nrows, ncols, index, projection=projection)
         except AttributeError:
             import warnings
 
@@ -104,23 +102,17 @@ def get_figure_and_axes(
             )
 
             out_fig = plt.figure(figsize=figsize)
-            out_ax = out_fig.add_subplot(
-                nrows, ncols, index, projection=projection
-            )
+            out_ax = out_fig.add_subplot(nrows, ncols, index, projection=projection)
     elif (fig is None) and (ax is not None):
         out_fig, out_ax = ax.get_figure(), ax
     else:  # (fig is None) and (ax is None)
         if default_fig is None:
             out_fig = plt.figure(figsize=figsize)
-            out_ax = out_fig.add_subplot(
-                nrows, ncols, index, projection=projection
-            )
+            out_ax = out_fig.add_subplot(nrows, ncols, index, projection=projection)
         else:
             try:
                 out_fig = default_fig
-                out_ax = out_fig.add_subplot(
-                    nrows, ncols, index, projection=projection
-                )
+                out_ax = out_fig.add_subplot(nrows, ncols, index, projection=projection)
             except AttributeError:
                 import warnings
 
@@ -132,9 +124,7 @@ def get_figure_and_axes(
                 )
 
                 out_fig = plt.figure(figsize=figsize)
-                out_ax = out_fig.add_subplot(
-                    nrows, ncols, index, projection=projection
-                )
+                out_ax = out_fig.add_subplot(nrows, ncols, index, projection=projection)
 
     return out_fig, out_ax
 
@@ -190,9 +180,7 @@ def set_figure_properties(fig: plt.Figure, **kwargs) -> None:
     fig.subplots_adjust(right=right, wspace=wspace, hspace=hspace)
 
     if figlegend_on:
-        figlegend_ax = (
-            [figlegend_ax] if isinstance(figlegend_ax, int) else figlegend_ax
-        )
+        figlegend_ax = [figlegend_ax] if isinstance(figlegend_ax, int) else figlegend_ax
         axes = (
             [fig.get_axes()[i] for i in figlegend_ax]
             if figlegend_ax is not None
@@ -221,11 +209,7 @@ def set_figure_properties(fig: plt.Figure, **kwargs) -> None:
                 if isinstance(figlegend_framealpha, numbers.Number)
                 else figlegend_framealpha
             )
-            loc = (
-                [figlegend_loc] * len(axes)
-                if isinstance(figlegend_loc, str)
-                else figlegend_loc
-            )
+            loc = [figlegend_loc] * len(axes) if isinstance(figlegend_loc, str) else figlegend_loc
             ncol = (
                 [int(figlegend_ncol)] * len(axes)
                 if isinstance(figlegend_ncol, numbers.Number)
@@ -529,9 +513,7 @@ def set_axes_properties(ax: plt.Axes, **kwargs) -> None:
                 fontsize=rcParams["font.size"],
             )
         if ax2.get_title(loc="left") == "":
-            ax2.set_title(
-                ax2_title_left, loc="left", fontsize=rcParams["font.size"] - 1
-            )
+            ax2.set_title(ax2_title_left, loc="left", fontsize=rcParams["font.size"] - 1)
         if ax2.get_title(loc="right") == "":
             ax2.set_title(
                 ax2_title_right,

@@ -41,7 +41,6 @@ pool1 = Pool(
         #     "GT4Py CPU",
         # ),
         # Bar("dom_nl_24_20220220.csv", "gtc:gt:gpu", "green", "GT4Py GPU"),
-
         # single-core vs multi-core
         # Bar(
         #     "dom_nl_1_20220220.csv",
@@ -64,7 +63,6 @@ pool1 = Pool(
         #     "cyan",
         #     "GT4Py CPU (24 threads)",
         # ),
-
         # all gt4py backends
         Bar(
             "dom_nl_24_20220220.csv",
@@ -100,7 +98,6 @@ pool2 = Pool(
         #     "GT4Py CPU",
         # ),
         # Bar("dom_tl_24_20220222.csv", "gtc:gt:gpu", "green", "GT4Py GPU"),
-
         # all gt4py backends
         Bar(
             "dom_tl_24_20220222.csv",
@@ -135,7 +132,6 @@ pool3 = Pool(
         #     "cyan",
         #     "GT4Py CPU",
         # ),
-
         # all gt4py backends
         Bar(
             "dom_ad_24_20220222.csv",
