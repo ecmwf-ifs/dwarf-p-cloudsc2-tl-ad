@@ -175,7 +175,7 @@ def cloudsc2_ad_0(
         qpd = qsat - qt
         tmp3 = sqrt(qpd / (qcd - scalm * (qt - qcrit)))
         clc = 1 - tmp3
-        qc1 = (scalm * qpd + (1 - scalm) * qcd) * (clc ** 2)
+        qc1 = (scalm * qpd + (1 - scalm) * qcd) * (clc**2)
 
     # add convective component
     gdp = RG / (in_aph[0, 0, 1] - in_aph[0, 0, 0])

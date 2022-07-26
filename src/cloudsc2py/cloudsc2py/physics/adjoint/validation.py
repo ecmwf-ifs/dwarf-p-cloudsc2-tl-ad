@@ -151,12 +151,12 @@ class SymmetryTest:
         for name in tend_names:
             field = self.get_field(name, tends_tl)
             out = np.zeros(field.shape[0]) if out is None else out
-            out += np.sum(field ** 2, axis=1)
+            out += np.sum(field**2, axis=1)
 
         diag_names = ("f_clc_i", "f_fhpsl_i", "f_fhpsn_i", "f_fplsl_i", "f_fplsn_i", "f_covptot_i")
         for name in diag_names:
             field = self.get_field(name, diags_tl)
-            out += np.sum(field ** 2, axis=1)
+            out += np.sum(field**2, axis=1)
 
         return out
 

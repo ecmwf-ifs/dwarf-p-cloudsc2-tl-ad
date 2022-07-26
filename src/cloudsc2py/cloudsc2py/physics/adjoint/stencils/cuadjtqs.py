@@ -108,7 +108,7 @@ def cuadjtqs_ad_01(
         / (targ_b - z4es) ** 2
     )
     t_i += targ_i
-    ap_i -= qp / ap ** 2
+    ap_i -= qp / ap**2
 
     return ap_i, t_i, q_i
 

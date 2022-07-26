@@ -197,7 +197,7 @@ def cloudsc2_nl_def(
             qpd = qsat - qt
             qcd = qsat - qcrit
             out_clc = 1 - sqrt(qpd / (qcd - scalm * (qt - qcrit)))
-            qc = (scalm * qpd + (1 - scalm) * qcd) * (out_clc ** 2)
+            qc = (scalm * qpd + (1 - scalm) * qcd) * (out_clc**2)
 
         # add convective component
         gdp = RG / (in_aph[0, 0, 1] - in_aph[0, 0, 0])
