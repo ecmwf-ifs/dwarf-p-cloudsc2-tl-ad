@@ -4,7 +4,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 import os
 import pandas as pd
-from typing import Optional, Sequence
+from typing import Optional
 
 from scripts import plot_utils
 
@@ -21,140 +21,35 @@ class Bar:
 @dataclasses.dataclass
 class Pool:
     name: str
-    bars: Sequence[Bar]
+    bars: list[Bar]
 
 
 pool1 = Pool(
     "Non-linear",
     [
-        # fortran vs gt4py
-        # Bar(
-        #     "dom_nl_24_20220220.csv",
-        #     "fortran",
-        #     "blue",
-        #     "Fortran",
-        # ),
-        # Bar(
-        #     "dom_nl_24_20220220.csv",
-        #     "gtc:gt:cpu_kfirst",
-        #     "cyan",
-        #     "GT4Py CPU",
-        # ),
-        # Bar("dom_nl_24_20220220.csv", "gtc:gt:gpu", "green", "GT4Py GPU"),
-
-        # single-core vs multi-core
-        # Bar(
-        #     "dom_nl_1_20220220.csv",
-        #     "fortran",
-        #     "blue",
-        #     "Fortran (1 thread)",
-        #     "//",
-        # ),
-        # Bar("dom_nl_24_20220220.csv", "fortran", "blue", "Fortran (24 threads)"),
-        # Bar(
-        #     "dom_nl_1_20220220.csv",
-        #     "gtc:gt:cpu_kfirst",
-        #     "cyan",
-        #     "GT4Py CPU (1 thread)",
-        #     "//",
-        # ),
-        # Bar(
-        #     "dom_nl_24_20220220.csv",
-        #     "gtc:gt:cpu_kfirst",
-        #     "cyan",
-        #     "GT4Py CPU (24 threads)",
-        # ),
-
-        # all gt4py backends
-        Bar(
-            "dom_nl_24_20220220.csv",
-            "gtc:gt:cpu_kfirst",
-            "cyan",
-            "gtc:gt:cpu_kfirst",
-        ),
-        Bar(
-            "dom_nl_24_20220220.csv",
-            "gtc:gt:cpu_ifirst",
-            "orange",
-            "gtc:gt:cpu_ifirst",
-        ),
-        Bar(
-            "dom_nl_24_20220220.csv",
-            "gtc:dace",
-            "red",
-            "gtc:dace",
-        ),
-        Bar("dom_nl_24_20220220.csv", "gtc:gt:gpu", "green", "gtc:gt:gpu"),
-        Bar("dom_nl_24_20220220.csv", "gtc:cuda", "purple", "gtc:cuda"),
+        Bar("dom_nl_24_20220725.csv", "fortran", "blue", "Fortran"),
+        Bar("dom_nl_24_20220725.csv", "gt:cpu_kfirst", "cyan", "gt:cpu_kfirst"),
+        Bar("dom_nl_24_20220725.csv", "gt:gpu", "green", "gt:gpu"),
+        Bar("dom_nl_24_20220725.csv", "cuda", "purple", "cuda"),
+        Bar("dom_nl_24_20220725.csv", "dace:gpu", "orange", "dace:gpu"),
     ],
 )
 pool2 = Pool(
     "Tangent-linear",
     [
-        # fortran vs gt4py
-        # Bar("dom_tl_24_20220222.csv", "fortran", "blue", "Fortran"),
-        # Bar(
-        #     "dom_tl_24_20220222.csv",
-        #     "gtc:gt:cpu_kfirst",
-        #     "cyan",
-        #     "GT4Py CPU",
-        # ),
-        # Bar("dom_tl_24_20220222.csv", "gtc:gt:gpu", "green", "GT4Py GPU"),
-
-        # all gt4py backends
-        Bar(
-            "dom_tl_24_20220222.csv",
-            "gtc:gt:cpu_kfirst",
-            "cyan",
-            "gtc:gt:cpu_kfirst",
-        ),
-        Bar(
-            "dom_tl_24_20220222.csv",
-            "gtc:gt:cpu_ifirst",
-            "orange",
-            "gtc:gt:cpu_ifirst",
-        ),
-        Bar(
-            "dom_tl_24_20220222.csv",
-            "gtc:dace",
-            "red",
-            "gtc:dace",
-        ),
-        Bar("dom_tl_24_20220222.csv", "gtc:gt:gpu", "green", "gtc:gt:gpu"),
-        Bar("dom_tl_24_20220222.csv", "gtc:cuda", "purple", "gtc:cuda"),
+        Bar("dom_tl_24_20220725.csv", "fortran", "blue", "Fortran"),
+        Bar("dom_tl_24_20220725.csv", "gt:cpu_kfirst", "cyan", "gt:cpu_kfirst"),
+        Bar("dom_tl_24_20220725.csv", "cuda", "purple", "cuda"),
+        Bar("dom_tl_24_20220725.csv", "dace:gpu", "orange", "dace:gpu"),
     ],
 )
 pool3 = Pool(
     "Adjoint",
     [
-        # fortran vs gt4py
-        # Bar("dom_ad_24_20220222.csv", "fortran", "blue", "Fortran"),
-        # Bar(
-        #     "dom_ad_24_20220222.csv",
-        #     "gtc:gt:cpu_kfirst",
-        #     "cyan",
-        #     "GT4Py CPU",
-        # ),
-
-        # all gt4py backends
-        Bar(
-            "dom_ad_24_20220222.csv",
-            "gtc:gt:cpu_kfirst",
-            "cyan",
-            "gtc:gt:cpu_kfirst",
-        ),
-        Bar(
-            "dom_ad_24_20220222.csv",
-            "gtc:gt:cpu_ifirst",
-            "orange",
-            "gtc:gt:cpu_ifirst",
-        ),
-        Bar(
-            "dom_ad_24_20220222.csv",
-            "gtc:dace",
-            "red",
-            "gtc:dace",
-        ),
+        Bar("dom_ad_24_20220725.csv", "fortran", "blue", "Fortran"),
+        Bar("dom_ad_24_20220725.csv", "gt:cpu_kfirst", "cyan", "gt:cpu_kfirst"),
+        Bar("dom_ad_24_20220725.csv", "cuda", "purple", "cuda"),
+        Bar("dom_ad_24_20220725.csv", "dace:gpu", "orange", "dace:gpu"),
     ],
 )
 pools = [pool1, pool2, pool3]
@@ -167,7 +62,7 @@ axes_properties = {
     "x_ticks": None,
     "x_tick_length": 0,
     "y_label": "Runtime [ms]",
-    "y_lim": [0, 1600],
+    "y_lim": [0, 350],
     "y_ticks": None,
     "y_tick_format": "%4.d",
     "legend_on": True,
@@ -178,7 +73,7 @@ axes_properties = {
 }
 
 
-def get_xs():
+def get_xs() -> list[np.ndarray]:
     axes_properties["x_ticks"] = []
     axes_properties["x_tick_labels"] = []
     xs = []
@@ -193,7 +88,7 @@ def get_xs():
     return xs
 
 
-def plot_bars(ax, xs):
+def plot_bars(ax: plt.Axes, xs: list[np.ndarray]) -> None:
     for id_pool, pool in enumerate(pools):
         for bar, bar_center in zip(pool.bars, xs[id_pool]):
             df = pd.read_csv(os.path.join("timings", bar.csv_file))
