@@ -1,12 +1,16 @@
 # -*- coding: utf-8 -*-
+from __future__ import annotations
 import dataclasses
 import matplotlib.pyplot as plt
 import numpy as np
 import os
 import pandas as pd
-from typing import Optional
+from typing import TYPE_CHECKING
 
 from scripts import plot_utils
+
+if TYPE_CHECKING:
+    from typing import Optional
 
 
 @dataclasses.dataclass
@@ -27,29 +31,29 @@ class Pool:
 pool1 = Pool(
     "Non-linear",
     [
-        Bar("dom_nl_24_20220725.csv", "fortran", "blue", "Fortran"),
-        Bar("dom_nl_24_20220725.csv", "gt:cpu_kfirst", "cyan", "gt:cpu_kfirst"),
-        Bar("dom_nl_24_20220725.csv", "gt:gpu", "green", "gt:gpu"),
-        Bar("dom_nl_24_20220725.csv", "cuda", "purple", "cuda"),
-        Bar("dom_nl_24_20220725.csv", "dace:gpu", "orange", "dace:gpu"),
+        Bar("20220805_dom_nl_16384_137_24.csv", "fortran", "blue", "Fortran"),
+        Bar("20220805_dom_nl_16384_137_24.csv", "gt:cpu_kfirst", "cyan", "gt:cpu_kfirst"),
+        Bar("20220805_dom_nl_16384_137_24.csv", "gt:gpu", "green", "gt:gpu"),
+        Bar("20220805_dom_nl_16384_137_24.csv", "cuda", "purple", "cuda"),
+        Bar("20220805_dom_nl_16384_137_24.csv", "dace:gpu", "orange", "dace:gpu"),
     ],
 )
 pool2 = Pool(
     "Tangent-linear",
     [
-        Bar("dom_tl_24_20220725.csv", "fortran", "blue", "Fortran"),
-        Bar("dom_tl_24_20220725.csv", "gt:cpu_kfirst", "cyan", "gt:cpu_kfirst"),
-        Bar("dom_tl_24_20220725.csv", "cuda", "purple", "cuda"),
-        Bar("dom_tl_24_20220725.csv", "dace:gpu", "orange", "dace:gpu"),
+        Bar("20220805_dom_tl_16384_137_24.csv", "fortran", "blue", "Fortran"),
+        Bar("20220805_dom_tl_16384_137_24.csv", "gt:cpu_kfirst", "cyan", "gt:cpu_kfirst"),
+        Bar("20220805_dom_tl_16384_137_24.csv", "cuda", "purple", "cuda"),
+        Bar("20220805_dom_tl_16384_137_24.csv", "dace:gpu", "orange", "dace:gpu"),
     ],
 )
 pool3 = Pool(
     "Adjoint",
     [
-        Bar("dom_ad_24_20220725.csv", "fortran", "blue", "Fortran"),
-        Bar("dom_ad_24_20220725.csv", "gt:cpu_kfirst", "cyan", "gt:cpu_kfirst"),
-        Bar("dom_ad_24_20220725.csv", "cuda", "purple", "cuda"),
-        Bar("dom_ad_24_20220725.csv", "dace:gpu", "orange", "dace:gpu"),
+        Bar("20220805_dom_ad_16384_137_24.csv", "fortran", "blue", "Fortran"),
+        Bar("20220805_dom_ad_16384_137_24.csv", "gt:cpu_kfirst", "cyan", "gt:cpu_kfirst"),
+        Bar("20220805_dom_ad_16384_137_24.csv", "cuda", "purple", "cuda"),
+        Bar("20220805_dom_ad_16384_137_24.csv", "dace:gpu", "orange", "dace:gpu"),
     ],
 )
 pools = [pool1, pool2, pool3]
