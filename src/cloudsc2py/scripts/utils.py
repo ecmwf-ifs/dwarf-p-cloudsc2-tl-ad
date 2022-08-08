@@ -30,7 +30,7 @@ def run_python(
     backend: str,
     nx: int,
     nz: int,
-    nruns: int,
+    num_runs: int,
     csv_file: Optional[str] = None,
 ) -> None:
     # disable printing
@@ -40,7 +40,7 @@ def run_python(
     # get correct driver
     driver_core = get_driver_core(mode)
     # run and profile
-    driver_core(nx, nz, backend, nruns, csv_file)
+    driver_core(nx, nz, backend, num_runs, csv_file)
     # re-enable printing
     sys.stdout = stdout
 
