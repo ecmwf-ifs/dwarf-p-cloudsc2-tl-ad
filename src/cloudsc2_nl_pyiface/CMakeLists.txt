@@ -6,16 +6,25 @@ ecbuild_add_option( FEATURE CLOUDSC2_NL DEFAULT ON
 if( HAVE_CLOUDSC2_NL )
 
     # Define the binary build target for this variant
+    ecbuild_add_library( TARGET dwarf-cloudsc2-nl-lib
+        SOURCES
+            ./fortransrc/dwarf_cloudsc.F90
+            ./fortransrc/cloudsc_driver_mod.F90
+            ./fortransrc/satur.F90
+            ./fortransrc/cuadjtqs.F90
+            ./fortransrc/cloudsc2.F90
+        DEFINITIONS ${CLOUDSC_DEFINITIONS}
+    )
+
+    target_link_libraries( dwarf-cloudsc2-nl-lib PRIVATE cloudsc-common-lib HDF5::HDF5 )
+
     ecbuild_add_executable( TARGET dwarf-cloudsc2-nl
         SOURCES
             dwarf_cloudsc.F90
-            cloudsc_driver_mod.F90
-            satur.F90
-            cuadjtqs.F90
-            cloudsc2.F90
         DEFINITIONS ${CLOUDSC_DEFINITIONS}
     )
-    target_link_libraries( dwarf-cloudsc2-nl PRIVATE cloudsc-common-lib )
+
+    target_link_libraries( dwarf-cloudsc2-nl PRIVATE cloudsc-common-lib dwarf-cloudsc2-nl-lib)
 
     if( HAVE_OMP AND TARGET OpenMP::OpenMP_Fortran )
         target_link_libraries( dwarf-cloudsc2-nl PRIVATE OpenMP::OpenMP_Fortran )

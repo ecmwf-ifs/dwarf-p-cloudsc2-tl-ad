@@ -45,9 +45,9 @@ ecbuild_install_project(NAME dwarf-P-cloudsc2-tl-ad)
 
 # add symlinks to input/validation data to the bin directory 
 execute_process(COMMAND ${CMAKE_COMMAND} -E create_symlink
-      ../config-files/input.h5 ../build/bin/input.h5 )
-    execute_process(COMMAND ${CMAKE_COMMAND} -E create_symlink
-      ../config-files/reference.h5 ../build/bin/reference.h5 )
+      ../../config-files/input.h5 ../build/bin/input.h5 )
+execute_process(COMMAND ${CMAKE_COMMAND} -E create_symlink
+     ../../config-files/reference.h5 ../build/bin/reference.h5 )
 
 # print summary
 ecbuild_print_summary()
