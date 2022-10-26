@@ -1,4 +1,5 @@
 add_subdirectory(common)
+add_subdirectory(cloudsc2_nl_pyiface)
 add_subdirectory(cloudsc2_nl)
 add_subdirectory(cloudsc2_tl)
 add_subdirectory(cloudsc2_ad)
