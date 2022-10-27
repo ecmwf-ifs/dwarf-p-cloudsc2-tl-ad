@@ -5,7 +5,7 @@ sys.path.append('../../build/lib')
 sys.path.append('.')
 from pathlib import Path
 import _cloudsc2
-from fortifaces import cloudscfaces
+from cloudsc2ifaces import cl2ifaces as cfs
 
 import logging
 import numpy as np
@@ -52,6 +52,7 @@ pfhpsn    = np.zeros((nproma,nlev+1,nblocks), order='F')
 #CML_CLD   = np.zeros((nproma,nlev  ,ndim,nblocks), order='F')
 buffer_cml     = np.zeros((nproma,nlev,3+ndim,nblocks), order='F')
 buffer_loc     = np.zeros((nproma,nlev,3+ndim,nblocks), order='F')
+#print (buffer_loc.shape)
 #dwarf.do_dwarf_call_full(numomp, nproma, nlev, ngptot, ngptotg, nblocks, ptsphy)
 #print("Filling with 33")
 #buffer_loc.fill(-33.)
@@ -87,7 +88,7 @@ print (cloudsc_args.keys())
 #                         pa,pclv,psupsat,
 #                         pcovptot,
 #                         pfplsl, pfplsn, pfhpsl, pfhpsn)
-cloudscfaces.do_dwarf_init_call(numomp,nproma,nlev,ngptot,nblocks,ngptotg,
+cfs.do_dwarf_init_call(numomp,nproma,nlev,ngptot,nblocks,ngptotg,
                          ptsphy,
                          pt,pq,
                          buffer_cml,buffer_loc,
@@ -155,7 +156,7 @@ pclv[:,:,NCLDQL,:]=pttest[:,:,:]
 #dwarf.examine_ndarray_flags(pt)
 #dwarf.examine_ndarray_flags(pttest)
 
-cloudscfaces.do_dwarf_full_call(numomp,nproma,nlev,ngptot,nblocks,ngptotg,
+cfs.do_dwarf_compute_call(numomp,nproma,nlev,ngptot,nblocks,ngptotg,
                          ptsphy,
                          pt,pq,
                          buffer_cml,buffer_loc,
@@ -199,9 +200,10 @@ output_fields['tendency_loc_t'][:,:] = ft2d[:,:]
 output_fields['tendency_loc_q'] = cloudsc_args['ptenq']
 ft2d = np.transpose(np.squeeze(buffer_loc)[:,:,3])
 output_fields['tendency_loc_q'][:,:] = ft2d[:,:] 
-
+print ("Python-side validation:")
 cloudsc_validate(output_fields, ref_fields, cloudsc_args)
-cloudscfaces.do_dwarf_validate_call(numomp, nproma, nlev, ngptot, nblocks, ngptotg,
+print ("Fortran-side validation:")
+cfs.do_dwarf_validate_call(numomp, nproma, nlev, ngptot, nblocks, ngptotg,
                          ptsphy,
                          pt,pq,
                          buffer_cml,buffer_loc,

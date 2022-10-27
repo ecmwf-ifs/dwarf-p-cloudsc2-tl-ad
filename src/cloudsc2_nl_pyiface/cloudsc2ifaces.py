@@ -4,7 +4,7 @@ sys.path.append('../../build/src/cloudsc2_nl_pyiface')
 sys.path.append('../../build/lib')
 from pathlib import Path
 import _cloudsc2
-class cloudscfaces(f90wrap.runtime.FortranModule):
+class cl2ifaces(f90wrap.runtime.FortranModule):
 
     @staticmethod
     def do_dwarf_call_full(numomp, nproma, nlev, ngptot, ngptotg, nblocks,ptsphy):
@@ -132,7 +132,7 @@ class cloudscfaces(f90wrap.runtime.FortranModule):
                                                    input_pcovptot=pcovptot, input_pfplsl=pfplsl,   input_pfplsn=pfplsn,   input_pfhpsl=pfhpsl,   input_pfhpsn=pfhpsn)
 
     @staticmethod
-    def do_dwarf_full_call(
+    def do_dwarf_compute_call(
                            numomp, nproma, nlev, ngptot, nblocks, ngptotg,
                            ptsphy,
                            pt, pq, 
