@@ -57,6 +57,13 @@ if( HAVE_CLOUDSC2_NL )
          COMMAND  f90wrap -m${PYTHON_MODN} ${F90WRAP_SOURCES} -k ${CMAKE_CURRENT_SOURCE_DIR}/kind_map -P
 #How to access ecbuild MODULE_DIRECTORY ?
          COMMAND  f2py-f90wrap -c -m _${PYTHON_MODN} --include-paths ${CMAKE_CURRENT_BINARY_DIR}/../../module -I${CMAKE_CURRENT_BINARY_DIR}/../../module -I${CMAKE_CURRENT_BINARY_DIR}/../common/module -L${CMAKE_CURRENT_BINARY_DIR}/../../lib -lcloudsc-common-lib  -ldwarf-cloudsc2-nl-lib f90wrap_cloudsc_driver_mod.f90 f90wrap_yomphyder.f90
+
+         COMMAND  ${CMAKE_COMMAND} -E create_symlink "_cloudsc2.cpython-39-darwin.so" ${CMAKE_CURRENT_BINARY_DIR}/../../lib 
+         COMMAND ${CMAKE_COMMAND} -E create_symlink
+      ${CMAKE_CURRENT_SOURCE_DIR}/../../config-files/reference.h5 ${CMAKE_CURRENT_BINARY_DIR}/../../lib/reference.h5 
+         COMMAND ${CMAKE_COMMAND} -E create_symlink
+      ${CMAKE_CURRENT_SOURCE_DIR}/../../config-files/input.h5 ${CMAKE_CURRENT_BINARY_DIR}/../../lib/input.h5 
+         COMMAND cp ${CMAKE_CURRENT_SOURCE_DIR}/../../cloudsc2_nl_pyiface/*.py ${CMAKE_CURRENT_BINARY_DIR}/../../lib
          COMMENT "Running F90wrap"
          DEPENDS dwarf-cloudsc2-nl-lib
          VERBATIM
