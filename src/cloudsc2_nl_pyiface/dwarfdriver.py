@@ -164,7 +164,8 @@ cfs.do_dwarf_compute_call(numomp,nproma,nlev,ngptot,nblocks,ngptotg,
                          plu, plude, pmfu, pmfd,
                          pa,pclv,psupsat,
                          pcovptot,
-                         pfplsl, pfplsn, pfhpsl, pfhpsn)
+                         pfplsl, pfplsn, pfhpsl, pfhpsn,
+                         yomcst,yoethf,yoecld,yoecldp,yeophli,yeophnc)
 
 output_fields = {}
 

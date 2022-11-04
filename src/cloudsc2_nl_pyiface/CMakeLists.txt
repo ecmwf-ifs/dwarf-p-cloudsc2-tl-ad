@@ -15,6 +15,7 @@ if( HAVE_CLOUDSC2_NL )
             ./fortransrc/satur.F90
             ./fortransrc/cuadjtqs.F90
             ./fortransrc/cloudsc2.F90
+#            ./fortransrc/fcttre_mod.F90
         DEFINITIONS ${CLOUDSC_DEFINITIONS}
     )
 
