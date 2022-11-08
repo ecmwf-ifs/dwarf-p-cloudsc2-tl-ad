@@ -88,7 +88,16 @@ print (cloudsc_args.keys())
 #                         pa,pclv,psupsat,
 #                         pcovptot,
 #                         pfplsl, pfplsn, pfhpsl, pfhpsn)
-cfs.do_dwarf_init_call(numomp,nproma,nlev,ngptot,nblocks,ngptotg,
+
+ydomcst=cfs.lib.datatypes.ydomcst()
+ydoethf=cfs.lib.datatypes.ydoethf()
+ydecld =cfs.lib.datatypes.ydecld()
+ydecldp=cfs.lib.datatypes.ydecldp()
+ydephli=cfs.lib.datatypes.ydephli()
+ydphnc =cfs.lib.datatypes.ydphnc()
+cfs.lib.yoecld.allocate_ceta(ydecld)
+cfs.do_dwarf_init_call( ydomcst,ydoethf,ydecld,ydecldp,ydephli,ydphnc,
+                         numomp,nproma,nlev,ngptot,nblocks,ngptotg,
                          ptsphy,
                          pt,pq,
                          buffer_cml,buffer_loc,
@@ -156,7 +165,9 @@ pclv[:,:,NCLDQL,:]=pttest[:,:,:]
 #dwarf.examine_ndarray_flags(pt)
 #dwarf.examine_ndarray_flags(pttest)
 
-cfs.do_dwarf_compute_call(numomp,nproma,nlev,ngptot,nblocks,ngptotg,
+cfs.do_dwarf_compute_call(ydomcst,ydoethf,ydecld,ydecldp,ydephli,ydphnc,
+                         numomp,nproma,nlev,NCLV,NCLDQL,NCLDQI,
+                         ngptot,nblocks,ngptotg,
                          ptsphy,
                          pt,pq,
                          buffer_cml,buffer_loc,
@@ -164,8 +175,7 @@ cfs.do_dwarf_compute_call(numomp,nproma,nlev,ngptot,nblocks,ngptotg,
                          plu, plude, pmfu, pmfd,
                          pa,pclv,psupsat,
                          pcovptot,
-                         pfplsl, pfplsn, pfhpsl, pfhpsn,
-                         yomcst,yoethf,yoecld,yoecldp,yeophli,yeophnc)
+                         pfplsl, pfplsn, pfhpsl, pfhpsn)
 
 output_fields = {}
 

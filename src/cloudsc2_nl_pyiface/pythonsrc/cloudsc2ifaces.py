@@ -26,7 +26,9 @@ class cl2ifaces(f90wrap.runtime.FortranModule):
                                                         ngptot=ngptot, ngpblks=nblocks,ngptotg=ngptotg)
 
     @staticmethod
-    def do_dwarf_init_call( numomp, nproma, nlev, ngptot, nblocks, ngptotg,
+    def do_dwarf_init_call(
+                           ydomcst,ydoethf,ydecld,ydecldp,ydephli,ydphnc,
+                           numomp, nproma, nlev, ngptot, nblocks, ngptotg,
                            ptsphy,
                            pt, pq, 
                            buffer_cml, buffer_loc, 
@@ -34,9 +36,12 @@ class cl2ifaces(f90wrap.runtime.FortranModule):
                            plu,      plude,    pmfu,     pmfd, 
                            pa,       pclv,     psupsat,
                            pcovptot): 
-        _cloudsc2.f90wrap_cloudsc_driver_init( ptsphy=ptsphy,
-                                                    numomp=numomp,
-                                                    nproma=nproma, 
+        _cloudsc2.f90wrap_cloudsc_driver_init( 
+                                                  ydomcst=ydomcst, ydoethf=ydoethf, ydecld=ydecld,
+                                                  ydecldp=ydecldp,  ydephli=ydephli, ydphnc=ydphnc,
+                                                  ptsphy=ptsphy,
+                                                  numomp=numomp,
+                                                  nproma=nproma, 
                                                   nlev=nlev,
                                                    ngptot=ngptot, 
                                                   ngpblks=nblocks, 
@@ -133,6 +138,7 @@ class cl2ifaces(f90wrap.runtime.FortranModule):
 
     @staticmethod
     def do_dwarf_compute_call(
+                           ydomcst,ydoethf,ydecld,ydecldp,ydephli,ydphnc,
                            numomp, nproma, nlev, ngptot, nblocks, ngptotg,
                            ptsphy,
                            pt, pq, 
@@ -157,7 +163,11 @@ class cl2ifaces(f90wrap.runtime.FortranModule):
 
         """
         _cloudsc2.f90wrap_cloudsc_driver_no_derv_tpes(
-                                                  numomp=numomp, nproma=nproma, nlev=nlev, ngptot=ngptot,  ngpblks=nblocks, ngptotg=ngptotg,
+                                                  ydomcst=ydomcst, ydoethf=ydoethf, ydecld=ydecld,
+                                                  ydecldp=ydecldp,  ydephli=ydephli, ydphnc=ydphnc,
+                                                  numomp=numomp, nproma=nproma, nlev=nlev, 
+                                                  nclv=nclv, ncldql=ncldql, ncldqi=ncldqi,
+                                                  nngptot=ngptot,  ngpblks=nblocks, ngptotg=ngptotg,
                                                   ptsphy=ptsphy,
                                                    pt=pt, pq=pq,
                                                 #   tendency_cml=tendency_cml, tendency_loc=tendency_loc,

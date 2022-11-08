@@ -47,24 +47,43 @@ if( HAVE_CLOUDSC2_NL )
      set(F90WRAP_SOURCES
             ${CMAKE_CURRENT_SOURCE_DIR}/../common/module/yomphyder.F90
             ${CMAKE_CURRENT_SOURCE_DIR}/../common/module/parkind1.F90
+            ${CMAKE_CURRENT_SOURCE_DIR}/../common/module/yoecld.F90
+            ${CMAKE_CURRENT_SOURCE_DIR}/../common/module/yoecldp.F90
+            ${CMAKE_CURRENT_SOURCE_DIR}/../common/module/yoethf.F90
+            ${CMAKE_CURRENT_SOURCE_DIR}/../common/module/yomcst.F90
+            ${CMAKE_CURRENT_SOURCE_DIR}/../common/module/yoephli.F90
+            ${CMAKE_CURRENT_SOURCE_DIR}/../common/module/yophnc.F90
             ${CMAKE_CURRENT_SOURCE_DIR}/fortransrc/cloudsc_driver_mod.F90
         )
-      add_custom_command(TARGET dwarf-cloudsc2-nl-piref POST_BUILD
+#     add_custom_target(copy-python-files ALL
+#   COMMAND echo "About to copy python files to the binary directory"
+#   COMMAND pwd
+#   COMMAND ${CMAKE_COMMAND} -E copy_directory ${CMAKE_SOURCE_DIR}/pythonsrc  ${CMAKE_BINARY_DIR}/runtime-files-dir
+#   DEPENDS dwarf-cloudsc2-nl-piref)
+
+      add_custom_command(TARGET dwarf-cloudsc2-nl-piref POST_BUILD 
          COMMAND echo "Current directory:"
          COMMAND pwd
          COMMAND echo ${CMAKE_CURRENT_SOURCE_DIR}  
          COMMAND echo ${CMAKE_CURRENT_BINARY_DIR}  
          COMMAND echo ${CMAKE_CURRENT_BINARY_DIR}/../../module
-         COMMAND  f90wrap -m${PYTHON_MODN} ${F90WRAP_SOURCES} -k ${CMAKE_CURRENT_SOURCE_DIR}/kind_map -P
+         COMMAND ${CMAKE_COMMAND} -E copy_directory ${CMAKE_CURRENT_SOURCE_DIR}/pythonsrc  ${CMAKE_CURRENT_BINARY_DIR}/pythonsrc
+         COMMAND cd pythonsrc
+         COMMAND  f90wrap -m${PYTHON_MODN} ${F90WRAP_SOURCES} -k ${CMAKE_CURRENT_SOURCE_DIR}/pythonsrc/kind_map -P
 #How to access ecbuild MODULE_DIRECTORY ?
          COMMAND  f2py-f90wrap -c -m _${PYTHON_MODN} --include-paths ${CMAKE_CURRENT_BINARY_DIR}/../../module -I${CMAKE_CURRENT_BINARY_DIR}/../../module -I${CMAKE_CURRENT_BINARY_DIR}/../common/module -L${CMAKE_CURRENT_BINARY_DIR}/../../lib -lcloudsc-common-lib  -ldwarf-cloudsc2-nl-lib f90wrap_cloudsc_driver_mod.f90 f90wrap_yomphyder.f90
-
-         COMMAND  ${CMAKE_COMMAND} -E create_symlink "_cloudsc2.cpython-39-darwin.so" ${CMAKE_CURRENT_BINARY_DIR}/../../lib 
-         COMMAND ${CMAKE_COMMAND} -E create_symlink
-      ${CMAKE_CURRENT_SOURCE_DIR}/../../config-files/reference.h5 ${CMAKE_CURRENT_BINARY_DIR}/../../lib/reference.h5 
-         COMMAND ${CMAKE_COMMAND} -E create_symlink
-      ${CMAKE_CURRENT_SOURCE_DIR}/../../config-files/input.h5 ${CMAKE_CURRENT_BINARY_DIR}/../../lib/input.h5 
-         COMMAND cp ${CMAKE_CURRENT_SOURCE_DIR}/../../cloudsc2_nl_pyiface/*.py ${CMAKE_CURRENT_BINARY_DIR}/../../lib
+         COMMAND pwd
+#         COMMAND ${CMAKE_COMMAND} -E make_directory ../../bin/python.exec
+#         COMMAND ${CMAKE_COMMAND} -E copy_directory ../../../src/cloudsc2_nl_
+#         COMMAND ${CMAKE_COMMAND} -E rm -recursive --force ${CMAKE_CURRENT_BINARY_DIR}/../../lib/*.so  
+#         COMMAND ${CMAKE_COMMAND} -E rm -recursive --force ${CMAKE_CURRENT_BINARY_DIR}/../../lib/*.h5  
+#         COMMAND ${CMAKE_COMMAND} -E rm -recursive --force ${CMAKE_CURRENT_BINARY_DIR}/../../lib/*.py  
+#         COMMAND ${CMAKE_COMMAND} -E create_symlink "_cloudsc2.cpython-39-darwin.so" ${CMAKE_CURRENT_BINARY_DIR}/../../lib 
+#         COMMAND ${CMAKE_COMMAND} -E create_symlink
+#      ${CMAKE_CURRENT_SOURCE_DIR}/../../config-files/reference.h5 ${CMAKE_CURRENT_BINARY_DIR}/../../lib/reference.h5 
+#         COMMAND ${CMAKE_COMMAND} -E create_symlink
+#      ${CMAKE_CURRENT_SOURCE_DIR}/../../config-files/input.h5 ${CMAKE_CURRENT_BINARY_DIR}/../../lib/input.h5 
+#         COMMAND cp ${CMAKE_CURRENT_SOURCE_DIR}/../../cloudsc2_nl_pyiface/*.py ${CMAKE_CURRENT_BINARY_DIR}/../../lib
          COMMENT "Running F90wrap"
          DEPENDS dwarf-cloudsc2-nl-lib
          VERBATIM
