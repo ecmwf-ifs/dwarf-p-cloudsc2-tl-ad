@@ -72,10 +72,12 @@ if( HAVE_CLOUDSC2_NL )
          COMMAND  f90wrap -m${PYTHON_MODN} ${F90WRAP_SOURCES} -k ${CMAKE_CURRENT_SOURCE_DIR}/pythonsrc/kind_map -P
 #How to access ecbuild MODULE_DIRECTORY ?
          COMMAND  f2py-f90wrap -c -m _${PYTHON_MODN} --include-paths ${CMAKE_CURRENT_BINARY_DIR}/../../module -I${CMAKE_CURRENT_BINARY_DIR}/../../module -I${CMAKE_CURRENT_BINARY_DIR}/../common/module -L${CMAKE_CURRENT_BINARY_DIR}/../../lib -lcloudsc-common-lib  -ldwarf-cloudsc2-nl-lib f90wrap_cloudsc_driver_mod.f90 f90wrap_yomphyder.f90
+         COMMAND cd ..
+         COMMAND ${CMAKE_COMMAND} -E copy_directory ${CMAKE_CURRENT_BINARY_DIR}/pythonsrc  ../../bin/pythonexec 
+         COMMAND ${CMAKE_COMMAND} -E copy_directory ../../lib/  ../../bin/pythonexec 
          COMMAND pwd
-#         COMMAND ${CMAKE_COMMAND} -E make_directory ../../bin/python.exec
-#         COMMAND ${CMAKE_COMMAND} -E copy_directory ../../../src/cloudsc2_nl_
-#         COMMAND ${CMAKE_COMMAND} -E rm -recursive --force ${CMAKE_CURRENT_BINARY_DIR}/../../lib/*.so  
+         COMMAND ls ../../bin/pythonexec/
+         COMMAND sh -c "rm -f ../../bin/pythonexec/*.f90" 
 #         COMMAND ${CMAKE_COMMAND} -E rm -recursive --force ${CMAKE_CURRENT_BINARY_DIR}/../../lib/*.h5  
 #         COMMAND ${CMAKE_COMMAND} -E rm -recursive --force ${CMAKE_CURRENT_BINARY_DIR}/../../lib/*.py  
 #         COMMAND ${CMAKE_COMMAND} -E create_symlink "_cloudsc2.cpython-39-darwin.so" ${CMAKE_CURRENT_BINARY_DIR}/../../lib 

@@ -61,7 +61,7 @@ buffer_loc     = np.zeros((nproma,nlev,3+ndim,nblocks), order='F')
 #dwarf.examine_ndarray_flags(buffer_loc)
 #dwarf.examine_ndarray_flags(pt)
 #dwarf.examine_ndarray_flags(pt)
-rootpath = Path(__file__).resolve().parents[2]
+rootpath = Path(__file__).resolve().parents[3]
 input_path = rootpath/'config-files/input.h5'
 input_fields = load_input_fields(path=input_path)
 yrecldp, yrmcst, yrethf, yrephli, yrecld = load_input_parameters(path=input_path)
