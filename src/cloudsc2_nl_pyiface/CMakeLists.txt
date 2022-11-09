@@ -77,7 +77,7 @@ if( HAVE_CLOUDSC2_NL )
          COMMAND ${CMAKE_COMMAND} -E copy_directory ../../lib/  ../../bin/pythonexec 
          COMMAND pwd
          COMMAND ls ../../bin/pythonexec/
-         COMMAND sh -c "rm -f ../../bin/pythonexec/*.f90" 
+#         COMMAND sh -c "rm -f ../../bin/pythonexec/*.f90" 
 #         COMMAND ${CMAKE_COMMAND} -E rm -recursive --force ${CMAKE_CURRENT_BINARY_DIR}/../../lib/*.h5  
 #         COMMAND ${CMAKE_COMMAND} -E rm -recursive --force ${CMAKE_CURRENT_BINARY_DIR}/../../lib/*.py  
 #         COMMAND ${CMAKE_COMMAND} -E create_symlink "_cloudsc2.cpython-39-darwin.so" ${CMAKE_CURRENT_BINARY_DIR}/../../lib 
