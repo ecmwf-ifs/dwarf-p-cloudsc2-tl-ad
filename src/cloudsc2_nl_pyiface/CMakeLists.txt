@@ -46,7 +46,7 @@ if( HAVE_CLOUDSC2_NL )
      set (PYTHON_MODN cloudsc2)
      set(F90WRAP_SOURCES
             ${CMAKE_CURRENT_SOURCE_DIR}/../common/module/yomphyder.F90
-            ${CMAKE_CURRENT_SOURCE_DIR}/../common/module/parkind1.F90
+#            ${CMAKE_CURRENT_SOURCE_DIR}/../common/module/parkind1.F90
             ${CMAKE_CURRENT_SOURCE_DIR}/../common/module/yoecld.F90
             ${CMAKE_CURRENT_SOURCE_DIR}/../common/module/yoecldp.F90
             ${CMAKE_CURRENT_SOURCE_DIR}/../common/module/yoethf.F90
@@ -54,6 +54,17 @@ if( HAVE_CLOUDSC2_NL )
             ${CMAKE_CURRENT_SOURCE_DIR}/../common/module/yoephli.F90
             ${CMAKE_CURRENT_SOURCE_DIR}/../common/module/yophnc.F90
             ${CMAKE_CURRENT_SOURCE_DIR}/fortransrc/cloudsc_driver_mod.F90
+        )
+     set(F2PY_SOURCES
+            f90wrap_yomphyder.F90
+#            f90wrap_parkind1.F90
+            f90wrap_yoecld.F90
+            f90wrap_yoecldp.F90
+            f90wrap_yoethf.F90
+            f90wrap_yomcst.F90
+            f90wrap_yoephli.F90
+            f90wrap_yophnc.F90
+            f90wrap_cloudsc_driver_mod.F90
         )
 #     add_custom_target(copy-python-files ALL
 #   COMMAND echo "About to copy python files to the binary directory"
@@ -71,7 +82,7 @@ if( HAVE_CLOUDSC2_NL )
          COMMAND cd pythonsrc
          COMMAND  f90wrap -m${PYTHON_MODN} ${F90WRAP_SOURCES} -k ${CMAKE_CURRENT_SOURCE_DIR}/pythonsrc/kind_map -P
 #How to access ecbuild MODULE_DIRECTORY ?
-         COMMAND  f2py-f90wrap -c -m _${PYTHON_MODN} --include-paths ${CMAKE_CURRENT_BINARY_DIR}/../../module -I${CMAKE_CURRENT_BINARY_DIR}/../../module -I${CMAKE_CURRENT_BINARY_DIR}/../common/module -L${CMAKE_CURRENT_BINARY_DIR}/../../lib -lcloudsc-common-lib  -ldwarf-cloudsc2-nl-lib f90wrap_cloudsc_driver_mod.f90 f90wrap_yomphyder.f90
+         COMMAND  f2py-f90wrap -c -m _${PYTHON_MODN} --include-paths ${CMAKE_CURRENT_BINARY_DIR}/../../module -I${CMAKE_CURRENT_BINARY_DIR}/../../module -I${CMAKE_CURRENT_BINARY_DIR}/../common/module -L${CMAKE_CURRENT_BINARY_DIR}/../../lib -lcloudsc-common-lib  -ldwarf-cloudsc2-nl-lib ${F2PY_SOURCES}
          COMMAND cd ..
          COMMAND ${CMAKE_COMMAND} -E copy_directory ${CMAKE_CURRENT_BINARY_DIR}/pythonsrc  ../../bin/pythonexec 
          COMMAND ${CMAKE_COMMAND} -E copy_directory ../../lib/  ../../bin/pythonexec 

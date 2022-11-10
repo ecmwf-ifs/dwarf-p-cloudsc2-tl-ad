@@ -4,7 +4,7 @@ sys.path.append('../../build/src/cloudsc2_nl_pyiface')
 sys.path.append('../../build/lib')
 sys.path.append('.')
 from pathlib import Path
-import _cloudsc2
+import cloudsc2 as clsc
 from cloudsc2ifaces import cl2ifaces as cfs
 
 import logging
@@ -88,16 +88,22 @@ print (cloudsc_args.keys())
 #                         pa,pclv,psupsat,
 #                         pcovptot,
 #                         pfplsl, pfplsn, pfhpsl, pfhpsn)
-
-ydomcst=cfs.lib.datatypes.ydomcst()
-ydoethf=cfs.lib.datatypes.ydoethf()
-ydecld =cfs.lib.datatypes.ydecld()
-ydecldp=cfs.lib.datatypes.ydecldp()
-ydephli=cfs.lib.datatypes.ydephli()
-ydphnc =cfs.lib.datatypes.ydphnc()
-cfs.lib.yoecld.allocate_ceta(ydecld)
+dir(clsc)
+ydomcst=clsc.yomcst.tomcst_constructor()
+ydoethf=clsc.yoethf.toethf_constructor()
+ydecld =clsc.yoecld.tecld_constructor()
+ydecldp=clsc.yoecldp.tecldp_constructor()
+ydephli=clsc.yoephli.tephli_constructor()
+ydphnc =clsc.yophnc.tphnc_constructor()
+clsc.yoecld.allocate_ceta(ydecld,nlev)
+NCLV = 5      # number of microphysics variables
+NCLDQL = 0    # liquid cloud water
+NCLDQI = 1    # ice cloud water
+NCLDQR = 2    # rain water
+NCLDQS = 3    # snow
+NCLDQV = 4    # vapour
 cfs.do_dwarf_init_call( ydomcst,ydoethf,ydecld,ydecldp,ydephli,ydphnc,
-                         numomp,nproma,nlev,ngptot,nblocks,ngptotg,
+                         numomp,nproma,nlev,NCLV,ngptot,nblocks,ngptotg,
                          ptsphy,
                          pt,pq,
                          buffer_cml,buffer_loc,
@@ -135,12 +141,6 @@ buffer_loc[:,:,3,:]=pttest[:,:,:]
 pttest = np.asfortranarray(np.transpose(np.reshape(cloudsc_args['pgtenq'],(nblocks,nlev,nproma),order='C')),like=pt)
 buffer_cml[:,:,3,:]=pttest[:,:,:]	
 
-NCLV = 5      # number of microphysics variables
-NCLDQL = 0    # liquid cloud water
-NCLDQI = 1    # ice cloud water
-NCLDQR = 2    # rain water
-NCLDQS = 3    # snow
-NCLDQV = 4    # vapour
 pttest = np.asfortranarray(np.transpose(np.reshape(cloudsc_args['ptenl'],(nblocks,nlev,nproma),order='C')),like=pt)
 buffer_loc[:,:,3+NCLDQL,:]=pttest[:,:,:]	
 pttest = np.asfortranarray(np.transpose(np.reshape(cloudsc_args['pgtenl'],(nblocks,nlev,nproma),order='C')),like=pt)

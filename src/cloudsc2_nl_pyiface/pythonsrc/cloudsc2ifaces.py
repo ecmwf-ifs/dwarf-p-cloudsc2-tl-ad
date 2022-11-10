@@ -26,9 +26,8 @@ class cl2ifaces(f90wrap.runtime.FortranModule):
                                                         ngptot=ngptot, ngpblks=nblocks,ngptotg=ngptotg)
 
     @staticmethod
-    def do_dwarf_init_call(
-                           ydomcst,ydoethf,ydecld,ydecldp,ydephli,ydphnc,
-                           numomp, nproma, nlev, ngptot, nblocks, ngptotg,
+    def do_dwarf_init_call(ydomcst,ydoethf,ydecld,ydecldp,ydephli,ydphnc,
+                           numomp, nproma, nlev, nclv, ngptot, nblocks, ngptotg,
                            ptsphy,
                            pt, pq, 
                            buffer_cml, buffer_loc, 
@@ -37,15 +36,20 @@ class cl2ifaces(f90wrap.runtime.FortranModule):
                            pa,       pclv,     psupsat,
                            pcovptot): 
         _cloudsc2.f90wrap_cloudsc_driver_init( 
-                                                  ydomcst=ydomcst, ydoethf=ydoethf, ydecld=ydecld,
-                                                  ydecldp=ydecldp,  ydephli=ydephli, ydphnc=ydphnc,
-                                                  ptsphy=ptsphy,
+                                                  output_ydmcst=ydomcst,
+                                                  output_ydoethf=ydoethf,
+                                                  output_ydecld =ydecld,
+                                                  output_ydecldp=ydecldp, 
+                                                  output_ydephli=ydephli,
+                                                  output_ydphnc =ydphnc,
                                                   numomp=numomp,
                                                   nproma=nproma, 
                                                   nlev=nlev,
+                                                  nclv=nclv,
                                                    ngptot=ngptot, 
                                                   ngpblks=nblocks, 
                                                   ngptotg=ngptotg,
+                                                  ptsphy=ptsphy,
                                                   output_pt=pt,
                                                   output_pq=pq,
                                                   output_b_cml=buffer_cml, 
@@ -139,7 +143,8 @@ class cl2ifaces(f90wrap.runtime.FortranModule):
     @staticmethod
     def do_dwarf_compute_call(
                            ydomcst,ydoethf,ydecld,ydecldp,ydephli,ydphnc,
-                           numomp, nproma, nlev, ngptot, nblocks, ngptotg,
+                           numomp, nproma, nlev, nclv, ncldql,ncldqi, 
+                           ngptot, nblocks, ngptotg,
                            ptsphy,
                            pt, pq, 
              #             tendency_cml, tendency_loc, 

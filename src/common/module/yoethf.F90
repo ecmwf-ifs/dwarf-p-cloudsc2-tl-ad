@@ -102,6 +102,9 @@ END TYPE TOETHF
 !       ----------------------------------------------------------------
 
 CONTAINS
+  FUNCTION TOETHF_CONSTRUCTOR() RESULT(obj)
+    type (TOETHF) :: obj
+  END FUNCTION TOETHF_CONSTRUCTOR
 
   SUBROUTINE YOETHF_LOAD_PARAMETERS()
     CALL LOAD_SCALAR('R2ES', R2ES)
