@@ -25,7 +25,7 @@ class cl2ifaces(f90wrap.runtime.FortranModule):
                                                         nproma=nproma, nlev=nlev,
                                                         ngptot=ngptot, ngpblks=nblocks,ngptotg=ngptotg)
 
-    @staticmethod
+#    @staticmethod
     def do_dwarf_init_call(ydomcst,ydoethf,ydecld,ydecldp,ydephli,ydphnc,
                            numomp, nproma, nlev, nclv, ngptot, nblocks, ngptotg,
                            ptsphy,
@@ -36,12 +36,12 @@ class cl2ifaces(f90wrap.runtime.FortranModule):
                            pa,       pclv,     psupsat,
                            pcovptot): 
         _cloudsc2.f90wrap_cloudsc_driver_init( 
-                                                  output_ydmcst=ydomcst,
-                                                  output_ydoethf=ydoethf,
-                                                  output_ydecld =ydecld,
-                                                  output_ydecldp=ydecldp, 
-                                                  output_ydephli=ydephli,
-                                                  output_ydphnc =ydphnc,
+                                                  output_ydmcst=ydomcst._handle,
+                                                  output_ydoethf=ydoethf._handle,
+                                                  output_ydecld =ydecld._handle,
+                                                  output_ydecldp=ydecldp._handle, 
+                                                  output_ydephli=ydephli._handle,
+                                                  output_ydphnc =ydphnc._handle,
                                                   numomp=numomp,
                                                   nproma=nproma, 
                                                   nlev=nlev,
@@ -109,7 +109,7 @@ class cl2ifaces(f90wrap.runtime.FortranModule):
 
     @staticmethod
     def do_dwarf_validate_call(
-                           numomp, nproma, nlev, ngptot, nblocks, ngptotg,
+                           numomp, nproma, nlev, nclv, ngptot, nblocks, ngptotg,
                            ptsphy,
                            pt, pq, 
                            buffer_cml, buffer_loc, 
@@ -131,7 +131,7 @@ class cl2ifaces(f90wrap.runtime.FortranModule):
         nblocks: int
 
         """
-        _cloudsc2.f90wrap_cloudsc_driver_validate( numomp=numomp, nproma=nproma, nlev=nlev, ngptot=ngptot, ngpblks=nblocks, ngptotg=ngptotg,
+        _cloudsc2.f90wrap_cloudsc_driver_validate( numomp=numomp, nproma=nproma, nlev=nlev, nclv=nclv,  ngptot=ngptot, ngpblks=nblocks, ngptotg=ngptotg,
                                                  ptsphy=ptsphy,
                                                    input_pt=pt, input_pq=pq,
                                                    input_buffer_cml=buffer_cml, input_buffer_loc=buffer_loc,
@@ -168,11 +168,11 @@ class cl2ifaces(f90wrap.runtime.FortranModule):
 
         """
         _cloudsc2.f90wrap_cloudsc_driver_no_derv_tpes(
-                                                  ydomcst=ydomcst, ydoethf=ydoethf, ydecld=ydecld,
-                                                  ydecldp=ydecldp,  ydephli=ydephli, ydphnc=ydphnc,
+                                                  ydomcst=ydomcst._handle, ydoethf=ydoethf._handle, ydecld=ydecld._handle,
+                                                  ydecldp=ydecldp._handle,  ydephli=ydephli._handle, ydphnc=ydphnc._handle,
                                                   numomp=numomp, nproma=nproma, nlev=nlev, 
                                                   nclv=nclv, ncldql=ncldql, ncldqi=ncldqi,
-                                                  nngptot=ngptot,  ngpblks=nblocks, ngptotg=ngptotg,
+                                                  ngptot=ngptot,  ngpblks=nblocks, ngptotg=ngptotg,
                                                   ptsphy=ptsphy,
                                                    pt=pt, pq=pq,
                                                 #   tendency_cml=tendency_cml, tendency_loc=tendency_loc,

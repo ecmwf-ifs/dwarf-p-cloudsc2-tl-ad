@@ -89,21 +89,22 @@ print (cloudsc_args.keys())
 #                         pcovptot,
 #                         pfplsl, pfplsn, pfhpsl, pfhpsn)
 dir(clsc)
-ydomcst=clsc.yomcst.tomcst_constructor()
-ydoethf=clsc.yoethf.toethf_constructor()
-ydecld =clsc.yoecld.tecld_constructor()
-ydecldp=clsc.yoecldp.tecldp_constructor()
-ydephli=clsc.yoephli.tephli_constructor()
-ydphnc =clsc.yophnc.tphnc_constructor()
+ydomcst=clsc.yomcst.TOMCST()
+ydoethf=clsc.yoethf.TOETHF()
+ydecld =clsc.yoecld.TECLD()
+ydecldp=clsc.yoecldp.TECLDP()
+ydephli=clsc.yoephli.TEPHLI()
+ydphnc =clsc.yophnc.TPHNC()
 clsc.yoecld.allocate_ceta(ydecld,nlev)
 NCLV = 5      # number of microphysics variables
+nclv = NCLV
 NCLDQL = 0    # liquid cloud water
 NCLDQI = 1    # ice cloud water
 NCLDQR = 2    # rain water
 NCLDQS = 3    # snow
 NCLDQV = 4    # vapour
 cfs.do_dwarf_init_call( ydomcst,ydoethf,ydecld,ydecldp,ydephli,ydphnc,
-                         numomp,nproma,nlev,NCLV,ngptot,nblocks,ngptotg,
+                         numomp,nproma,nlev,nclv,ngptot,nblocks,ngptotg,
                          ptsphy,
                          pt,pq,
                          buffer_cml,buffer_loc,
@@ -214,7 +215,7 @@ output_fields['tendency_loc_q'][:,:] = ft2d[:,:]
 print ("Python-side validation:")
 cloudsc_validate(output_fields, ref_fields, cloudsc_args)
 print ("Fortran-side validation:")
-cfs.do_dwarf_validate_call(numomp, nproma, nlev, ngptot, nblocks, ngptotg,
+cfs.do_dwarf_validate_call(numomp, nproma, nlev, NCLV, ngptot, nblocks, ngptotg,
                          ptsphy,
                          pt,pq,
                          buffer_cml,buffer_loc,

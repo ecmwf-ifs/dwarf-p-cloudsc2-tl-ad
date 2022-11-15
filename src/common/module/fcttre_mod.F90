@@ -59,9 +59,9 @@ MODULE FCTTRE_MOD
 
   IF(CONSTANTS_INITIALIZED) THEN
     print *,'Warning: attempt of reinitialization of the FCTTRE constants';call flush(9)
-    print *,'Physical constants should not be allowed to change during the run';call flush(9)
-    print *,'Cowardly refusing to continue: fix the caller to FCTTRE_CONSTANTS_SET';call flush(9)
-    STOP 'Error in FCTTRE_MOD'
+!   print *,'Physical constants should not be allowed to change during the run';call flush(9)
+!   print *,'Cowardly refusing to continue: fix the caller to FCTTRE_CONSTANTS_SET';call flush(9)
+!   STOP 'Error in FCTTRE_MOD'
   ELSE
     RG              = RG_IN
     RD              = RD_IN
