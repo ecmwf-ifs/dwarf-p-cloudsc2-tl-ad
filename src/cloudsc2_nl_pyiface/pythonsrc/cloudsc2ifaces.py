@@ -25,7 +25,7 @@ class cl2ifaces(f90wrap.runtime.FortranModule):
                                                         nproma=nproma, nlev=nlev,
                                                         ngptot=ngptot, ngpblks=nblocks,ngptotg=ngptotg)
 
-#    @staticmethod
+    @staticmethod
     def do_dwarf_init_call(ydomcst,ydoethf,ydecld,ydecldp,ydephli,ydphnc,
                            numomp, nproma, nlev, nclv, ngptot, nblocks, ngptotg,
                            ptsphy,
@@ -142,7 +142,6 @@ class cl2ifaces(f90wrap.runtime.FortranModule):
 
     @staticmethod
     def do_dwarf_compute_call(
-                           ydomcst,ydoethf,ydecld,ydecldp,ydephli,ydphnc,
                            numomp, nproma, nlev, nclv, ncldql,ncldqi, 
                            ngptot, nblocks, ngptotg,
                            ptsphy,
@@ -153,7 +152,8 @@ class cl2ifaces(f90wrap.runtime.FortranModule):
                            plu,      plude,    pmfu,     pmfd, 
                            pa,       pclv,     psupsat,
                            pcovptot, 
-                           pfplsl,   pfplsn,   pfhpsl,   pfhpsn):
+                           pfplsl,   pfplsn,   pfhpsl,   pfhpsn,
+                           ydomcst,ydoethf,ydecld,ydecldp,ydephli,ydphnc):
         """
         _cloudsc2.cloudsc_driver(NUMOMP, NPROMA, NLEV, NGPTOT, NGPTOTG, NBLOCKS) 
 
@@ -168,8 +168,6 @@ class cl2ifaces(f90wrap.runtime.FortranModule):
 
         """
         _cloudsc2.f90wrap_cloudsc_driver_no_derv_tpes(
-                                                  ydomcst=ydomcst._handle, ydoethf=ydoethf._handle, ydecld=ydecld._handle,
-                                                  ydecldp=ydecldp._handle,  ydephli=ydephli._handle, ydphnc=ydphnc._handle,
                                                   numomp=numomp, nproma=nproma, nlev=nlev, 
                                                   nclv=nclv, ncldql=ncldql, ncldqi=ncldqi,
                                                   ngptot=ngptot,  ngpblks=nblocks, ngptotg=ngptotg,
@@ -181,4 +179,6 @@ class cl2ifaces(f90wrap.runtime.FortranModule):
                                                    plu=plu,      plude=plude,    pmfu=pmfu,     pmfd=pmfd,
                                                    pa=pa,       pclv=pclv,     psupsat=psupsat,
                                                    pcovptot=pcovptot,
-                                                   pfplsl=pfplsl,   pfplsn=pfplsn,   pfhpsl=pfhpsl,   pfhpsn=pfhpsn)
+                                                   pfplsl=pfplsl,   pfplsn=pfplsn,   pfhpsl=pfhpsl,   pfhpsn=pfhpsn,
+                                                  ydomcst=ydomcst._handle, ydoethf=ydoethf._handle, ydecld=ydecld._handle,
+                                                  ydecldp=ydecldp._handle,  ydephli=ydephli._handle, ydphnc=ydphnc._handle)

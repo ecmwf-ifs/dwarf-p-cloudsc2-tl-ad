@@ -8,7 +8,7 @@
 ! nor does it submit to any jurisdiction.
 !
 SUBROUTINE SATUR ( KIDIA , KFDIA , KLON  , KTDIA , KLEV, LDPHYLIN, &
- & PAPRSF, PT    , PQSAT , KFLAG)  
+ & PAPRSF, PT    , PQSAT , KFLAG) 
 
 !***
 
@@ -61,11 +61,13 @@ SUBROUTINE SATUR ( KIDIA , KFDIA , KLON  , KTDIA , KLEV, LDPHYLIN, &
 USE PARKIND1  ,ONLY : JPIM     ,JPRB
 !USE YOMHOOK   ,ONLY : LHOOK,   DR_HOOK
 
-USE YOMCST   , ONLY : RETV     ,RLVTT    ,RLSTT    ,RTT
-USE YOETHF   , ONLY : R2ES     ,R3LES    ,R3IES    ,R4LES    ,&
- &                    R4IES    ,R5LES    ,R5IES    ,R5ALVCP  ,R5ALSCP  ,&
- &                    RALVDCP  ,RALSDCP  ,RTWAT    ,RTICE    ,RTICECU  ,&
- &                    RTWAT_RTICE_R      ,RTWAT_RTICECU_R  
+!USE YOMCST   , ONLY : RETV     ,RLVTT    ,RLSTT    ,RTT
+!USE YOETHF   , ONLY : R2ES     ,R3LES    ,R3IES    ,R4LES    ,&
+! &                    R4IES    ,R5LES    ,R5IES    ,R5ALVCP  ,R5ALSCP  ,&
+! &                    RALVDCP  ,RALSDCP  ,RTWAT    ,RTICE    ,RTICECU  ,&
+! &                    RTWAT_RTICE_R      ,RTWAT_RTICECU_R  
+USE FCTTRE_MOD, ONLY : R2ES, R3LES, R3IES, RETV, R4IES, R4LES, RTT 
+USE FCTTRE_MOD, ONLY : FOEALFA, FOEEWMCU, FOEEWM 
 
 IMPLICIT NONE
 
@@ -83,11 +85,11 @@ INTEGER(KIND=JPIM) :: JK, JL
 
 REAL(KIND=JPRB) :: ZCOR, ZEW, ZFOEEW, ZQMAX, ZQS, ZTARG
 REAL(KIND=JPRB) :: ZALFA, ZFOEEWL, ZFOEEWI
+!#include "fcttre.func.h"
 !REAL(KIND=JPRB) :: ZHOOK_HANDLE
 
 !DIR$ VFUNCTION EXPHF
 
-#include "fcttre.func.h"
 
 !----------------------------------------------------------------------
 

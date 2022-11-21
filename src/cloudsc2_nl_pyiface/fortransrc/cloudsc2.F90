@@ -101,7 +101,8 @@ SUBROUTINE CLOUDSC2 ( &
 !-----------------------------------------------------------------------
 
 USE PARKIND1  ,ONLY : JPIM     ,JPRB
-USE FCTTRE_MOD
+USE FCTTRE_MOD , ONLY : FOEALFA, FOEEWM 
+USE FCTTRE_MOD , ONLY : FCTTRE_CONSTANTS_PRINT 
 USE YOPHNC   , ONLY : TPHNC
 USE YOECLD   , ONLY : TECLD
 USE YOECLDP  , ONLY : TECLDP
@@ -156,12 +157,12 @@ REAL(KIND=JPRB)   ,INTENT(OUT)   :: PFPLSN(KLON,KLEV+1)
 REAL(KIND=JPRB)   ,INTENT(OUT)   :: PFHPSL(KLON,KLEV+1) 
 REAL(KIND=JPRB)   ,INTENT(OUT)   :: PFHPSN(KLON,KLEV+1) 
 REAL(KIND=JPRB)   ,INTENT(OUT)   :: PCOVPTOT(KLON,KLEV)
-TYPE(TOMCST)      ,INTENT(INOUT) :: YDOMCST
-TYPE(TOETHF)      ,INTENT(INOUT) :: YDOETHF
-TYPE(TECLD)       ,INTENT(INOUT) :: YDECLD
-TYPE(TECLDP)      ,INTENT(INOUT) :: YDECLDP
-TYPE(TEPHLI)      ,INTENT(INOUT) :: YDEPHLI
-TYPE(TPHNC)       ,INTENT(INOUT) :: YDPHNC
+TYPE(TOMCST)      ,INTENT(IN) :: YDOMCST
+TYPE(TOETHF)      ,INTENT(IN) :: YDOETHF
+TYPE(TECLD)       ,INTENT(IN) :: YDECLD
+TYPE(TECLDP)      ,INTENT(IN) :: YDECLDP
+TYPE(TEPHLI)      ,INTENT(IN) :: YDEPHLI
+TYPE(TPHNC)       ,INTENT(IN) :: YDPHNC
 !     -----------------------------------------------------------------
 
 !*       0.1   ARGUMENTS.
@@ -229,44 +230,49 @@ REAL(KIND=JPRB) :: Z5ALCP, ZALDCP
 REAL(KIND=JPRB) :: ZTARG, Z2S, ZCOND1, ZQP
 
 #include "cuadjtqs.intfb.h"
-!ASSOCIATE(CETA=>YOECLD%CETA     , &
-!       RCLCRIT=>YOECLDP%RCLCRIT , &
-!        RKCONV=>YOECLDP%RKCONV  , &
-!         RLMIN=>YOECLDP%RLMIN   , &
-!       RPECONS=>YOECLDP%RPECONS , &
-!       LPHYLIN=>YOEPHLI%LPHYLIN , &
-!        RLPTRC=>YOEPHLI%RLPTRC  , &
-!      LEVAPLS2=>YOPHNC%LEVAPLS2 , &
-!          RETV=>YOMCST%RETV     , &
-!            RG=>YOMCST%RG       , &
-!          RCPD=>YOMCST%RCPD     , &
-!         RLVTT=>YOMCST%RLVTT    , &
-!         RLSTT=>YOMCST%RLSTT    , &
-!         RLMLT=>YOMCST%RLMLT    , &
-!           RTT=>YOMCST%RTT      , &
-!            RD=>YOMCST%RD       , &
-!            R2ES=>YOETHF%R2ES   , &
-!           R3LES=>YOETHF%R3LES  , &
-!           R3IES=>YOETHF%R3IES  , &
-!           R4LES=>YOETHF%R4LES  , &
-!           R4IES=>YOETHF%R4IES  , &
-!           R5LES=>YOETHF%R5LES  , &
-!           R5IES=>YOETHF%R5IES  , &
-!         R5ALVCP=>YOETHF%R5ALVCP, &
-!         R5ALSCP=>YOETHF%R5ALSCP, &
-!         RALVDCP=>YOETHF%RALVDCP, &
-!         RALSDCP=>YOETHF%RALSDCP, &
-!           RTWAT=>YOETHF%RTWAT  , &
-!           RTICE=>YOETHF%RTICE  , &
-!         RTICECU=>YOETHF%RTICECU, &
-!   RTWAT_RTICE_R=>YOETHF%RTWAT_RTICE_R,   &
-! RTWAT_RTICECU_R=>YOETHF%RTWAT_RTICECU_R, &
-!          RVTMP2=>YOETHF%RVTMP2 &
-!)
-!     ------------------------------------------------------------------
- ASSOCIATE(CETA=>YDECLD%CETA,RCLCRIT=>YDECLDP%RCLCRIT,RKCONV=>YDECLDP%RKCONV, &
- & RLMIN=>YDECLDP%RLMIN,RPECONS=>YDECLDP%RPECONS,LPHYLIN=>YDEPHLI%LPHYLIN, &
- & RLPTRC=>YDEPHLI%RLPTRC,LEVAPLS2=>YDPHNC%LEVAPLS2,RVTMP2=>YDOETHF%RVTMP2)
+!#include "fcttre.func.h"
+ASSOCIATE( &
+          CETA=>YDECLD%CETA     , &
+        RCLCRIT=>YDECLDP%RCLCRIT , &
+         RKCONV=>YDECLDP%RKCONV  , &
+          RLMIN=>YDECLDP%RLMIN   , &
+        RPECONS=>YDECLDP%RPECONS , &
+        LPHYLIN=>YDEPHLI%LPHYLIN , &
+         RLPTRC=>YDEPHLI%RLPTRC  , &
+       LEVAPLS2=>YDPHNC%LEVAPLS2 , &
+          RETV=>YDOMCST%RETV     , &
+            RG=>YDOMCST%RG       , &
+           RCPD=>YDOMCST%RCPD     , &
+          RLVTT=>YDOMCST%RLVTT    , &
+          RLSTT=>YDOMCST%RLSTT    , &
+          RLMLT=>YDOMCST%RLMLT   , &
+           RTT=>YDOMCST%RTT      , &
+            RD=>YDOMCST%RD       , &
+            R2ES=>YDOETHF%R2ES   , &
+            R3LES=>YDOETHF%R3LES  , &
+            R3IES=>YDOETHF%R3IES  , &
+            R4LES=>YDOETHF%R4LES  , &
+            R4IES=>YDOETHF%R4IES  , &
+            R5LES=>YDOETHF%R5LES  , &
+            R5IES=>YDOETHF%R5IES  , &
+          R5ALVCP=>YDOETHF%R5ALVCP, &
+          R5ALSCP=>YDOETHF%R5ALSCP, &
+          RALVDCP=>YDOETHF%RALVDCP, &
+          RALSDCP=>YDOETHF%RALSDCP, &
+            RTICE=>YDOETHF%RTICE  , &
+           RVTMP2=>YDOETHF%RVTMP2 )
+!CETA=>YDECLD%CETA, &
+!RCLCRIT=>YDECLDP%RCLCRIT, &
+!RKCONV=>YDECLDP%RKCONV, &
+! & RLMIN=>YDECLDP%RLMIN, &
+!RPECONS=>YDECLDP%RPECONS, &
+!LPHYLIN=>YDEPHLI%LPHYLIN, &
+! & RLPTRC=>YDEPHLI%RLPTRC, &
+!LEVAPLS2=>YDPHNC%LEVAPLS2, &
+
+!ASSOCIATE(CETA=>YRECLD%CETA,RCLCRIT=>YRECLDP%RCLCRIT,RKCONV=>YRECLDP%RKCONV, &
+!& RLMIN=>YRECLDP%RLMIN,RPECONS=>YRECLDP%RPECONS,LPHYLIN=>YREPHLI%LPHYLIN, &
+!& RLPTRC=>YREPHLI%RLPTRC,LEVAPLS2=>YRPHNC%LEVAPLS2)
 
 !IF (LHOOK) CALL DR_HOOK('CLOUDSC2',0,ZHOOK_HANDLE)
 
@@ -276,6 +282,38 @@ REAL(KIND=JPRB) :: ZTARG, Z2S, ZCOND1, ZQP
 !*         1.1    Set-up tunning parameters
 
 ! set up constants required
+!print *,'RG from CLOUDSC2 is: s',RG
+!          CETA=>YDECLD%CETA     
+     call fcttre_constants_print()
+     print *,  "   CETA: ",CETA
+     print *,  "RCLCRIT: ",RCLCRIT
+     print *,  " RKCONV: ",RKCONV 
+     print *,  "  RLMIN: ",RLMIN  
+     print *,  "RPECONS: ",RPECONS
+     print *,  "LPHYLIN: ",LPHYLIN
+     print *,  " RLPTRC: ",RLPTRC 
+     print *,  "EVAPLS2: ",LEVAPLS2
+     print *,  "   RETV: ",RETV    
+     print *,  "     RG: ",RG      
+     print *,  "   RCPD: ",RCPD    
+     print *,  "  RLVTT: ",RLVTT   
+     print *,  "  RLSTT: ",RLSTT   
+     print *,  "  RLMLT: ",RLMLT  
+     print *,  "    RTT: ",RTT     
+     print *,  "     RD: ",RD      
+     print *,  "   R2ES: ",R2ES   
+     print *,  "  R3LES: ",R3LES  
+     print *,  "  R3IES: ",R3IES  
+     print *,  "  R4LES: ",R4LES  
+     print *,  "  R4IES: ",R4IES  
+     print *,  "  R5LES: ",R5LES  
+     print *,  "  R5IES: ",R5IES  
+     print *,  "R5ALVCP: ",R5ALVCP
+     print *,  "R5ALSCP: ",R5ALSCP
+     print *,  "RALVDCP: ",RALVDCP
+     print *,  "RALSDCP: ",RALSDCP
+     print *,  "  RTICE: ",RTICE  
+     print *,  " RVTMP2: ",RVTMP2 
 
 ZCKCODTL=2.0_JPRB*RKCONV*PTSPHY
 ZCKCODTI=5.0_JPRB*RKCONV*PTSPHY

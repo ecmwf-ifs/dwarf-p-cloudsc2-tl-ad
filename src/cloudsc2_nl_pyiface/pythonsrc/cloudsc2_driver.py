@@ -16,7 +16,7 @@ NCLDQS = 3    # snow
 NCLDQV = 4    # vapour
 
 
-rootpath = Path(__file__).resolve().parents[2]
+rootpath = Path(__file__).resolve().parents[3]
 
 
 def arguments_from_fields(input_fields):

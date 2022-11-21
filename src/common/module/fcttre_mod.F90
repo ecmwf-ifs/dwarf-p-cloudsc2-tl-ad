@@ -97,6 +97,35 @@ MODULE FCTTRE_MOD
 
   CONSTANTS_INITIALIZED=.TRUE. 
   END SUBROUTINE FCTTRE_CONSTANTS_SET 
+
+  SUBROUTINE FCTTRE_CONSTANTS_PRINT()  
+     print *,"FCTTRE"
+     print *,  "   RETV: ",RETV
+     print *,  "     RG: ",RG
+     print *,  "   RCPD: ",RCPD
+     print *,  "  RLVTT: ",RLVTT
+     print *,  "  RLSTT: ",RLSTT
+     print *,  "  RLMLT: ",RLMLT
+     print *,  "    RTT: ",RTT
+     print *,  "     RD: ",RD
+     print *,  "   R2ES: ",R2ES
+     print *,  "  R3LES: ",R3LES
+     print *,  "  R3IES: ",R3IES
+     print *,  "  R4LES: ",R4LES
+     print *,  "  R4IES: ",R4IES
+     print *,  "  R5LES: ",R5LES
+     print *,  "  R5IES: ",R5IES
+     print *,  "R5ALVCP: ",R5ALVCP
+     print *,  "R5ALSCP: ",R5ALSCP
+     print *,  "RALVDCP: ",RALVDCP
+     print *,  "RALSDCP: ",RALSDCP
+     print *,  "  RTICE: ",RTICE
+     print *,  "  RTICECU: ",RTICECU
+     print *,  "  RTWAT: ",RTWAT
+     print *,  "RTWAT_RTICE_R: ",RTWAT_RTICE_R
+     print *,  "RTWAT_RTICECU_R: ",RTWAT_RTICECU_R
+    
+  END SUBROUTINE FCTTRE_CONSTANTS_PRINT
   
 
   PURE ELEMENTAL FUNCTION FOEDELTA(PTARE)

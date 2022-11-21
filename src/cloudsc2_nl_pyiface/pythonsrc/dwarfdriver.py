@@ -5,7 +5,7 @@ sys.path.append('../../build/lib')
 sys.path.append('.')
 from pathlib import Path
 import cloudsc2 as clsc
-from cloudsc2ifaces import cl2ifaces as cfs
+#from cloudsc2ifaces import cl2ifaces as cfs
 
 import logging
 import numpy as np
@@ -95,24 +95,33 @@ ydecld =clsc.yoecld.TECLD()
 ydecldp=clsc.yoecldp.TECLDP()
 ydephli=clsc.yoephli.TEPHLI()
 ydphnc =clsc.yophnc.TPHNC()
-clsc.yoecld.allocate_ceta(ydecld,nlev)
+#clsc.yoecld.allocate_ceta(ydecld,nlev)
 NCLV = 5      # number of microphysics variables
 nclv = NCLV
-NCLDQL = 0    # liquid cloud water
-NCLDQI = 1    # ice cloud water
-NCLDQR = 2    # rain water
-NCLDQS = 3    # snow
-NCLDQV = 4    # vapour
-cfs.do_dwarf_init_call( ydomcst,ydoethf,ydecld,ydecldp,ydephli,ydphnc,
-                         numomp,nproma,nlev,nclv,ngptot,nblocks,ngptotg,
-                         ptsphy,
-                         pt,pq,
-                         buffer_cml,buffer_loc,
+NCLDQL = 1    # liquid cloud water
+NCLDQI = 2    # ice cloud water
+NCLDQR = 3    # rain water
+NCLDQS = 4    # snow
+NCLDQV = 5    # vapour
+#cfs.do_dwarf_init_call( ydomcst,ydoethf,ydecld,ydecldp,ydephli,ydphnc,
+#                         numomp,nproma,nlev,nclv,ngptot,nblocks,ngptotg,
+#                         ptsphy,
+#                         pt,pq,
+#                         buffer_cml,buffer_loc,
+#                         pap, paph,
+#                         plu, plude, pmfu, pmfd,
+#                         pa,pclv,psupsat,
+#                         pcovptot)
+clsc.cloudsc_driver_pyiface_mod.cloudsc_driver_init(
+                         numomp, nproma, nlev, nclv, ngptot, nblocks, ngptotg,
+                         ptsphy, pt, pq, buffer_cml, buffer_loc,
                          pap, paph,
                          plu, plude, pmfu, pmfd,
                          pa,pclv,psupsat,
-                         pcovptot)
-
+                         pcovptot,
+                         ydomcst, ydoethf,
+                         ydecld, ydecldp,
+                         ydephli, ydphnc)
 pttest = np.asfortranarray(np.transpose(np.reshape(cloudsc_args['ptm1'],(nblocks,nlev,nproma),order='C')),like=pt)
 pt[:,:,:]=pttest[:,:,:]
 pttest = np.asfortranarray(np.transpose(np.reshape(cloudsc_args['pqm1'],(nblocks,nlev,nproma),order='C')),like=pt)
@@ -132,28 +141,29 @@ pmfd[:,:,:]=pttest[:,:,:]
 pttest = np.asfortranarray(np.transpose(np.reshape(cloudsc_args['psupsat'],(nblocks,nlev,nproma),order='C')),like=pt)
 psupsat[:,:,:]=pttest[:,:,:]
 pttest = np.asfortranarray(np.transpose(np.reshape(cloudsc_args['pcovptot'],(nblocks,nlev,nproma),order='C')),like=pt)
-pcovptot[:,:,:]=pttest[:,:,:]
+pcovptot[:,:,:]=0. #pttest[:,:,:]
 pttest = np.asfortranarray(np.transpose(np.reshape(cloudsc_args['ptent'],(nblocks,nlev,nproma),order='C')),like=pt)
-buffer_loc[:,:,1,:]=pttest[:,:,:]	
+buffer_loc[:,:,0,:]=0. #pttest[:,:,:]	
 pttest = np.asfortranarray(np.transpose(np.reshape(cloudsc_args['pgtent'],(nblocks,nlev,nproma),order='C')),like=pt)
-buffer_cml[:,:,1,:]=pttest[:,:,:]	
+buffer_cml[:,:,0,:]=pttest[:,:,:]	
 pttest = np.asfortranarray(np.transpose(np.reshape(cloudsc_args['ptenq'],(nblocks,nlev,nproma),order='C')),like=pt)
-buffer_loc[:,:,3,:]=pttest[:,:,:]	
+buffer_loc[:,:,2,:]=0. #pttest[:,:,:]	
 pttest = np.asfortranarray(np.transpose(np.reshape(cloudsc_args['pgtenq'],(nblocks,nlev,nproma),order='C')),like=pt)
-buffer_cml[:,:,3,:]=pttest[:,:,:]	
+buffer_cml[:,:,2,:]=pttest[:,:,:]	
 
 pttest = np.asfortranarray(np.transpose(np.reshape(cloudsc_args['ptenl'],(nblocks,nlev,nproma),order='C')),like=pt)
-buffer_loc[:,:,3+NCLDQL,:]=pttest[:,:,:]	
+buffer_loc[:,:,2+NCLDQL,:]=0. #pttest[:,:,:]	
 pttest = np.asfortranarray(np.transpose(np.reshape(cloudsc_args['pgtenl'],(nblocks,nlev,nproma),order='C')),like=pt)
-buffer_cml[:,:,3+NCLDQL,:]=pttest[:,:,:]	
+buffer_cml[:,:,2+NCLDQL,:]=pttest[:,:,:]	
 pttest = np.asfortranarray(np.transpose(np.reshape(cloudsc_args['pteni'],(nblocks,nlev,nproma),order='C')),like=pt)
-buffer_loc[:,:,3+NCLDQI,:]=pttest[:,:,:]	
+buffer_loc[:,:,2+NCLDQI,:]=0. #pttest[:,:,:]	
 pttest = np.asfortranarray(np.transpose(np.reshape(cloudsc_args['pgteni'],(nblocks,nlev,nproma),order='C')),like=pt)
-buffer_cml[:,:,3+NCLDQI,:]=pttest[:,:,:]	
+buffer_cml[:,:,2+NCLDQI,:]=pttest[:,:,:]	
+
 pttest = np.asfortranarray(np.transpose(np.reshape(cloudsc_args['pi'],(nblocks,nlev,nproma),order='C')),like=pt)
-pclv[:,:,NCLDQI,:]=pttest[:,:,:]
+pclv[:,:,-1+NCLDQI,:]=pttest[:,:,:]
 pttest = np.asfortranarray(np.transpose(np.reshape(cloudsc_args['pl'],(nblocks,nlev,nproma),order='C')),like=pt)
-pclv[:,:,NCLDQL,:]=pttest[:,:,:]
+pclv[:,:,-1+NCLDQL,:]=pttest[:,:,:]
 #print (pttest.shape)
 #print ('Python pt')
 #dwarf.examine_ndarray_flags(pttest)
@@ -166,7 +176,20 @@ pclv[:,:,NCLDQL,:]=pttest[:,:,:]
 #dwarf.examine_ndarray_flags(pt)
 #dwarf.examine_ndarray_flags(pttest)
 
-cfs.do_dwarf_compute_call(ydomcst,ydoethf,ydecld,ydecldp,ydephli,ydphnc,
+#cfs.do_dwarf_compute_call(
+#                         numomp,nproma,nlev,NCLV,NCLDQL,NCLDQI,
+#                         ngptot,nblocks,ngptotg,
+#                         ptsphy,
+#                         pt,pq,
+#                         buffer_cml,buffer_loc,
+#                         pap, paph,
+#                         plu, plude, pmfu, pmfd,
+#                         pa,pclv,psupsat,
+#                         pcovptot,
+#                         pfplsl, pfplsn, pfhpsl, pfhpsn,
+#                         ydomcst,ydoethf,ydecld,ydecldp,ydephli,ydphnc)
+
+clsc.cloudsc_driver_pyiface_mod.cloudsc_driver_no_derv_tpes(
                          numomp,nproma,nlev,NCLV,NCLDQL,NCLDQI,
                          ngptot,nblocks,ngptotg,
                          ptsphy,
@@ -176,13 +199,14 @@ cfs.do_dwarf_compute_call(ydomcst,ydoethf,ydecld,ydecldp,ydephli,ydphnc,
                          plu, plude, pmfu, pmfd,
                          pa,pclv,psupsat,
                          pcovptot,
-                         pfplsl, pfplsn, pfhpsl, pfhpsn)
-
+                         pfplsl, pfplsn, pfhpsl, pfhpsn,
+                         ydomcst,ydoethf,ydecld,ydecldp,ydephli,ydphnc)
 output_fields = {}
 
 ft2d = np.transpose(np.squeeze(plude))
 output_fields['plude']=cloudsc_args['plude'] 
 output_fields['plude'][:,:]=ft2d[:,:]
+
 output_fields['pcovptot']  = cloudsc_args['pcovptot']
 
 output_fields['pfplsl'] = cloudsc_args['pfplsl']
@@ -203,19 +227,21 @@ output_fields['pfhpsn'][:,:]=ft2dp[:,:]
 
 output_fields['tendency_loc_a'] = np.zeros(shape=(klev, klon))
 output_fields['tendency_loc_t'] = cloudsc_args['ptent']
-ft2d = np.ascontiguousarray(np.transpose(np.squeeze(buffer_loc)[:,:,1]))
+#ft2d = np.ascontiguousarray(np.transpose(np.squeeze(buffer_loc)[:,:,1]))
+ft2d = np.ascontiguousarray(np.transpose(buffer_loc[:,:,0,0]))
 #dwarf.examine_ndarray_flags('ptent',cloudsc_args['ptent'])
 #dwarf.examine_ndarray_flags('ft2d',ft2d)
 #dwarf.examine_ndarray_flags('loc_t',output_fields['tendency_loc_t'])
 output_fields['tendency_loc_t'][:,:] = ft2d[:,:] 
 
 output_fields['tendency_loc_q'] = cloudsc_args['ptenq']
-ft2d = np.transpose(np.squeeze(buffer_loc)[:,:,3])
+ft2d = np.transpose(buffer_loc[:,:,2,0])
 output_fields['tendency_loc_q'][:,:] = ft2d[:,:] 
 print ("Python-side validation:")
 cloudsc_validate(output_fields, ref_fields, cloudsc_args)
 print ("Fortran-side validation:")
-cfs.do_dwarf_validate_call(numomp, nproma, nlev, NCLV, ngptot, nblocks, ngptotg,
+clsc.cloudsc_driver_pyiface_mod.cloudsc_driver_validate(
+                         numomp, nproma, nlev, NCLV, ngptot, nblocks, ngptotg,
                          ptsphy,
                          pt,pq,
                          buffer_cml,buffer_loc,
