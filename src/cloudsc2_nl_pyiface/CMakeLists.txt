@@ -43,6 +43,12 @@ if( HAVE_CLOUDSC2_NL )
       ${CMAKE_CURRENT_SOURCE_DIR}/../../config-files/reference.h5 ${CMAKE_CURRENT_BINARY_DIR}/../../../reference.h5 )
 
 # F90wrap section   
+    execute_process(COMMAND ${CMAKE_COMMAND} -E copy_directory ${CMAKE_CURRENT_SOURCE_DIR}/pythonsrc  ${CMAKE_CURRENT_BINARY_DIR}/pythonsrc)
+    execute_process(COMMAND ${CMAKE_COMMAND} -E create_symlink
+      ${CMAKE_CURRENT_SOURCE_DIR}/../../config-files/input.h5 ${CMAKE_CURRENT_BINARY_DIR}/pythonsrc/input.h5 )
+    execute_process(COMMAND ${CMAKE_COMMAND} -E create_symlink
+      ${CMAKE_CURRENT_SOURCE_DIR}/../../config-files/reference.h5 ${CMAKE_CURRENT_BINARY_DIR}/pythonsrc/reference.h5 )
+
      set (PYTHON_MODN cloudsc2)
      set(F90WRAP_SOURCES
             ${CMAKE_CURRENT_SOURCE_DIR}/../common/module/yomphyder.F90
@@ -73,11 +79,6 @@ if( HAVE_CLOUDSC2_NL )
 #   DEPENDS dwarf-cloudsc2-nl-piref)
 
       add_custom_command(TARGET dwarf-cloudsc2-nl-piref POST_BUILD 
-         COMMAND echo "Current directory:"
-         COMMAND pwd
-         COMMAND echo ${CMAKE_CURRENT_SOURCE_DIR}  
-         COMMAND echo ${CMAKE_CURRENT_BINARY_DIR}  
-         COMMAND echo ${CMAKE_CURRENT_BINARY_DIR}/../../module
          COMMAND ${CMAKE_COMMAND} -E copy_directory ${CMAKE_CURRENT_SOURCE_DIR}/pythonsrc  ${CMAKE_CURRENT_BINARY_DIR}/pythonsrc
          COMMAND cd pythonsrc
          COMMAND  f90wrap -m${PYTHON_MODN} ${F90WRAP_SOURCES} -k ${CMAKE_CURRENT_SOURCE_DIR}/pythonsrc/kind_map -P
@@ -88,15 +89,7 @@ if( HAVE_CLOUDSC2_NL )
          COMMAND ${CMAKE_COMMAND} -E copy_directory ../../lib/  ../../bin/pythonexec 
          COMMAND pwd
          COMMAND ls ../../bin/pythonexec/
-#         COMMAND sh -c "rm -f ../../bin/pythonexec/*.f90" 
-#         COMMAND ${CMAKE_COMMAND} -E rm -recursive --force ${CMAKE_CURRENT_BINARY_DIR}/../../lib/*.h5  
-#         COMMAND ${CMAKE_COMMAND} -E rm -recursive --force ${CMAKE_CURRENT_BINARY_DIR}/../../lib/*.py  
-#         COMMAND ${CMAKE_COMMAND} -E create_symlink "_cloudsc2.cpython-39-darwin.so" ${CMAKE_CURRENT_BINARY_DIR}/../../lib 
-#         COMMAND ${CMAKE_COMMAND} -E create_symlink
-#      ${CMAKE_CURRENT_SOURCE_DIR}/../../config-files/reference.h5 ${CMAKE_CURRENT_BINARY_DIR}/../../lib/reference.h5 
-#         COMMAND ${CMAKE_COMMAND} -E create_symlink
-#      ${CMAKE_CURRENT_SOURCE_DIR}/../../config-files/input.h5 ${CMAKE_CURRENT_BINARY_DIR}/../../lib/input.h5 
-#         COMMAND cp ${CMAKE_CURRENT_SOURCE_DIR}/../../cloudsc2_nl_pyiface/*.py ${CMAKE_CURRENT_BINARY_DIR}/../../lib
+         COMMAND sh -c "rm -f ../../bin/pythonexec/*.f90" 
          COMMENT "Running F90wrap"
          DEPENDS dwarf-cloudsc2-nl-lib
          VERBATIM
