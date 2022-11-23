@@ -57,12 +57,6 @@ MODULE FCTTRE_MOD
  &                 R5ALVCP_IN, R5ALSCP_IN, RALVDCP_IN, RALSDCP_IN, RALFDCP_IN, RTWAT_IN, RTICE_IN, RTICECU_IN, &
  &                 RTWAT_RTICE_R_IN, RTWAT_RTICECU_R_IN, RKOOP1_IN, RKOOP2_IN
 
-  IF(CONSTANTS_INITIALIZED) THEN
-    print *,'Warning: attempt of reinitialization of the FCTTRE constants';call flush(9)
-!   print *,'Physical constants should not be allowed to change during the run';call flush(9)
-!   print *,'Cowardly refusing to continue: fix the caller to FCTTRE_CONSTANTS_SET';call flush(9)
-!   STOP 'Error in FCTTRE_MOD'
-  ELSE
     RG              = RG_IN
     RD              = RD_IN
     RCPD            = RCPD_IN
@@ -93,9 +87,7 @@ MODULE FCTTRE_MOD
     RTWAT_RTICECU_R = RTWAT_RTICECU_R_IN
     RKOOP1          = RKOOP1_IN
     RKOOP2          = RKOOP2_IN
-  ENDIF
 
-  CONSTANTS_INITIALIZED=.TRUE. 
   END SUBROUTINE FCTTRE_CONSTANTS_SET 
 
   SUBROUTINE FCTTRE_CONSTANTS_PRINT()  

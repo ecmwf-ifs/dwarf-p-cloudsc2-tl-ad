@@ -102,7 +102,6 @@ SUBROUTINE CLOUDSC2 ( &
 
 USE PARKIND1  ,ONLY : JPIM     ,JPRB
 USE FCTTRE_MOD , ONLY : FOEALFA, FOEEWM 
-USE FCTTRE_MOD , ONLY : FCTTRE_CONSTANTS_PRINT 
 USE YOPHNC   , ONLY : TPHNC
 USE YOECLD   , ONLY : TECLD
 USE YOECLDP  , ONLY : TECLDP
@@ -276,44 +275,16 @@ ASSOCIATE( &
 
 !IF (LHOOK) CALL DR_HOOK('CLOUDSC2',0,ZHOOK_HANDLE)
 
+CALL CLOUDSC2_CONSTANTS_PRINT(RCLCRIT,RKCONV,RLMIN,RPECONS,LPHYLIN,RLPTRC,LEVAPLS2,   &
+                                    RETV,RG,RCPD,RLVTT,RLSTT,RLMLT,RTT,RD,R2ES,R3LES,R3IES,    &
+                                    R4LES,R4IES,R5LES,R5IES,R5ALVCP,R5ALSCP,RALVDCP,RALSDCP,RTICE,RVTMP2)
+
 !*         1.     SET-UP INPUT QUANTITIES
 !                 -----------------------
 
 !*         1.1    Set-up tunning parameters
-
+ 
 ! set up constants required
-!print *,'RG from CLOUDSC2 is: s',RG
-!          CETA=>YDECLD%CETA     
-     call fcttre_constants_print()
-     print *,  "   CETA: ",CETA
-     print *,  "RCLCRIT: ",RCLCRIT
-     print *,  " RKCONV: ",RKCONV 
-     print *,  "  RLMIN: ",RLMIN  
-     print *,  "RPECONS: ",RPECONS
-     print *,  "LPHYLIN: ",LPHYLIN
-     print *,  " RLPTRC: ",RLPTRC 
-     print *,  "EVAPLS2: ",LEVAPLS2
-     print *,  "   RETV: ",RETV    
-     print *,  "     RG: ",RG      
-     print *,  "   RCPD: ",RCPD    
-     print *,  "  RLVTT: ",RLVTT   
-     print *,  "  RLSTT: ",RLSTT   
-     print *,  "  RLMLT: ",RLMLT  
-     print *,  "    RTT: ",RTT     
-     print *,  "     RD: ",RD      
-     print *,  "   R2ES: ",R2ES   
-     print *,  "  R3LES: ",R3LES  
-     print *,  "  R3IES: ",R3IES  
-     print *,  "  R4LES: ",R4LES  
-     print *,  "  R4IES: ",R4IES  
-     print *,  "  R5LES: ",R5LES  
-     print *,  "  R5IES: ",R5IES  
-     print *,  "R5ALVCP: ",R5ALVCP
-     print *,  "R5ALSCP: ",R5ALSCP
-     print *,  "RALVDCP: ",RALVDCP
-     print *,  "RALSDCP: ",RALSDCP
-     print *,  "  RTICE: ",RTICE  
-     print *,  " RVTMP2: ",RVTMP2 
 
 ZCKCODTL=2.0_JPRB*RKCONV*PTSPHY
 ZCKCODTI=5.0_JPRB*RKCONV*PTSPHY
@@ -819,5 +790,44 @@ ENDDO
 
 END ASSOCIATE
 !IF (LHOOK) CALL DR_HOOK('CLOUDSC2',1,ZHOOK_HANDLE)
+CONTAINS
+SUBROUTINE CLOUDSC2_CONSTANTS_PRINT(RCLCRIT,RKCONV,RLMIN,RPECONS,LPHYLIN,RLPTRC,LEVAPLS2,   &
+                                    RETV,RG,RCPD,RLVTT,RLSTT,RLMLT,RTT,RD,R2ES,R3LES,R3IES,    &
+                                    R4LES,R4IES,R5LES,R5IES,R5ALVCP,R5ALSCP,RALVDCP,RALSDCP,RTICE,RVTMP2)
+USE PARKIND1  ,ONLY : JPIM     ,JPRB
+USE FCTTRE_MOD , ONLY : FCTTRE_CONSTANTS_PRINT 
+REAL(KIND=JPRB)   ,INTENT(IN)    :: RCLCRIT,RKCONV,RLMIN,RPECONS,LPHYLIN,RLPTRC,LEVAPLS2,   &
+                                    RETV,RG,RCPD,RLVTT,RLSTT,RLMLT,RTT,RD,R2ES,R3LES,R3IES,    &
+                                    R4LES,R4IES,R5LES,R5IES,R5ALVCP,R5ALSCP,RALVDCP,RALSDCP,RTICE,RVTMP2
+CALL FCTTRE_CONSTANTS_PRINT()
+PRINT *,  "RCLCRIT: ",RCLCRIT
+PRINT *,  " RKCONV: ",RKCONV 
+PRINT *,  "  RLMIN: ",RLMIN  
+PRINT *,  "RPECONS: ",RPECONS
+PRINT *,  "LPHYLIN: ",LPHYLIN
+PRINT *,  " RLPTRC: ",RLPTRC 
+PRINT *,  "EVAPLS2: ",LEVAPLS2
+PRINT *,  "   RETV: ",RETV    
+PRINT *,  "     RG: ",RG      
+PRINT *,  "   RCPD: ",RCPD    
+PRINT *,  "  RLVTT: ",RLVTT   
+PRINT *,  "  RLSTT: ",RLSTT   
+PRINT *,  "  RLMLT: ",RLMLT  
+PRINT *,  "    RTT: ",RTT     
+PRINT *,  "     RD: ",RD      
+PRINT *,  "   R2ES: ",R2ES   
+PRINT *,  "  R3LES: ",R3LES  
+PRINT *,  "  R3IES: ",R3IES  
+PRINT *,  "  R4LES: ",R4LES  
+PRINT *,  "  R4IES: ",R4IES  
+PRINT *,  "  R5LES: ",R5LES  
+PRINT *,  "  R5IES: ",R5IES  
+PRINT *,  "R5ALVCP: ",R5ALVCP
+PRINT *,  "R5ALSCP: ",R5ALSCP
+PRINT *,  "RALVDCP: ",RALVDCP
+PRINT *,  "RALSDCP: ",RALSDCP
+PRINT *,  "  RTICE: ",RTICE  
+PRINT *,  " RVTMP2: ",RVTMP2 
+END SUBROUTINE CLOUDSC2_CONSTANTS_PRINT
 END SUBROUTINE CLOUDSC2
 
