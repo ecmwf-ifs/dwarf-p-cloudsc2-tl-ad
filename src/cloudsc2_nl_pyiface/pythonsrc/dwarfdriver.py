@@ -59,18 +59,18 @@ NCLDQI = 2    # ice cloud water
 NCLDQR = 3    # rain water
 NCLDQS = 4    # snow
 NCLDQV = 5    # vapour
-clsc.cloudsc_driver_pyiface_mod.cloudsc_driver_init(
-                         numomp, nproma, nlev, nclv, ngptot, nblocks, ngptotg,
-                         ptsphy, pt, pq, buffer_cml, buffer_loc,
-                         pap, paph,
-                         plu, plude, pmfu, pmfd,
-                         pa,pclv,psupsat,
-                         pcovptot,
-                         ydomcst, ydoethf,
-                         ydecld, ydecldp,
-                         ydephli, ydphnc)
+#clsc.cloudsc_driver_pyiface_mod.cloudsc_driver_init(
+#                         numomp, nproma, nlev, nclv, ngptot, nblocks, ngptotg,
+#                         ptsphy, pt, pq, buffer_cml, buffer_loc,
+#                         pap, paph,
+#                         plu, plude, pmfu, pmfd,
+#                         pa,pclv,psupsat,
+#                         pcovptot,
+#                         ydomcst, ydoethf,
+#                         ydecld, ydecldp,
+#                         ydephli, ydphnc)
 
-yrecldp, yrmcst, yrethf, yrephli, yrecld = load_input_parameters(input_path,ydecldp,ydomcst,ydoethf,ydephli,ydecld)
+ydecldp, ydomcst, ydoethf, ydephli, ydecld = load_input_parameters(input_path,ydecldp,ydephli,ydomcst,ydoethf,ydecld)
 
 input_fort_fields = load_input_fortran_fields(input_path,nproma,nlev,nblocks)
 
@@ -167,14 +167,14 @@ output_fields['tendency_loc_q'][:,:] = ft2d[:,:]
 
 print ("Python-side validation:")
 cloudsc_validate(output_fields, ref_fields, cloudsc_args)
-print ("Fortran-side validation:")
-clsc.cloudsc_driver_pyiface_mod.cloudsc_driver_validate(
-                         numomp, nproma, nlev, NCLV, ngptot, nblocks, ngptotg,
-                         ptsphy,
-                         pt,pq,
-                         buffer_cml,buffer_loc,
-                         pap, paph,
-                         plu, plude, pmfu, pmfd,
-                         pa,pclv,psupsat,
-                         pcovptot,
-                         pfplsl, pfplsn, pfhpsl, pfhpsn)
+#print ("Fortran-side validation:")
+#clsc.cloudsc_driver_pyiface_mod.cloudsc_driver_validate(
+#                         numomp, nproma, nlev, NCLV, ngptot, nblocks, ngptotg,
+#                         ptsphy,
+#                         pt,pq,
+#                         buffer_cml,buffer_loc,
+#                         pap, paph,
+#                         plu, plude, pmfu, pmfd,
+#                         pa,pclv,psupsat,
+#                         pcovptot,
+#                         pfplsl, pfplsn, pfhpsl, pfhpsn)
