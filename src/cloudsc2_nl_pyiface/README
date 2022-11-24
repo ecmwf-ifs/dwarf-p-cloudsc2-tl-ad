@@ -4,6 +4,5 @@ Known problems:
 - CMake does not copy Python files to build/bin/pythonexec if Fortran files are unchanged
 - cloudsc2_inputs.py and cloudsc2_driver.py should be trimmed, currently only loading reference fields is needed from their functionality. Everything else is now in cloudsc2_data and reference files should be probably managed there as well.
 - In cloudsc2_data it seems to make sense to declare list of input/output variables in global dictionaries, rather than declaring them locally in each method
-
--  
+- Code has not been executed on ECMWF's HPC and Intel Fortran Compiler 
 - 
