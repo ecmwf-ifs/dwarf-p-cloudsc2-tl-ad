@@ -1,4 +1,3 @@
-import f90wrap.runtime
 import sys 
 sys.path.append('../../build/src/cloudsc2_nl_pyiface')
 sys.path.append('../../build/lib')
@@ -8,8 +7,8 @@ import cloudsc2 as clsc
 import logging
 import numpy as np
 from collections import OrderedDict
-from cloudsc2_inputs import load_input_fields, load_reference_fields
 from cloudsc2_driver import arguments_from_fields
+from cloudsc2_inputs import load_input_fields, load_reference_fields
 from cloudsc2_data import define_fortran_fields,load_input_parameters,load_input_fortran_fields,cloudsc_validate,convert_fortran_output_to_python
 from operator import itemgetter
  

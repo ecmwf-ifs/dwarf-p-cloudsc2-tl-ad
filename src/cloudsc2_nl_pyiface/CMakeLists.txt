@@ -18,37 +18,6 @@ if( HAVE_CLOUDSC2_NL )
 #            ./fortransrc/fcttre_mod.F90
         DEFINITIONS ${CLOUDSC_DEFINITIONS}
     )
-
-    target_link_libraries( dwarf-cloudsc2-nl-lib PRIVATE cloudsc-common-lib HDF5::HDF5 )
-
-    ecbuild_add_executable( TARGET dwarf-cloudsc2-nl-piref
-        SOURCES
-            ./fortransrc/dwarf_cloudsc.F90
-        DEFINITIONS ${CLOUDSC_DEFINITIONS}
-    )
-
-    target_link_libraries( dwarf-cloudsc2-nl-piref PRIVATE cloudsc-common-lib dwarf-cloudsc2-nl-lib)
-
-    if( HAVE_OMP AND TARGET OpenMP::OpenMP_Fortran )
-        target_link_libraries( dwarf-cloudsc2-nl-piref PRIVATE OpenMP::OpenMP_Fortran )
-    endif()
-
-    if( HAVE_MPI AND TARGET MPI::MPI_Fortran )
-        target_link_libraries( dwarf-cloudsc2-nl-piref PRIVATE MPI::MPI_Fortran )
-    endif()
-
-    execute_process(COMMAND ${CMAKE_COMMAND} -E create_symlink
-      ${CMAKE_CURRENT_SOURCE_DIR}/../../config-files/input.h5 ${CMAKE_CURRENT_BINARY_DIR}/../../../input.h5 )
-    execute_process(COMMAND ${CMAKE_COMMAND} -E create_symlink
-      ${CMAKE_CURRENT_SOURCE_DIR}/../../config-files/reference.h5 ${CMAKE_CURRENT_BINARY_DIR}/../../../reference.h5 )
-
-# F90wrap section   
-    execute_process(COMMAND ${CMAKE_COMMAND} -E copy_directory ${CMAKE_CURRENT_SOURCE_DIR}/pythonsrc  ${CMAKE_CURRENT_BINARY_DIR}/pythonsrc)
-    execute_process(COMMAND ${CMAKE_COMMAND} -E create_symlink
-      ${CMAKE_CURRENT_SOURCE_DIR}/../../config-files/input.h5 ${CMAKE_CURRENT_BINARY_DIR}/pythonsrc/input.h5 )
-    execute_process(COMMAND ${CMAKE_COMMAND} -E create_symlink
-      ${CMAKE_CURRENT_SOURCE_DIR}/../../config-files/reference.h5 ${CMAKE_CURRENT_BINARY_DIR}/pythonsrc/reference.h5 )
-
      set (PYTHON_MODN cloudsc2)
      set(F90WRAP_SOURCES
             ${CMAKE_CURRENT_SOURCE_DIR}/../common/module/yomphyder.F90
@@ -72,6 +41,47 @@ if( HAVE_CLOUDSC2_NL )
             f90wrap_yophnc.F90
             f90wrap_cloudsc_driver_mod.F90
         )
+
+     add_custom_target( pythonexecs ALL SOURCES 
+            ./pythonsrc/dwarfdriver.py
+            ./pythonsrc/cloudsc2_data.py
+         COMMAND ${CMAKE_COMMAND} -E copy_directory ${CMAKE_CURRENT_SOURCE_DIR}/pythonsrc  ${CMAKE_CURRENT_BINARY_DIR}/pythonsrc
+         COMMAND ${CMAKE_COMMAND} -E copy_directory ${CMAKE_CURRENT_BINARY_DIR}/pythonsrc  ../../bin/pythonexec 
+         COMMAND sh -c "rm -f ../../bin/pythonexec/*.f90" 
+         COMMENT "Copy python scripts to executable directory"
+        )
+
+
+    target_link_libraries( dwarf-cloudsc2-nl-lib PRIVATE cloudsc-common-lib HDF5::HDF5 )
+    ecbuild_add_executable( TARGET dwarf-cloudsc2-nl-piref
+        SOURCES
+            ./fortransrc/dwarf_cloudsc.F90
+        DEFINITIONS ${CLOUDSC_DEFINITIONS}
+    )
+    add_dependencies(dwarf-cloudsc2-nl-piref pythonexecs)
+
+    target_link_libraries( dwarf-cloudsc2-nl-piref PRIVATE cloudsc-common-lib dwarf-cloudsc2-nl-lib)
+
+    if( HAVE_OMP AND TARGET OpenMP::OpenMP_Fortran )
+        target_link_libraries( dwarf-cloudsc2-nl-piref PRIVATE OpenMP::OpenMP_Fortran )
+    endif()
+
+    if( HAVE_MPI AND TARGET MPI::MPI_Fortran )
+        target_link_libraries( dwarf-cloudsc2-nl-piref PRIVATE MPI::MPI_Fortran )
+    endif()
+
+    execute_process(COMMAND ${CMAKE_COMMAND} -E create_symlink
+      ${CMAKE_CURRENT_SOURCE_DIR}/../../config-files/input.h5 ${CMAKE_CURRENT_BINARY_DIR}/../../../input.h5 )
+    execute_process(COMMAND ${CMAKE_COMMAND} -E create_symlink
+      ${CMAKE_CURRENT_SOURCE_DIR}/../../config-files/reference.h5 ${CMAKE_CURRENT_BINARY_DIR}/../../../reference.h5 )
+
+# F90wrap section   
+    execute_process(COMMAND ${CMAKE_COMMAND} -E copy_directory ${CMAKE_CURRENT_SOURCE_DIR}/pythonsrc  ${CMAKE_CURRENT_BINARY_DIR}/pythonsrc)
+    execute_process(COMMAND ${CMAKE_COMMAND} -E create_symlink
+      ${CMAKE_CURRENT_SOURCE_DIR}/../../config-files/input.h5 ${CMAKE_CURRENT_BINARY_DIR}/pythonsrc/input.h5 )
+    execute_process(COMMAND ${CMAKE_COMMAND} -E create_symlink
+      ${CMAKE_CURRENT_SOURCE_DIR}/../../config-files/reference.h5 ${CMAKE_CURRENT_BINARY_DIR}/pythonsrc/reference.h5 )
+
 #     add_custom_target(copy-python-files ALL
 #   COMMAND echo "About to copy python files to the binary directory"
 #   COMMAND pwd
@@ -82,12 +92,14 @@ if( HAVE_CLOUDSC2_NL )
          COMMAND ${CMAKE_COMMAND} -E copy_directory ${CMAKE_CURRENT_SOURCE_DIR}/pythonsrc  ${CMAKE_CURRENT_BINARY_DIR}/pythonsrc
          COMMAND cd pythonsrc
          COMMAND  f90wrap -m${PYTHON_MODN} ${F90WRAP_SOURCES} -k ${CMAKE_CURRENT_SOURCE_DIR}/pythonsrc/kind_map -P
-#How to access ecbuild MODULE_DIRECTORY ?
-         COMMAND  f2py-f90wrap -c -m _${PYTHON_MODN} --include-paths ${CMAKE_CURRENT_BINARY_DIR}/../../module -I${CMAKE_CURRENT_BINARY_DIR}/../../module -I${CMAKE_CURRENT_BINARY_DIR}/../common/module -L${CMAKE_CURRENT_BINARY_DIR}/../../lib -lcloudsc-common-lib  -ldwarf-cloudsc2-nl-lib ${F2PY_SOURCES}
+         COMMAND  f2py-f90wrap -c -m _${PYTHON_MODN} --include-paths ${CMAKE_CURRENT_BINARY_DIR}/../../module
+                                                                   -I${CMAKE_CURRENT_BINARY_DIR}/../../module
+                                                                   -I${CMAKE_CURRENT_BINARY_DIR}/../common/module
+                                                                   -L${CMAKE_CURRENT_BINARY_DIR}/../../lib 
+                                                                   -lcloudsc-common-lib  -ldwarf-cloudsc2-nl-lib ${F2PY_SOURCES}
          COMMAND cd ..
-         COMMAND ${CMAKE_COMMAND} -E copy_directory ${CMAKE_CURRENT_BINARY_DIR}/pythonsrc  ../../bin/pythonexec 
+         COMMAND ${CMAKE_COMMAND} -E copy_directory ${CMAKE_CURRENT_BINARY_DIR}/pythonsrc/  ../../bin/pythonexec/ 
          COMMAND ${CMAKE_COMMAND} -E copy_directory ../../lib/  ../../bin/pythonexec 
-         COMMAND pwd
          COMMAND ls ../../bin/pythonexec/
          COMMAND sh -c "rm -f ../../bin/pythonexec/*.f90" 
          COMMENT "Running F90wrap"
