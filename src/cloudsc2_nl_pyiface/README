@@ -6,3 +6,5 @@ Known problems:
 - In cloudsc2_data it seems to make sense to declare list of input/output variables in global dictionaries, rather than declaring them locally in each method
 - Code has not been executed on ECMWF's HPC and Intel Fortran Compiler 
 - Driver header needs to be updated with a reload to have the correct search path for modules
+- f90wrap output file list in CMakeLists.txt should be created automatically from the f90wrap input file list
+- f90wrap/f2py messaging should be captured to log rather than to screen due to overwhelming size
