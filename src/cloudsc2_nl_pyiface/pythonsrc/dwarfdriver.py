@@ -2,14 +2,13 @@ import sys
 sys.path.append('../../build/src/cloudsc2_nl_pyiface')
 sys.path.append('../../build/lib')
 sys.path.append('.')
+from importlib import import_module, reload
 from pathlib import Path
 import cloudsc2 as clsc
 import logging
 import numpy as np
 from collections import OrderedDict
-from cloudsc2_driver import arguments_from_fields
-from cloudsc2_inputs import load_input_fields, load_reference_fields
-from cloudsc2_data import define_fortran_fields,load_input_parameters,load_input_fortran_fields,cloudsc_validate,convert_fortran_output_to_python
+from cloudsc2_data import define_fortran_fields,load_input_parameters,load_input_fortran_fields,cloudsc_validate,convert_fortran_output_to_python,load_reference_fields
 from operator import itemgetter
  
 nproma=100
@@ -31,17 +30,12 @@ clsc.yoecld.allocate_ceta(ydecld,nlev)
 
 rootpath = Path(__file__).resolve().parents[3]
 input_path = rootpath/'config-files/input.h5'
-input_fields = load_input_fields(path=input_path)
 
-klon = input_fields['KLON']
-klev = input_fields['KLEV']
 
 # Get referennce solution fields from file
 ref_path = rootpath/'config-files/reference.h5'
 ref_fields = load_reference_fields(path=ref_path)
 
-# Populate kernel inputs with raw fields (this splits compound arrays)
-satur_args, cloudsc_args = arguments_from_fields(input_fields)
 
 NCLV = 5      # number of microphysics variables
 nclv = NCLV

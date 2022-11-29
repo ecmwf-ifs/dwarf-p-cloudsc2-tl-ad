@@ -335,3 +335,79 @@ def convert_fortran_output_to_python (nproma,nlev,nblocks,plude, pcovptot, pfpls
  
 
     return fields
+
+def load_reference_fields (path):
+    """
+
+    """
+
+    fields = OrderedDict()
+    argnames_nlev = [
+        'plude', 'pcovptot'
+    ]
+
+    argnames_nlevp = [
+        'pfplsl', 'pfplsn', 'pfhpsl', 'pfhpsn'
+    ]
+
+    argnames_tend = [
+        'tendency_loc_a','tendency_loc_t','tendency_loc_q',
+    ]
+    
+    argnames_tend_cld = [
+        'tendency_loc_cld'
+    ]
+
+    with h5py.File(path, 'r') as f:
+        for argname in argnames_nlev:
+            fields[argname] = np.ascontiguousarray(f[argname.upper()])
+    
+        for argname in argnames_nlevp:
+            fields[argname] = np.ascontiguousarray(f[argname.upper()])
+    
+        for argname in argnames_tend:
+            fields[argname] = np.ascontiguousarray(f[argname.upper()])
+    
+        for argname in argnames_tend_cld:
+            fields[argname] = np.ascontiguousarray(f[argname.upper()]) 
+
+
+    return fields
+
+def cloudsc_validate(fields, ref_fields):
+    # List of refencece fields names in order
+    _field_names = [
+        'plude', 'pcovptot', 'pfplsl', 'pfplsn', 'pfhpsl', 'pfhpsn', 
+        'tendency_loc_a', 'tendency_loc_q', 'tendency_loc_t', # 'tendency_loc_cld',
+    ]
+    kidia = 1 
+    kfdia = 100 
+    ngptot = kfdia - kidia + 1
+
+    print("             Variable Dim             MinValue             MaxValue            AbsMaxErr         AvgAbsErr/GP          MaxRelErr-%")
+    for name in _field_names:
+        if len(fields[name].shape) == 1:
+            f = fields[name][kidia-1:kfdia]
+            ref = ref_fields[name][kidia-1:kfdia]
+        elif len(fields[name].shape) == 2:
+            f = fields[name][:,kidia-1:kfdia]
+            ref = ref_fields[name][:,kidia-1:kfdia]
+        elif len(fields[name].shape) == 3:
+            f = fields[name][:,:,kidia-1:kfdia]
+            ref = ref_fields[name][:,:,kidia-1:kfdia]
+        else:
+            f = fields[name]
+            ref = ref_fields[name]
+        zsum = np.sum(np.absolute(ref))
+        zerrsum = np.sum(np.absolute(f - ref))
+        zeps = np.finfo(np.float64).eps
+        print(' {fname:>20}     {fmin:20.13e}  {fmax:20.13e}  {absmax:20.13e} '\
+              ' {absavg:20.13e}  {maxrel:20.13e}'.format(
+                  fname=name.upper(), fmin=f.min(), fmax=f.max(),
+                  absmax=np.absolute(f - ref).max(),
+                  absavg=np.sum(np.absolute(f - ref)) / ngptot,
+                  maxrel=0.0 if zerrsum < zeps else (zerrsum/(1.0+zsum) if zsum < zeps else zerrsum/zsum)
+              )
+        )
+
+
