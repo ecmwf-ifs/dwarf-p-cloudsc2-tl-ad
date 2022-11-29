@@ -21,25 +21,29 @@ if( HAVE_CLOUDSC2_NL_PYIFACE )
      set (PYTHON_MODN cloudsc2)
 
      set(FORTRAN_PYTHON_COMMON_SOURCES
-            yomphyder.F90
-            yoecld.F90
-            yoecldp.F90
-            yoethf.F90
-            yomcst.F90
-            yoephli.F90
-            yophnc.F90
+            yomphyder
+            yoecld
+            yoecldp
+            yoethf
+            yomcst
+            yoephli
+            yophnc
         )
      set(FORTRAN_PYTHON_DWARF_SOURCES
-            cloudsc_driver_mod.F90
+            cloudsc_driver_mod
         )
      set (F90WRAP_COMMON_SOURCES ${FORTRAN_PYTHON_COMMON_SOURCES})
      set (F90WRAP_DWARF_SOURCES  ${FORTRAN_PYTHON_DWARF_SOURCES})
      set (F2PY_COMMON_SOURCES ${FORTRAN_PYTHON_COMMON_SOURCES})
      set (F2PY_DWARF_SOURCES  ${FORTRAN_PYTHON_DWARF_SOURCES})
      list(TRANSFORM F90WRAP_COMMON_SOURCES PREPEND ${CMAKE_CURRENT_SOURCE_DIR}/../common/module/)
+     list(TRANSFORM F90WRAP_COMMON_SOURCES APPEND .F90 )
      list(TRANSFORM F90WRAP_DWARF_SOURCES PREPEND ${CMAKE_CURRENT_SOURCE_DIR}/fortransrc/)
+     list(TRANSFORM F90WRAP_DWARF_SOURCES APPEND .F90 )
      list(TRANSFORM F2PY_COMMON_SOURCES PREPEND f90wrap_)
+     list(TRANSFORM F2PY_COMMON_SOURCES APPEND .f90 )
      list(TRANSFORM F2PY_DWARF_SOURCES PREPEND f90wrap_)
+     list(TRANSFORM F2PY_DWARF_SOURCES APPEND .f90 )
      message("${F90WRAP_COMMON_SOURCES}")
      message("${F90WRAP_PYTHON_SOURCES}")
      message("${F2PY_COMMON_SOURCES}")
@@ -91,20 +95,24 @@ if( HAVE_CLOUDSC2_NL_PYIFACE )
 
 
       add_custom_command(TARGET dwarf-cloudsc2-nl-piref POST_BUILD 
+         WORKING_DIRECTORY ./pythonsrc
          COMMAND ${CMAKE_COMMAND} -E copy_directory ${CMAKE_CURRENT_SOURCE_DIR}/pythonsrc  ${CMAKE_CURRENT_BINARY_DIR}/pythonsrc
-         COMMAND cd pythonsrc
+         COMMAND echo "Executing f90wrap"
          COMMAND  f90wrap -m${PYTHON_MODN} ${F90WRAP_COMMON_SOURCES} ${F90WRAP_DWARF_SOURCES} -k ${CMAKE_CURRENT_SOURCE_DIR}/pythonsrc/kind_map -P 
+         COMMAND echo "Executing f2py-f90wrap"
+         COMMAND pwd
          COMMAND  f2py-f90wrap -c -m _${PYTHON_MODN} --include-paths ${CMAKE_CURRENT_BINARY_DIR}/../../module
                                                                    -I${CMAKE_CURRENT_BINARY_DIR}/../../module
                                                                    -I${CMAKE_CURRENT_BINARY_DIR}/../common/module
                                                                    -L${CMAKE_CURRENT_BINARY_DIR}/../../lib 
                                                                    -lcloudsc-common-lib  -ldwarf-cloudsc2-nl-lib ${F2PY_COMMON_SOURCES} ${F2PY_DWARF_SOURCES}
-         COMMAND cd ..
          COMMAND ${CMAKE_COMMAND} -E copy_directory ${CMAKE_CURRENT_BINARY_DIR}/pythonsrc/  ../../bin/pythonexec/ 
-         COMMAND ${CMAKE_COMMAND} -E copy_directory ../../lib/  ../../bin/pythonexec 
+         COMMAND echo ${CMAKE_CURRENT_BINARY_DIR}
+         COMMAND ${CMAKE_COMMAND} -E copy_directory ${CMAKE_CURRENT_BINARY_DIR}/../../lib/  ${CMAKE_CURRENT_BINARY_DIR}/../../bin/pythonexec 
          COMMAND sh -c "rm -f ../../bin/pythonexec/*.f90" 
          COMMENT "Running F90wrap"
          DEPENDS dwarf-cloudsc2-nl-lib
          VERBATIM
       )
+
 endif()
