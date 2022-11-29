@@ -69,4 +69,4 @@ clsc.cloudsc_driver_pyiface_mod.cloudsc_driver_no_derv_tpes(
 output_fields = convert_fortran_output_to_python (nproma,nlev,nblocks,plude, pcovptot, pfplsl, pfplsn, pfhpsl, pfhpsn, buffer_loc )
 
 print ("Python-side validation:")
-cloudsc_validate(output_fields, ref_fields, cloudsc_args)
+cloudsc_validate(output_fields, ref_fields)
