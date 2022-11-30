@@ -2,14 +2,13 @@ import sys
 sys.path.append('../../build/src/cloudsc2_nl_pyiface')
 sys.path.append('../../build/lib')
 sys.path.append('.')
-from importlib import import_module, reload
 from pathlib import Path
-import cloudsc2 as clsc
-import logging
 import numpy as np
 from collections import OrderedDict
+import cloudsc2 as clsc
 from cloudsc2_data import define_fortran_fields,load_input_parameters,load_input_fortran_fields,cloudsc_validate,convert_fortran_output_to_python,load_reference_fields
 from operator import itemgetter
+
  
 nproma=100
 numomp=1
