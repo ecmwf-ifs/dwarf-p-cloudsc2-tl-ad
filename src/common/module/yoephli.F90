@@ -75,9 +75,6 @@ TYPE(TEPHLI), POINTER :: YREPHLI => NULL()
 !     ------------------------------------------------------------------
 
 CONTAINS
-  FUNCTION TEPHLI_CONSTRUCTOR() RESULT(obj)
-    type (TEPHLI) :: obj
-  END FUNCTION TEPHLI_CONSTRUCTOR
 
   SUBROUTINE YREPHLI_LOAD_PARAMETERS()
     ALLOCATE(YREPHLI)

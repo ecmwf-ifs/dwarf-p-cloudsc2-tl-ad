@@ -1,4 +1,4 @@
-! (C) Copyright 1988- ECMWF.
+! Copyright (C) 2003- ECMWF
 !
 ! This software is licensed under the terms of the Apache Licence Version 2.0
 ! which can be obtained at http://www.apache.org/licenses/LICENSE-2.0.
@@ -6,7 +6,7 @@
 ! In applying this licence, ECMWF does not waive the privileges and immunities
 ! granted to it by virtue of its status as an intergovernmental organisation
 ! nor does it submit to any jurisdiction.
-
+!
 MODULE FCTTRE_MOD
 !     This COMDECK includes the Thermodynamical functions for the cy39
 !       ECMWF Physics package.
@@ -87,6 +87,7 @@ MODULE FCTTRE_MOD
     RTWAT_RTICECU_R = RTWAT_RTICECU_R_IN
     RKOOP1          = RKOOP1_IN
     RKOOP2          = RKOOP2_IN
+    CONSTANTS_INITIALIZED = .TRUE.
 
   END SUBROUTINE FCTTRE_CONSTANTS_SET 
 
@@ -394,5 +395,24 @@ MODULE FCTTRE_MOD
 
     FOEEWMCU_V = R2ES*(FOEALFCU(PTARE)*EXP1+(1.0_JPRB-FOEALFCU(PTARE))*EXP2)
   END FUNCTION FOEEWMCU_V
+
+  FUNCTION FOETB_FUNC( PTARE )
+    REAL(KIND=JPRB) :: FOETB_FUNC
+    REAL(KIND=JPRB) :: PTARE
+
+    FOETB_FUNC=FOEALFA_FUNC(PTARE)*R3LES*(RTT-R4LES)*(1.0_JPRB/(PTARE-R4LES)**2)+&
+             &(1.0_JPRB-FOEALFA_FUNC(PTARE))*R3IES*(RTT-R4IES)*(1.0_JPRB/(PTARE-R4IES)**2)
+    RETURN
+  END FUNCTION
+
+  FUNCTION FOEALFA_FUNC(PTARE)
+    REAL(KIND=JPRB) :: FOEALFA_FUNC
+    REAL(KIND=JPRB) :: PTARE
+
+    FOEALFA_FUNC = MIN(1.0_JPRB,((MAX(RTICE,MIN(RTWAT,PTARE))-RTICE)&
+                 &*RTWAT_RTICE_R)**2)
+
+    RETURN
+  END FUNCTION
 
 END MODULE
