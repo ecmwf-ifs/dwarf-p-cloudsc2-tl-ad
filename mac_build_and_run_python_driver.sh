@@ -3,6 +3,7 @@ export LC_ALL=C
 #source ~/cstest/bin/activate
 #pip install f90wrap h5py
 cd build
+rm -rf *
 cmake -G Ninja .. && ninja
 ninja
 cd bin

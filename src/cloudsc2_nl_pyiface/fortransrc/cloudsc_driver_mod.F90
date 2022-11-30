@@ -20,8 +20,6 @@ MODULE CLOUDSC_DRIVER_PYIFACE_MOD
   USE YOEPHLI  , ONLY : TEPHLI
   USE YOMCST   , ONLY : TOMCST
   USE YOETHF   , ONLY : TOETHF
-! USE YOECLD   , ONLY : YRECLD
-! USE YOEPHLI  , ONLY : YREPHLI
   IMPLICIT NONE
   SAVE
   TYPE(CLOUDSC2_ARRAY_STATE) :: GLOBAL_STATE
@@ -260,20 +258,20 @@ END SUBROUTINE INITIALIZE_PARAMETER_DATATYPES
     REAL(KIND=JPRB)    :: ZQSAT(NPROMA,NLEV) ! local array
 
 1003 format(5x,'NUMPROC=',i0', NUMOMP=',i0,', NGPTOTG=',i0,', NPROMA=',i0,', NGPBLKS=',i0)
-!   if (irank == 0) then
+   if (irank == 0) then
       write(0,1003) NUMPROC,NUMOMP,NGPTOTG,NPROMA,NGPBLKS
-!   end if
+   end if
 
     ! Global timer for the parallel region
-!   CALL TIMER%START(NUMOMP)
+   CALL TIMER%START(NUMOMP)
 
     !$omp parallel default(shared) private(JKGLO,IBL,ICEND,TID) &
     !$omp& private(ZQSAT) &
     !$omp& num_threads(NUMOMP)
 
     ! Local timer for each thread
-!   TID = GET_THREAD_NUM()
-!   CALL TIMER%THREAD_START(TID)
+    TID = GET_THREAD_NUM()
+    CALL TIMER%THREAD_START(TID)
     CALL INITIALIZE_FCTTRE_PARAMETERS(YDOMCST, YDOETHF, YDECLD, YDECLDP, YDEPHLI, YDPHNC )
 
     !$omp do schedule(runtime)
@@ -317,13 +315,13 @@ END SUBROUTINE INITIALIZE_PARAMETER_DATATYPES
       !   i.e. we should not wait for slowest thread to finish before measuring tloc
       !$omp end do nowait
 
-!      CALL TIMER%THREAD_END(TID)
+       CALL TIMER%THREAD_END(TID)
 
       !$omp end parallel
 
-!     CALL TIMER%END()
+      CALL TIMER%END()
 
-!      CALL TIMER%PRINT_PERFORMANCE(NPROMA, NGPBLKS, ZHPM, NGPTOT)
+       CALL TIMER%PRINT_PERFORMANCE(NPROMA, NGPBLKS, ZHPM, NGPTOT)
     
   CONTAINS
 SUBROUTINE INITIALIZE_FCTTRE_PARAMETERS(YDOMCST, YDOETHF, YDECLD, YDECLDP, YDEPHLI, YDPHNC )
