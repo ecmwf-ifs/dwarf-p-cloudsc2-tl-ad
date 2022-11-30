@@ -76,8 +76,8 @@ END TYPE TPHNC
 
 TYPE(TPHNC), POINTER :: YRPHNC => NULL()
 CONTAINS
-  FUNCTION TPHNC_CONSTRUCTOR() RESULT(obj)
-    type (TPHNC) :: obj
-  END FUNCTION TPHNC_CONSTRUCTOR
+!  FUNCTION TPHNC_CONSTRUCTOR() RESULT(obj)
+!    type (TPHNC) :: obj
+!  END FUNCTION TPHNC_CONSTRUCTOR
 !     ------------------------------------------------------------------
 END MODULE YOPHNC

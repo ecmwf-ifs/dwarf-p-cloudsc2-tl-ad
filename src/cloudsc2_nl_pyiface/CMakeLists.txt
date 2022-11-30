@@ -98,14 +98,14 @@ if( HAVE_CLOUDSC2_NL_PYIFACE )
          WORKING_DIRECTORY ./pythonsrc
          COMMAND ${CMAKE_COMMAND} -E copy_directory ${CMAKE_CURRENT_SOURCE_DIR}/pythonsrc  ${CMAKE_CURRENT_BINARY_DIR}/pythonsrc
          COMMAND echo "Executing f90wrap"
-         COMMAND  f90wrap -m${PYTHON_MODN} ${F90WRAP_COMMON_SOURCES} ${F90WRAP_DWARF_SOURCES} -k ${CMAKE_CURRENT_SOURCE_DIR}/pythonsrc/kind_map -P 
+         COMMAND  f90wrap -m${PYTHON_MODN} ${F90WRAP_COMMON_SOURCES} ${F90WRAP_DWARF_SOURCES} -k ${CMAKE_CURRENT_SOURCE_DIR}/pythonsrc/kind_map -P > f90wrap_log.txt 
          COMMAND echo "Executing f2py-f90wrap"
          COMMAND pwd
          COMMAND  f2py-f90wrap -c -m _${PYTHON_MODN} --include-paths ${CMAKE_CURRENT_BINARY_DIR}/../../module
                                                                    -I${CMAKE_CURRENT_BINARY_DIR}/../../module
                                                                    -I${CMAKE_CURRENT_BINARY_DIR}/../common/module
                                                                    -L${CMAKE_CURRENT_BINARY_DIR}/../../lib 
-                                                                   -lcloudsc-common-lib  -ldwarf-cloudsc2-nl-lib ${F2PY_COMMON_SOURCES} ${F2PY_DWARF_SOURCES}
+                                                                   -lcloudsc-common-lib  -ldwarf-cloudsc2-nl-lib ${F2PY_COMMON_SOURCES} ${F2PY_DWARF_SOURCES} > f2py_log.txt
          COMMAND ${CMAKE_COMMAND} -E copy_directory ${CMAKE_CURRENT_BINARY_DIR}/pythonsrc/  ../../bin/pythonexec/ 
          COMMAND echo ${CMAKE_CURRENT_BINARY_DIR}
          COMMAND ${CMAKE_COMMAND} -E copy_directory ${CMAKE_CURRENT_BINARY_DIR}/../../lib/  ${CMAKE_CURRENT_BINARY_DIR}/../../bin/pythonexec 
