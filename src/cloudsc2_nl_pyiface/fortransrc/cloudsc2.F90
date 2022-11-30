@@ -220,35 +220,34 @@ REAL(KIND=JPRB) :: ZTARG, Z2S, ZCOND1, ZQP
 
 #include "cuadjtqs.intfb.h"
 
-ASSOCIATE( &
-          CETA=>YDECLD%CETA       , &
-        RCLCRIT=>YDECLDP%RCLCRIT  , &
-         RKCONV=>YDECLDP%RKCONV   , &
-          RLMIN=>YDECLDP%RLMIN    , &
-        RPECONS=>YDECLDP%RPECONS  , &
-        LPHYLIN=>YDEPHLI%LPHYLIN  , &
-         RLPTRC=>YDEPHLI%RLPTRC   , &
-       LEVAPLS2=>YDPHNC%LEVAPLS2  , &
-          RETV=>YDOMCST%RETV      , &
-            RG=>YDOMCST%RG        , &
-           RCPD=>YDOMCST%RCPD     , &
-          RLVTT=>YDOMCST%RLVTT    , &
-          RLSTT=>YDOMCST%RLSTT    , &
-          RLMLT=>YDOMCST%RLMLT    , &
-           RTT=>YDOMCST%RTT       , &
-            RD=>YDOMCST%RD        , &
-            R2ES=>YDOETHF%R2ES    , &
-            R3LES=>YDOETHF%R3LES  , &
-            R3IES=>YDOETHF%R3IES  , &
-            R4LES=>YDOETHF%R4LES  , &
-            R4IES=>YDOETHF%R4IES  , &
-            R5LES=>YDOETHF%R5LES  , &
-            R5IES=>YDOETHF%R5IES  , &
-          R5ALVCP=>YDOETHF%R5ALVCP, &
-          R5ALSCP=>YDOETHF%R5ALSCP, &
-          RALVDCP=>YDOETHF%RALVDCP, &
-          RALSDCP=>YDOETHF%RALSDCP, &
-            RTICE=>YDOETHF%RTICE  , &
+ASSOCIATE(   CETA=>YDECLD%CETA      , &
+          RCLCRIT=>YDECLDP%RCLCRIT  , &
+           RKCONV=>YDECLDP%RKCONV   , &
+            RLMIN=>YDECLDP%RLMIN    , &
+          RPECONS=>YDECLDP%RPECONS  , &
+          LPHYLIN=>YDEPHLI%LPHYLIN  , &
+           RLPTRC=>YDEPHLI%RLPTRC   , &
+         LEVAPLS2=>YDPHNC%LEVAPLS2  , &
+             RETV=>YDOMCST%RETV     , &
+               RG=>YDOMCST%RG       , &
+             RCPD=>YDOMCST%RCPD     , &
+            RLVTT=>YDOMCST%RLVTT    , &
+            RLSTT=>YDOMCST%RLSTT    , &
+            RLMLT=>YDOMCST%RLMLT    , &
+              RTT=>YDOMCST%RTT      , &
+               RD=>YDOMCST%RD       , &
+             R2ES=>YDOETHF%R2ES     , &
+            R3LES=>YDOETHF%R3LES    , &
+            R3IES=>YDOETHF%R3IES    , &
+            R4LES=>YDOETHF%R4LES    , &
+            R4IES=>YDOETHF%R4IES    , &
+            R5LES=>YDOETHF%R5LES    , &
+            R5IES=>YDOETHF%R5IES    , &
+          R5ALVCP=>YDOETHF%R5ALVCP  , &
+          R5ALSCP=>YDOETHF%R5ALSCP  , &
+          RALVDCP=>YDOETHF%RALVDCP  , &
+          RALSDCP=>YDOETHF%RALSDCP  , &
+            RTICE=>YDOETHF%RTICE    , &
            RVTMP2=>YDOETHF%RVTMP2 )
 
 
