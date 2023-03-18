@@ -8,7 +8,7 @@
 ! nor does it submit to any jurisdiction.
 !
 SUBROUTINE SATUR ( KIDIA , KFDIA , KLON  , KTDIA , KLEV, LDPHYLIN, &
- & PAPRSF, PT    , PQSAT , KFLAG)  
+ & PAPRSF, PT    , PQSAT , KFLAG , YDCST , YDTHF ) 
 
 !***
 
@@ -61,11 +61,13 @@ SUBROUTINE SATUR ( KIDIA , KFDIA , KLON  , KTDIA , KLEV, LDPHYLIN, &
 USE PARKIND1  ,ONLY : JPIM     ,JPRB
 !USE YOMHOOK   ,ONLY : LHOOK,   DR_HOOK
 
-USE YOMCST   , ONLY : RETV     ,RLVTT    ,RLSTT    ,RTT
-USE YOETHF   , ONLY : R2ES     ,R3LES    ,R3IES    ,R4LES    ,&
- &                    R4IES    ,R5LES    ,R5IES    ,R5ALVCP  ,R5ALSCP  ,&
- &                    RALVDCP  ,RALSDCP  ,RTWAT    ,RTICE    ,RTICECU  ,&
- &                    RTWAT_RTICE_R      ,RTWAT_RTICECU_R  
+!USE YOMCST   , ONLY : RETV     ,RLVTT    ,RLSTT    ,RTT
+!USE YOETHF   , ONLY : R2ES     ,R3LES    ,R3IES    ,R4LES    ,&
+! &                    R4IES    ,R5LES    ,R5IES    ,R5ALVCP  ,R5ALSCP  ,&
+! &                    RALVDCP  ,RALSDCP  ,RTWAT    ,RTICE    ,RTICECU  ,&
+! &                    RTWAT_RTICE_R      ,RTWAT_RTICECU_R  
+USE YOMCST   , ONLY : TOMCST
+USE YOETHF   , ONLY : TOETHF
 
 IMPLICIT NONE
 
@@ -85,10 +87,34 @@ REAL(KIND=JPRB) :: ZCOR, ZEW, ZFOEEW, ZQMAX, ZQS, ZTARG
 REAL(KIND=JPRB) :: ZALFA, ZFOEEWL, ZFOEEWI
 !REAL(KIND=JPRB) :: ZHOOK_HANDLE
 
+TYPE(TOMCST)      ,INTENT(IN) :: YDCST
+TYPE(TOETHF)      ,INTENT(IN) :: YDTHF
+
 !DIR$ VFUNCTION EXPHF
 
-#include "fcttre.func.h"
+#include "fcttre.ycst.h"
 
+ASSOCIATE( RETV=>YDCST%RETV  , &
+               RG=>YDCST%RG    , &
+             RCPD=>YDCST%RCPD  , &
+            RLVTT=>YDCST%RLVTT , &
+            RLSTT=>YDCST%RLSTT , &
+            RLMLT=>YDCST%RLMLT , &
+              RTT=>YDCST%RTT   , &
+               RD=>YDCST%RD    , &
+             R2ES=>YDTHF%R2ES   , &
+            R3LES=>YDTHF%R3LES  , &
+            R3IES=>YDTHF%R3IES  , &
+            R4LES=>YDTHF%R4LES  , &
+            R4IES=>YDTHF%R4IES  , &
+            R5LES=>YDTHF%R5LES  , &
+            R5IES=>YDTHF%R5IES  , &
+          R5ALVCP=>YDTHF%R5ALVCP, &
+          R5ALSCP=>YDTHF%R5ALSCP, &
+          RALVDCP=>YDTHF%RALVDCP, &
+          RALSDCP=>YDTHF%RALSDCP, &
+            RTICE=>YDTHF%RTICE  , &
+           RVTMP2=>YDTHF%RVTMP2)
 !----------------------------------------------------------------------
 
 !*    1.           DEFINE CONSTANTS
@@ -138,6 +164,6 @@ ELSE
   ENDDO
 
 ENDIF
-
+END ASSOCIATE
 !IF (LHOOK) CALL DR_HOOK('SATUR',1,ZHOOK_HANDLE)
 END SUBROUTINE SATUR
