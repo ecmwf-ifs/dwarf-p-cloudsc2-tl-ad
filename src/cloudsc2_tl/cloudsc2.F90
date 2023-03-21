@@ -15,7 +15,8 @@ SUBROUTINE CLOUDSC2 ( &
  & PTENT  , PGTENT, PTENQ  , PGTENQ, &
  & PTENL  , PGTENL, PTENI  , PGTENI, PSUPSAT, &
  & PCLC   , PFPLSL , PFPLSN, &
- & PFHPSL , PFHPSN, PCOVPTOT )  
+ & PFHPSL , PFHPSN, PCOVPTOT, &
+ & YDCST, YDTHF, YHNC, YPHLI, YCLD, YCLDP )  
 
 !**** *CLOUDSC2*  - COMPUTES CLOUD COVER, CLOUD LIQUID WATER/ICE
 !                   AND LARGE-SCALE CONDENSATION.
@@ -101,16 +102,18 @@ SUBROUTINE CLOUDSC2 ( &
 USE PARKIND1  ,ONLY : JPIM     ,JPRB
 !USE YOMHOOK   ,ONLY : LHOOK,   DR_HOOK
 
-USE YOMCST   , ONLY : RETV, RG  ,RCPD     ,&
- & RLVTT    ,RLSTT    ,RLMLT    ,RTT     ,RD
-USE YOETHF   , ONLY : R2ES     ,R3LES    ,R3IES    ,R4LES    ,&
- & R4IES    ,R5LES    ,R5IES    ,R5ALVCP  ,R5ALSCP  ,&
- & RALVDCP  ,RALSDCP  ,RTWAT    ,RTICE    ,RTICECU   ,&
- & RTWAT_RTICE_R      ,RTWAT_RTICECU_R    ,RVTMP2 
-USE YOECLD   , ONLY : YRECLD
-USE YOECLDP  , ONLY : YRECLDP
-USE YOEPHLI  , ONLY : YREPHLI
-USE YOPHNC   , ONLY : YRPHNC
+!USE YOMCST   , ONLY : RETV, RG  ,RCPD     ,&
+! & RLVTT    ,RLSTT    ,RLMLT    ,RTT     ,RD
+!USE YOETHF   , ONLY : R2ES     ,R3LES    ,R3IES    ,R4LES    ,&
+! & R4IES    ,R5LES    ,R5IES    ,R5ALVCP  ,R5ALSCP  ,&
+! & RALVDCP  ,RALSDCP  ,RTWAT    ,RTICE    ,RTICECU   ,&
+! & RTWAT_RTICE_R      ,RTWAT_RTICECU_R    ,RVTMP2 
+USE YOMCST   , ONLY : TOMCST
+USE YOETHF   , ONLY : TOETHF
+USE YOPHNC   , ONLY : TPHNC
+USE YOEPHLI  , ONLY : TEPHLI
+USE YOECLD   , ONLY : TECLD
+USE YOECLDP  , ONLY : TECLDP
 
 IMPLICIT NONE
 
@@ -211,14 +214,44 @@ INTEGER(KIND=JPIM) :: IK,ICALL
 LOGICAL :: LLO1, LLO2, LLFLAG(KLON)
 !REAL(KIND=JPRB) :: ZHOOK_HANDLE
 
+REAL(KIND=JPRB) :: Z5ALCP, ZALDCP
+REAL(KIND=JPRB) :: ZTARG, Z2S, ZCOND1, ZQP
+TYPE(TOMCST)      ,INTENT(IN) :: YDCST
+TYPE(TOETHF)      ,INTENT(IN) :: YDTHF
+TYPE(TPHNC)       ,INTENT(IN) :: YHNC
+TYPE(TEPHLI)      ,INTENT(IN) :: YPHLI
+TYPE(TECLD)       ,INTENT(IN) :: YCLD
+TYPE(TECLDP)      ,INTENT(IN) :: YCLDP
+
 #include "cuadjtqs.intfb.h"
 
 !     ------------------------------------------------------------------
-#include "fcttre.func.h"
+#include "fcttre.ycst.h"
 !     ------------------------------------------------------------------
-ASSOCIATE(CETA=>YRECLD%CETA,RCLCRIT=>YRECLDP%RCLCRIT,RKCONV=>YRECLDP%RKCONV, &
-& RLMIN=>YRECLDP%RLMIN,RPECONS=>YRECLDP%RPECONS,LPHYLIN=>YREPHLI%LPHYLIN, &
-& RLPTRC=>YREPHLI%RLPTRC,LEVAPLS2=>YRPHNC%LEVAPLS2)
+ASSOCIATE(CETA=>YCLD%CETA,RCLCRIT=>YCLDP%RCLCRIT,RKCONV=>YCLDP%RKCONV, &
+& RLMIN=>YCLDP%RLMIN,RPECONS=>YCLDP%RPECONS,LPHYLIN=>YPHLI%LPHYLIN, &
+& RLPTRC=>YPHLI%RLPTRC,LEVAPLS2=>YHNC%LEVAPLS2, &
+             RETV=>YDCST%RETV  , &
+               RG=>YDCST%RG    , &
+             RCPD=>YDCST%RCPD  , &
+            RLVTT=>YDCST%RLVTT , &
+            RLSTT=>YDCST%RLSTT , &
+            RLMLT=>YDCST%RLMLT , &
+              RTT=>YDCST%RTT   , &
+               RD=>YDCST%RD    , &
+             R2ES=>YDTHF%R2ES   , &
+            R3LES=>YDTHF%R3LES  , &
+            R3IES=>YDTHF%R3IES  , &
+            R4LES=>YDTHF%R4LES  , &
+            R4IES=>YDTHF%R4IES  , &
+            R5LES=>YDTHF%R5LES  , &
+            R5IES=>YDTHF%R5IES  , &
+          R5ALVCP=>YDTHF%R5ALVCP, &
+          R5ALSCP=>YDTHF%R5ALSCP, &
+          RALVDCP=>YDTHF%RALVDCP, &
+          RALSDCP=>YDTHF%RALSDCP, &
+            RTICE=>YDTHF%RTICE  , &
+           RVTMP2=>YDTHF%RVTMP2)
 
 !IF (LHOOK) CALL DR_HOOK('CLOUDSC2',0,ZHOOK_HANDLE)
 
@@ -616,10 +649,55 @@ DO JK=KTDIA,KLEV
 
 ! clipping of final qv
 
-  IK=JK
-  ICALL=0
-  CALL CUADJTQS ( KIDIA, KFDIA, KLON, KLEV, IK,&
-    & ZPP  , ZTP1  , ZQP1 , LLFLAG, ICALL  )  
+  ! -----------------------------------
+  ! IK=JK
+  ! ICALL=0
+  ! CALL CUADJTQS ( KIDIA, KFDIA, KLON, KLEV, IK,&
+  !   & ZPP  , ZTP1  , ZQP1 , LLFLAG, ICALL  )  
+  ! -----------------------------------
+  ! Manually inlined CUADJTQS
+  ! -----------------------------------
+  ZQMAX=0.5_JPRB
+  DO JL=KIDIA,KFDIA
+    IF (ZTP1(JL,JK) > RTT) THEN
+      Z3ES=R3LES
+      Z4ES=R4LES
+      Z5ALCP=R5ALVCP
+      ZALDCP=RALVDCP
+    ELSE
+      Z3ES=R3IES
+      Z4ES=R4IES
+      Z5ALCP=R5ALSCP
+      ZALDCP=RALSDCP
+    ENDIF
+
+    ZQP    =1.0_JPRB/ZPP(JL)
+    ZTARG    =ZTP1(JL,JK)
+    ZFOEEW(JL)    =R2ES*EXP(Z3ES*(ZTARG    -RTT)/(ZTARG    -Z4ES))
+    ZQSAT(JL)    =ZQP    *ZFOEEW(JL)    
+    IF (ZQSAT(JL)     > ZQMAX) THEN
+      ZQSAT(JL)    =ZQMAX
+    ENDIF
+    ZCOR    =1.0_JPRB/(1.0_JPRB-RETV  *ZQSAT(JL)    )
+    ZQSAT(JL)    =ZQSAT(JL)    *ZCOR    
+    Z2S    =Z5ALCP/(ZTARG    -Z4ES)**2
+    ZCOND1    =(ZQP1(JL,JK)-ZQSAT(JL)    )/(1.0_JPRB+ZQSAT(JL)    *ZCOR    *Z2S    )
+    ZTP1(JL,JK)=ZTP1(JL,JK)+ZALDCP*ZCOND1    
+    ZQP1(JL,JK)=ZQP1(JL,JK)-ZCOND1    
+    ZTARG    =ZTP1(JL,JK)
+    ZFOEEW(JL)    =R2ES*EXP(Z3ES*(ZTARG    -RTT)/(ZTARG    -Z4ES))
+    ZQSAT(JL)    =ZQP    *ZFOEEW(JL)    
+    IF (ZQSAT(JL)     > ZQMAX) THEN
+      ZQSAT(JL)    =ZQMAX
+    ENDIF
+    ZCOR    =1.0_JPRB/(1.0_JPRB-RETV  *ZQSAT(JL)    )
+    ZQSAT(JL)    =ZQSAT(JL)    *ZCOR    
+    Z2S    =Z5ALCP/(ZTARG    -Z4ES)**2
+    ZCOND1    =(ZQP1(JL,JK)-ZQSAT(JL)    )/(1.0_JPRB+ZQSAT(JL)    *ZCOR    *Z2S    )
+    ZTP1(JL,JK)=ZTP1(JL,JK)+ZALDCP*ZCOND1    
+    ZQP1(JL,JK)=ZQP1(JL,JK)-ZCOND1    
+  ENDDO
+  ! -----------------------------------
 
   DO JL=KIDIA,KFDIA
     ZDQ(JL)=MAX(0.0_JPRB,ZQOLD(JL)-ZQP1(JL,JK))

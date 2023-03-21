@@ -161,7 +161,8 @@ CONTAINS
               &  TENDENCY_LOC(IBL)%CLD(:,:,NCLDQI), TENDENCY_CML(IBL)%CLD(:,:,NCLDQI), &
               &  PSUPSAT(:,:,IBL), &
               &  PA(:,:,IBL), PFPLSL(:,:,IBL),   PFPLSN(:,:,IBL), &
-              &  PFHPSL(:,:,IBL),   PFHPSN(:,:,IBL), PCOVPTOT(:,:,IBL))
+              &  PFHPSL(:,:,IBL),   PFHPSN(:,:,IBL), PCOVPTOT(:,:,IBL), & 
+              &  YDCST, YDTHF, YHNC, YPHLI, YCLD, YCLDP)
 
          ! Preparation for TL
 
@@ -241,7 +242,8 @@ CONTAINS
               & ZTENO_I5, ZTENI_I5, &
               & PSUPSAT5, &
               & PA5(:,:), PFPLSL5(:,:),   PFPLSN5(:,:), &
-              & PFHPSL5(:,:),   PFHPSN5(:,:), PCOVPTOT5(:,:))
+              & PFHPSL5(:,:),   PFHPSN5(:,:), PCOVPTOT5(:,:), &
+              & YDCST, YDTHF, YHNC, YPHLI, YCLD, YCLDP)
 
            ! Compute final test norm
            ZCOUNT=0._JPRB
