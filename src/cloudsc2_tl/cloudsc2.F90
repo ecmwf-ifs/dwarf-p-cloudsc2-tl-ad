@@ -223,7 +223,7 @@ TYPE(TEPHLI)      ,INTENT(IN) :: YPHLI
 TYPE(TECLD)       ,INTENT(IN) :: YCLD
 TYPE(TECLDP)      ,INTENT(IN) :: YCLDP
 
-#include "cuadjtqs.intfb.h"
+!#include "cuadjtqs.intfb.h"
 
 !     ------------------------------------------------------------------
 #include "fcttre.ycst.h"

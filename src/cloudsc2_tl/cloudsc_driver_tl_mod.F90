@@ -146,7 +146,7 @@ CONTAINS
 
          ! Fill in ZQSAT
          CALL SATUR (1, ICEND, NPROMA, 1, NLEV, .TRUE., &
-              & PAP(:,:,IBL), PT(:,:,IBL), ZQSAT(:,:), 2) 
+              & PAP(:,:,IBL), PT(:,:,IBL), ZQSAT(:,:), 2, YDCST, YDTHF) 
 
          CALL CLOUDSC2 ( &
               &  1, ICEND, NPROMA, 1, NLEV, LDRAIN1D, &
