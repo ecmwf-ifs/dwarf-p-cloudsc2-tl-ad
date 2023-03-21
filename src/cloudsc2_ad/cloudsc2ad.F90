@@ -21,7 +21,8 @@ SUBROUTINE CLOUDSC2AD ( &
  & PTENT  , PGTENT , PTENQ , PGTENQ,&
  & PTENL  , PGTENL , PTENI , PGTENI, PSUPSAT,&
  & PCLC   , PFPLSL , PFPLSN,&
- & PFHPSL , PFHPSN , PCOVPTOT )  
+ & PFHPSL , PFHPSN , PCOVPTOT, &
+ & YDCST, YDTHF, YHNC, YPHLI, YCLD, YCLDP )  
 
 !**** *CLOUDSC2AD*  - COMPUTES CLOUD COVER, CLOUD LIQUID WATER/ICE
 !                     AND LARGE-SCALE CONDENSATION.
@@ -127,17 +128,23 @@ SUBROUTINE CLOUDSC2AD ( &
 USE PARKIND1  ,ONLY : JPIM     ,JPRB
 !USE YOMHOOK   ,ONLY : LHOOK,   DR_HOOK
 
-USE YOMCST   , ONLY : RETV, RG  ,RCPD     ,&
- & RLVTT    ,RLSTT    ,RLMLT    ,RTT     ,RD  
-USE YOETHF   , ONLY : R2ES     ,R3LES    ,R3IES    ,R4LES    ,&
- & R4IES    ,R5LES    ,R5IES    ,R5ALVCP  ,R5ALSCP  ,&
- & RALVDCP  ,RALSDCP  ,RTWAT    ,RTICE    ,RTICECU   ,&
- & RTWAT_RTICE_R      ,RTWAT_RTICECU_R    ,RVTMP2 
+!USE YOMCST   , ONLY : RETV, RG  ,RCPD     ,&
+! & RLVTT    ,RLSTT    ,RLMLT    ,RTT     ,RD  
+!USE YOETHF   , ONLY : R2ES     ,R3LES    ,R3IES    ,R4LES    ,&
+! & R4IES    ,R5LES    ,R5IES    ,R5ALVCP  ,R5ALSCP  ,&
+! & RALVDCP  ,RALSDCP  ,RTWAT    ,RTICE    ,RTICECU   ,&
+! & RTWAT_RTICE_R      ,RTWAT_RTICECU_R    ,RVTMP2 
 USE YOECLD   , ONLY : YRECLD
 USE YOECLDP  , ONLY : YRECLDP
 USE YOEPHLI  , ONLY : YREPHLI
 USE YOPHNC   , ONLY : YRPHNC
 USE YOMNCL   , ONLY : YRNCL
+USE YOMCST   , ONLY : TOMCST
+USE YOETHF   , ONLY : TOETHF
+USE YOPHNC   , ONLY : TPHNC
+USE YOEPHLI  , ONLY : TEPHLI
+USE YOECLD   , ONLY : TECLD
+USE YOECLDP  , ONLY : TECLDP
 
 IMPLICIT NONE
 
@@ -318,23 +325,55 @@ REAL(KIND=JPRB) :: ZYYY, ZRAT
 INTEGER(KIND=JPIM) :: IK,ICALL
 
 LOGICAL :: LLO1, LLO2, LLO3(KLON,KLEV), LLFLAG(KLON)
+TYPE(TOMCST)      ,INTENT(IN) :: YDCST
+TYPE(TOETHF)      ,INTENT(IN) :: YDTHF
+TYPE(TPHNC)       ,INTENT(IN) :: YHNC
+TYPE(TEPHLI)      ,INTENT(IN) :: YPHLI
+TYPE(TECLD)       ,INTENT(IN) :: YCLD
+TYPE(TECLDP)      ,INTENT(IN) :: YCLDP
 !REAL(KIND=JPRB) :: ZHOOK_HANDLE
 
 #include "cuadjtqs.intfb.h"
 #include "cuadjtqsad.intfb.h"
 
 !     ------------------------------------------------------------------
-#include "fcttre.func.h"
-#include "fcttread.func.h"
+#include "fcttre.ycst.h"
+#include "fcttread.ycst.h"
 !     ------------------------------------------------------------------
 
+! & RTWAT_RTICE_R      ,RTWAT_RTICECU_R    ,RVTMP2
 !IF (LHOOK) CALL DR_HOOK('CLOUDSC2AD',0,ZHOOK_HANDLE)
-ASSOCIATE(CETA=>YRECLD%CETA, &
- & RCLCRIT=>YRECLDP%RCLCRIT, RKCONV=>YRECLDP%RKCONV, RLMIN=>YRECLDP%RLMIN, &
- & RPECONS=>YRECLDP%RPECONS, &
- & RLPTRC=>YREPHLI%RLPTRC, &
+ASSOCIATE( CETA=>YCLD%CETA, &
+ & RCLCRIT=>YCLDP%RCLCRIT, RKCONV=>YCLDP%RKCONV, RLMIN=>YCLDP%RLMIN, &
+ & RPECONS=>YCLDP%RPECONS, &
+ & RLPTRC=>YPHLI%RLPTRC, &
  & LREGCL=>YRNCL%LREGCL, &
- & LEVAPLS2=>YRPHNC%LEVAPLS2)
+ & LEVAPLS2=>YHNC%LEVAPLS2, &
+             RETV=>YDCST%RETV  , &
+               RG=>YDCST%RG    , &
+             RCPD=>YDCST%RCPD  , &
+            RLVTT=>YDCST%RLVTT , &
+            RLSTT=>YDCST%RLSTT , &
+            RLMLT=>YDCST%RLMLT , &
+              RTT=>YDCST%RTT   , &
+               RD=>YDCST%RD    , &
+             R2ES=>YDTHF%R2ES   , &
+            R3LES=>YDTHF%R3LES  , &
+            R3IES=>YDTHF%R3IES  , &
+            R4LES=>YDTHF%R4LES  , &
+            R4IES=>YDTHF%R4IES  , &
+            R5LES=>YDTHF%R5LES  , &
+            R5IES=>YDTHF%R5IES  , &
+          R5ALVCP=>YDTHF%R5ALVCP, &
+          R5ALSCP=>YDTHF%R5ALSCP, &
+          RALVDCP=>YDTHF%RALVDCP, &
+          RALSDCP=>YDTHF%RALSDCP, &
+            RTWAT=>YDTHF%RTWAT,  &
+            RTICE=>YDTHF%RTICE  , &
+          RTICECU=>YDTHF%RTICECU , &
+&  RTWAT_RTICE_R=>YDTHF%RTWAT_RTICE_R,  &
+ &RTWAT_RTICECU_R=>YDTHF%RTWAT_RTICECU_R,  &
+           RVTMP2=>YDTHF%RVTMP2 )
 
 !*         1.     SET-UP INPUT QUANTITIES
 !                 -----------------------
