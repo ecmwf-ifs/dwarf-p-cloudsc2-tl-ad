@@ -192,7 +192,7 @@ CONTAINS
             & ZTENO_L, ZTENI_L, ZTENO_I, ZTENI_I, ZSUPSAT, &  ! o,i,o,i
             & ZCLC   , ZFPLSL   , ZFPLSN ,&        ! o
             & ZFHPSL , ZFHPSN   , ZCOVPTOT, &
-            & YDCST, YDTHF, YHNC, YPHLI, YCLD, YCLDP )       ! o
+            & YDCST, YDTHF, YHNC, YPHLI, YCLD, YCLDP, YNCL )       ! o
 
          ! First norm
          DO JROF=1,ICEND
