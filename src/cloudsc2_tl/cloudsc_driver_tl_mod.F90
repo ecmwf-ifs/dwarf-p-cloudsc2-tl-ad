@@ -38,7 +38,7 @@ CONTAINS
      & PA,       PCLV,     PSUPSAT,&
      & PCOVPTOT, &
      & PFPLSL,   PFPLSN,   PFHPSL,   PFHPSN,  &
-     & YDCST, YDTHF, YHNC, YPHLI, YCLD, YCLDP)
+     & YDCST, YDTHF, YHNC, YPHLI, YCLD, YCLDP, YNCL)
     ! Driver routine that performans the parallel NPROMA-blocking and
     ! invokes the CLOUDSC2 kernel
 
@@ -48,6 +48,7 @@ CONTAINS
     USE YOEPHLI  , ONLY : TEPHLI
     USE YOECLD   , ONLY : TECLD
     USE YOECLDP  , ONLY : TECLDP
+    USE YOMNCL   , ONLY : TNCL
 
     INTEGER(KIND=JPIM), INTENT(IN)    :: NUMOMP, NPROMA, NLEV, NGPTOT, NGPTOTG
     REAL(KIND=JPRB),    INTENT(IN)    :: PTSPHY       ! Physics timestep
@@ -107,6 +108,8 @@ CONTAINS
     TYPE(TEPHLI)    :: YPHLI
     TYPE(TECLD)     :: YCLD
     TYPE(TECLDP)    :: YCLDP
+    TYPE(TNCL)      :: YNCL
+
     NGPBLKS = (NGPTOT / NPROMA) + MIN(MOD(NGPTOT,NPROMA), 1)
 1003 format(5x,'NUMPROC=',i0', NUMOMP=',i0,', NGPTOTG=',i0,', NPROMA=',i0,', NGPBLKS=',i0)
     if (irank == 0) then
@@ -206,7 +209,7 @@ CONTAINS
             & ZTENO_L, ZTENI_L, ZTENO_I, ZTENI_I, ZSUPSAT, &  ! o,i,o,i
             & ZCLC   , ZFPLSL   , ZFPLSN ,&        ! o
             & ZFHPSL , ZFHPSN   , ZCOVPTOT,&
-            & YDCST, YDTHF, YHNC, YPHLI, YCLD, YCLDP )       ! o
+            & YDCST, YDTHF, YHNC, YPHLI, YCLD, YCLDP, YNCL )       ! o
 
          ! Loop over incrementing states
          DO ILAM=1,10
