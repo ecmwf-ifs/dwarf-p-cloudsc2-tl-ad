@@ -27,10 +27,10 @@ CONTAINS
      & PA,       PCLV,     PSUPSAT,&
      & PCOVPTOT, &
      & PFPLSL,   PFPLSN,   PFHPSL,   PFHPSN, &
- & YDCST, YDTHF, YHNC, YPHLI, YCLD, YCLDP &
-     & )
+     & YDCST, YDTHF, YHNC, YPHLI, YCLD, YCLDP, YNCL )
     ! Driver routine that performans the parallel NPROMA-blocking and
     ! invokes the CLOUDSC2 kernel
+    USE YOMNCL   , ONLY : TNCL
     USE YOMCST   , ONLY : TOMCST
     USE YOETHF   , ONLY : TOETHF
     USE YOPHNC   , ONLY : TPHNC
@@ -84,7 +84,8 @@ CONTAINS
      & ZLUDE0(NPROMA,NLEV), ZLU0(NPROMA,NLEV), ZMFU0(NPROMA,NLEV), ZMFD0(NPROMA,NLEV), &
      & ZTENI_T0(NPROMA,NLEV), ZTENI_Q0(NPROMA,NLEV), ZTENI_L0(NPROMA,NLEV), &
      & ZTENI_I0(NPROMA,NLEV), ZSUPSAT0(NPROMA,NLEV)
-   TYPE(TOMCST)    :: YDCST
+    TYPE(TNCL)      :: YNCL
+    TYPE(TOMCST)    :: YDCST
     TYPE(TOETHF)    :: YDTHF
     TYPE(TPHNC)     :: YHNC
     TYPE(TEPHLI)    :: YPHLI
@@ -248,7 +249,7 @@ CONTAINS
             & ZTENO_L, ZTENI_L, ZTENO_I, ZTENI_I, ZSUPSAT, &  ! o,i,o,i
             & ZCLC   , ZFPLSL   , ZFPLSN ,&        ! o
             & ZFHPSL , ZFHPSN   , ZCOVPTOT, &
-              YDCST, YDTHF, YHNC, YPHLI, YCLD, YCLDP)       ! o
+            & YDCST, YDTHF, YHNC, YPHLI, YCLD, YCLDP, YNCL)       ! o
 
          ! Second norm
          DO JROF=1,ICEND

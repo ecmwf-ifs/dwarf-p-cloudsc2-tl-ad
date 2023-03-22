@@ -102,12 +102,6 @@ SUBROUTINE CLOUDSC2 ( &
 USE PARKIND1  ,ONLY : JPIM     ,JPRB
 !USE YOMHOOK   ,ONLY : LHOOK,   DR_HOOK
 
-!USE YOMCST   , ONLY : RETV, RG  ,RCPD     ,&
-! & RLVTT    ,RLSTT    ,RLMLT    ,RTT     ,RD
-!USE YOETHF   , ONLY : R2ES     ,R3LES    ,R3IES    ,R4LES    ,&
-! & R4IES    ,R5LES    ,R5IES    ,R5ALVCP  ,R5ALSCP  ,&
-! & RALVDCP  ,RALSDCP  ,RTWAT    ,RTICE    ,RTICECU   ,&
-! & RTWAT_RTICE_R      ,RTWAT_RTICECU_R    ,RVTMP2 
 USE YOMCST   , ONLY : TOMCST
 USE YOETHF   , ONLY : TOETHF
 USE YOPHNC   , ONLY : TPHNC
@@ -223,35 +217,19 @@ TYPE(TEPHLI)      ,INTENT(IN) :: YPHLI
 TYPE(TECLD)       ,INTENT(IN) :: YCLD
 TYPE(TECLDP)      ,INTENT(IN) :: YCLDP
 
-#include "cuadjtqs.intfb.h"
+!#include "cuadjtqs.intfb.h"
 
 !     ------------------------------------------------------------------
 #include "fcttre.ycst.h"
 !     ------------------------------------------------------------------
 ASSOCIATE(CETA=>YCLD%CETA,RCLCRIT=>YCLDP%RCLCRIT,RKCONV=>YCLDP%RKCONV, &
 & RLMIN=>YCLDP%RLMIN,RPECONS=>YCLDP%RPECONS,LPHYLIN=>YPHLI%LPHYLIN, &
-& RLPTRC=>YPHLI%RLPTRC,LEVAPLS2=>YHNC%LEVAPLS2, &
-             RETV=>YDCST%RETV  , &
-               RG=>YDCST%RG    , &
-             RCPD=>YDCST%RCPD  , &
-            RLVTT=>YDCST%RLVTT , &
-            RLSTT=>YDCST%RLSTT , &
-            RLMLT=>YDCST%RLMLT , &
-              RTT=>YDCST%RTT   , &
-               RD=>YDCST%RD    , &
-             R2ES=>YDTHF%R2ES   , &
-            R3LES=>YDTHF%R3LES  , &
-            R3IES=>YDTHF%R3IES  , &
-            R4LES=>YDTHF%R4LES  , &
-            R4IES=>YDTHF%R4IES  , &
-            R5LES=>YDTHF%R5LES  , &
-            R5IES=>YDTHF%R5IES  , &
-          R5ALVCP=>YDTHF%R5ALVCP, &
-          R5ALSCP=>YDTHF%R5ALSCP, &
-          RALVDCP=>YDTHF%RALVDCP, &
-          RALSDCP=>YDTHF%RALSDCP, &
-            RTICE=>YDTHF%RTICE  , &
-           RVTMP2=>YDTHF%RVTMP2)
+& RLPTRC=>YPHLI%RLPTRC,LEVAPLS2=>YHNC%LEVAPLS2, RETV=>YDCST%RETV  , &
+& RG=>YDCST%RG, RCPD=>YDCST%RCPD, RLVTT=>YDCST%RLVTT, RLSTT=>YDCST%RLSTT, & 
+& RLMLT=>YDCST%RLMLT, RTT=>YDCST%RTT, RD=>YDCST%RD, R2ES=>YDTHF%R2ES, &
+& R3LES=>YDTHF%R3LES, R3IES=>YDTHF%R3IES, R4LES=>YDTHF%R4LES, R4IES=>YDTHF%R4IES, &
+& R5LES=>YDTHF%R5LES, R5IES=>YDTHF%R5IES, R5ALVCP=>YDTHF%R5ALVCP, R5ALSCP=>YDTHF%R5ALSCP, &
+& RALVDCP=>YDTHF%RALVDCP, RALSDCP=>YDTHF%RALSDCP, RTICE=>YDTHF%RTICE, RVTMP2=>YDTHF%RVTMP2)
 
 !IF (LHOOK) CALL DR_HOOK('CLOUDSC2',0,ZHOOK_HANDLE)
 

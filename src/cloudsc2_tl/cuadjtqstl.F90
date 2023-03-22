@@ -75,11 +75,6 @@ SUBROUTINE CUADJTQSTL &
 USE PARKIND1  ,ONLY : JPIM     ,JPRB
 !USE YOMHOOK   ,ONLY : LHOOK,   DR_HOOK
 
- USE YOMCST   , ONLY : RETV     ,RLVTT    ,RLSTT    ,RTT
-!USE YOETHF   , ONLY : R2ES     ,R3LES    ,R3IES    ,R4LES    ,&
-! & R4IES    ,R5LES    ,R5IES    ,R5ALVCP  ,R5ALSCP  ,&
-! & RALVDCP  ,RALSDCP  ,RTWAT    ,RTICE    ,RTICECU  ,&
-! & RTWAT_RTICE_R      ,RTWAT_RTICECU_R  
 USE YOMCST   , ONLY : TOMCST
 USE YOETHF   , ONLY : TOETHF
 
@@ -122,29 +117,10 @@ TYPE(TOETHF)      ,INTENT(IN) :: YDTHF
 
 !DIR$ VFUNCTION EXPHF
 #include "fcttre.ycst.h"
-ASSOCIATE(   R2ES=>YDTHF%R2ES   , &
-            R3LES=>YDTHF%R3LES  , &
-            R3IES=>YDTHF%R3IES  , &
-            R4LES=>YDTHF%R4LES  , &
-            R4IES=>YDTHF%R4IES  , &
-            R5LES=>YDTHF%R5LES  , &
-            R5IES=>YDTHF%R5IES  , &
-          R5ALVCP=>YDTHF%R5ALVCP, &
-          R5ALSCP=>YDTHF%R5ALSCP, &
-          RALVDCP=>YDTHF%RALVDCP, &
-          RALSDCP=>YDTHF%RALSDCP, &
-            RTICE=>YDTHF%RTICE  , &
-          RTICECU=>YDTHF%RTICECU  , &
-    RTWAT_RTICE_R=>YDTHF%RTWAT_RTICE_R, &
-  RTWAT_RTICECU_R=>YDTHF%RTWAT_RTICECU_R)
-          !  RETV=>YDCST%RETV  , &
-          !    RG=>YDCST%RG    , &
-          !  RCPD=>YDCST%RCPD  , &
-          ! RLVTT=>YDCST%RLVTT , &
-          ! RLSTT=>YDCST%RLSTT , &
-          ! RLMLT=>YDCST%RLMLT , &
-          !   RTT=>YDCST%RTT   , &
-          !    RD=>YDCST%RD    , &
+ASSOCIATE( RETV=>YDCST%RETV, RTT=>YDCST%RTT, R2ES=>YDTHF%R2ES, &
+R3LES=>YDTHF%R3LES, R3IES=>YDTHF%R3IES, R4LES=>YDTHF%R4LES, &
+R4IES=>YDTHF%R4IES, R5ALVCP=>YDTHF%R5ALVCP, R5ALSCP=>YDTHF%R5ALSCP, &
+RALVDCP=>YDTHF%RALVDCP, RALSDCP=>YDTHF%RALSDCP)
 !----------------------------------------------------------------------
 
 !     1.           DEFINE CONSTANTS
