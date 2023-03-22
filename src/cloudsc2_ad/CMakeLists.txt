@@ -33,4 +33,11 @@ if( HAVE_CLOUDSC2_AD )
     execute_process(COMMAND ${CMAKE_COMMAND} -E create_symlink
       ${CMAKE_CURRENT_SOURCE_DIR}/../../config-files/reference.h5 ${CMAKE_CURRENT_BINARY_DIR}/../../../reference.h5 )
 
+    ecbuild_add_test(
+        TARGET dwarf-cloudsc2-ad
+        COMMAND bin/dwarf-cloudsc2-ad
+        ARGS
+        WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/../../..
+        OMP 1
+    )
 endif()
