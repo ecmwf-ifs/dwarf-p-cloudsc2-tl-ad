@@ -37,6 +37,8 @@ ecbuild_add_option( FEATURE OMP
 ecbuild_find_package( NAME HDF5 REQUIRED COMPONENTS Fortran )
 list(APPEND CLOUDSC_DEFINITIONS HAVE_HDF5 ${HDF5_Fortran_DEFINITIONS})
 
+ecbuild_find_package( NAME loki )
+
 # build executables
 add_subdirectory(src)
 

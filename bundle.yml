@@ -13,11 +13,22 @@ projects :
         version : develop
         bundle  : false
 
+    - loki :
+        git     : https://github.com/ecmwf-ifs/loki
+        version : main
+        optional: true
+        require : ecbuild
+        cmake   : >
+            LOKI_ENABLE_TESTS=OFF
+            LOKI_ENABLE_NO_INSTALL=ON
+
     - cloudsc-dwarf :
         # The CLOUDSC dwarf project with multiple implementations
         dir     : $PWD
         version : develop
         require : ecbuild
+
+
 
 options :
 
@@ -29,4 +40,11 @@ options :
         help  : Build the new Fortran version of CLOUDSC [ON|OFF]
         cmake : ENABLE_CLOUDSC_FORTRAN={{value}}
 
+    - with-loki :
+        help  : Enable Loki/CLAW source-to-source transformations
+        cmake : ENABLE_LOKI=ON
+
+    - loki-frontend :
+        help  : Frontend parser to use for Loki transformations
+        cmake : LOKI_FRONTEND={{value}}
 ...
