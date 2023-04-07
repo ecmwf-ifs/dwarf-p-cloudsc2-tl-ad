@@ -9,15 +9,25 @@ cmake : >
 projects :
 
     - ecbuild :
-        git     : ${BITBUCKET}/escape/ecbuild
-        version : develop
+        git     : https://github.com/ecmwf/ecbuild 
+        version : 3.7.0 
         bundle  : false
+
+    - loki :
+        git     : https://github.com/ecmwf-ifs/loki
+        version : main
+        optional: true
+        require : ecbuild
+        cmake   : >
+            LOKI_ENABLE_TESTS=OFF
+            LOKI_ENABLE_NO_INSTALL=ON
 
     - cloudsc-dwarf :
         # The CLOUDSC dwarf project with multiple implementations
         dir     : $PWD
         version : develop
-        require : ecbuild
+        require : ecbuild loki
+
 
 options :
 
@@ -31,9 +41,22 @@ options :
 
     - with-loki :
         help  : Enable Loki/CLAW source-to-source transformations
-        cmake : ENABLE_LOKI=ON
+        cmake : >
+            ENABLE_CLOUDSC_LOKI=ON
+            LOKI_ENABLE_NO_INSTALL=OFF
+
+    - cloudsc-loki :
+        help  : Build the optimized Loki-based GPU version CLOUDSC  [ON|OFF]
+        cmake : ENABLE_CLOUDSC_LOKI={{value}}
+
+    - without-loki-install :
+        help  : Skip installation of Loki (Requires Loki to be on the PATH)
+        cmake : >
+            LOKI_ENABLE_NO_INSTALL=ON
 
     - loki-frontend :
         help  : Frontend parser to use for Loki transformations
         cmake : LOKI_FRONTEND={{value}}
+
+
 ...
