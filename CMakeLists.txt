@@ -1,15 +1,15 @@
-###############################################################################
-# (C) Copyright 1996-2015 ECMWF.
-#
+# (C) Copyright 1988- ECMWF.
 # This software is licensed under the terms of the Apache Licence Version 2.0
 # which can be obtained at http://www.apache.org/licenses/LICENSE-2.0.
 # In applying this licence, ECMWF does not waive the privileges and immunities
 # granted to it by virtue of its status as an intergovernmental organisation
 # nor does it submit to any jurisdiction.
-###############################################################################
 
 # define minimum version of cmake required
-cmake_minimum_required( VERSION 3.12 FATAL_ERROR )
+cmake_minimum_required( VERSION 3.17 FATAL_ERROR )
+
+# Disable warnings about setting `ENABLE_ACC` variable for ecbuild_add_option
+cmake_policy( SET CMP0077 NEW )
 
 find_package( ecbuild REQUIRED )
 
@@ -17,41 +17,50 @@ find_package( ecbuild REQUIRED )
 project(dwarf-p-cloudsc2-tl-ad VERSION 1.0 LANGUAGES C Fortran )
 
 include( cmake/compat.cmake )
+if( CMAKE_Fortran_COMPILER_ID MATCHES "GNU")
+  ecbuild_add_fortran_flags("-ffree-line-length-none")
+  if( CMAKE_Fortran_COMPILER_VERSION VERSION_GREATER_EQUAL "10.0")
+    ecbuild_add_fortran_flags("-fallow-argument-mismatch")
+  endif()
+  if( CMAKE_Fortran_COMPILER_VERSION VERSION_LESS "11.0")
+    set( ENABLE_ACC OFF )
+  endif()
+endif()
+
+include( cloudsc_compile_options )
 
 ### OpenACC
 if( NOT DEFINED ENABLE_ACC OR ENABLE_ACC )
-    find_package( OpenACC COMPONENTS Fortran C )
-    # Ensure targets are available
-    if( OpenACC_Fortran_FOUND AND NOT TARGET OpenACC::OpenACC_Fortran )
-        ecbuild_critical( "OpenACC::OpenACC_Fortran should have been defined as a CMake target" )
-    endif()
-    if( OpenACC_C_FOUND AND NOT TARGET OpenACC::OpenACC_C )
-        ecbuild_critical( "OpenACC::OpenACC_C should have been defined as a CMake target" )
+    # Incredibly inconvenient: FindOpenACC does _not_ set OpenACC_FOUND, only
+    # the language-specific components OpenACC_Fortran_FOUND and OpenACC_C_FOUND.
+    # This means, even internally CMake considers OpenACC as not found.
+    # (See eg get_property(... GLOBAL PROPERTY PACKAGES_NOT_FOUND))
+    # Therefore, we search for OpenACC, set OpenACC_FOUND ourselves according to
+    # the result, and then, trigger a second find_package via ecbuild_add_option.
+    # This then conveniently takes the previously set OpenACC_FOUND into account
+    # and rectifies CMake's internal bookkeeping in the process.
+    find_package( OpenACC )
+    if( OpenACC_Fortran_FOUND AND OpenACC_C_FOUND )
+        set( OpenACC_FOUND ON )
     endif()
 endif()
 ecbuild_add_option( FEATURE ACC
     DESCRIPTION "OpenACC" DEFAULT ON
-    CONDITION OpenACC_C_FOUND OR OpenACC_Fortran_FOUND )
+    REQUIRED_PACKAGES "OpenACC" )
 
 
 ### OpenMP
-if( NOT DEFINED ENABLE_OMP OR ENABLE_OMP )
-    find_package( OpenMP COMPONENTS Fortran C )
-    # Ensure targets are available
-    if( OpenMP_Fortran_FOUND AND NOT TARGET OpenMP::OpenMP_Fortran )
-        ecbuild_critical( "OpenMP::OpenMP_Fortran should have been defined as a CMake target" )
-    endif()
-    if( OpenMP_C_FOUND AND NOT TARGET OpenMP::OpenMP_C )
-        ecbuild_critical( "OpenMP::OpenMP_C should have been defined as a CMake target" )
-    endif()
-endif()
 ecbuild_add_option( FEATURE OMP
     DESCRIPTION "OpenMP" DEFAULT ON
-    CONDITION OpenMP_C_FOUND AND OpenMP_Fortran_FOUND )
+    CONDITION OpenMP_C_FOUND AND OpenMP_Fortran_FOUND 
+    REQUIRED_PACKAGES "OpenMP COMPONENTS Fortran C" )
+include(features/OMP)
 
 # HDF5: This dwarf fully depends on HDF5 for input and reference data
 ecbuild_find_package( NAME HDF5 REQUIRED COMPONENTS Fortran )
 list(APPEND CLOUDSC_DEFINITIONS HAVE_HDF5 ${HDF5_Fortran_DEFINITIONS})
+
+ecbuild_find_package( NAME loki REQUIRED )
 
 # build executables
 add_subdirectory(src)
