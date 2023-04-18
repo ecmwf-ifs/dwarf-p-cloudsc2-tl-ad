@@ -64,6 +64,7 @@ if( HAVE_ACC )
     SOURCES ${CLOUDSC2_COMMON_SOURCES}
     TYPE STATIC
     DEFINITIONS ${CLOUDSC_DEFINITIONS}
+    DEPENDS cloudsc2-common-lib
   )
   target_include_directories( cloudsc2-common-lib-static PUBLIC $<INSTALL_INTERFACE:include> )
   target_include_directories( cloudsc2-common-lib-static PUBLIC $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>)
