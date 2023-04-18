@@ -43,7 +43,7 @@ CONTAINS
     REAL(KIND=JPRB),    INTENT(INOUT) :: PLUDE(:,:,:) ! Conv. detrained water
     REAL(KIND=JPRB),    INTENT(IN)    :: PMFU(:,:,:)  ! Conv. mass flux up
     REAL(KIND=JPRB),    INTENT(IN)    :: PMFD(:,:,:)  ! Conv. mass flux down
-    REAL(KIND=JPRB),    INTENT(IN)    :: PA(:,:,:)    ! Original Cloud fraction (t)
+    REAL(KIND=JPRB),    INTENT(INOUT) :: PA(:,:,:)    ! Original Cloud fraction (t)
     REAL(KIND=JPRB),    INTENT(IN)    :: PCLV(:,:,:,:) 
     REAL(KIND=JPRB),    INTENT(IN)    :: PSUPSAT(:,:,:)
     REAL(KIND=JPRB),    INTENT(INOUT) :: PCOVPTOT(:,:,:) ! Precip fraction
