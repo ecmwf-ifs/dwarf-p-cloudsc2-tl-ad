@@ -3,7 +3,6 @@ ecbuild_add_option( FEATURE CLOUDSC2_NL_LOKI DEFAULT ON
     DESCRIPTION "Build the Fortran CLOUDSC2 non-linear dwarf with Loki transformations"
 )
 
-=======
 function( cloudsc_xmod _TARGET )
 
     if( TARGET clawfc AND ${LOKI_FRONTEND} STREQUAL "omni" )

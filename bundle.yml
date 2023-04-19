@@ -29,8 +29,6 @@ projects :
         require : ecbuild loki
 
 
-
-
 options :
 
     - toolchain :
@@ -43,9 +41,6 @@ options :
 
     - with-loki :
         help  : Enable Loki/CLAW source-to-source transformations
-<<<<<<< HEAD
-        cmake : ENABLE_LOKI=ON
-=======
         cmake : >
             ENABLE_CLOUDSC_LOKI=ON
             LOKI_ENABLE_NO_INSTALL=OFF
@@ -58,14 +53,10 @@ options :
         help  : Skip installation of Loki (Requires Loki to be on the PATH)
         cmake : >
             LOKI_ENABLE_NO_INSTALL=ON
->>>>>>> af2e066bcc1d1246456b289e3ca1dfca3304ecaf
 
     - loki-frontend :
         help  : Frontend parser to use for Loki transformations
         cmake : LOKI_FRONTEND={{value}}
-<<<<<<< HEAD
-=======
 
 
->>>>>>> af2e066bcc1d1246456b289e3ca1dfca3304ecaf
 ...
