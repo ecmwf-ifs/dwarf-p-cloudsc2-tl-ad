@@ -87,7 +87,7 @@ if( HAVE_CLOUDSC2_NL_LOKI )
 	    loki-idem/cloudsc2.idem.F90
 	    loki-idem/satur.idem.F90
         LIBS
-            cloudsc-common-lib
+            cloudsc2-common-lib
         DEFINITIONS ${CLOUDSC_DEFINITIONS}
     )
 
@@ -106,43 +106,6 @@ if( HAVE_CLOUDSC2_NL_LOKI )
         WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/../../..
         OMP 4
         CONDITION HAVE_OMP
-    )
-
-    ####################################################
-    ##  SCA mode (Single Column Abstraction):         ##
-    ##   * Extract de-vectorized SCA format code      ##
-    ####################################################
-
-    cloudsc_xmod( loki-sca )
-
-    loki_transform_convert(
-        MODE sca FRONTEND ${LOKI_FRONTEND} CPP
-        CONFIG ${CMAKE_CURRENT_SOURCE_DIR}/cloudsc_loki.config
-        PATH ${CMAKE_CURRENT_SOURCE_DIR}
-        HEADERS ${COMMON_MODULE}/yomphyder.F90
-        INCLUDES ${COMMON_INCLUDE}
-        XMOD ${_TARGET_XMOD_DIR} ${XMOD_DIR}
-        OUTPATH ${CMAKE_CURRENT_BINARY_DIR}/loki-sca
-        OUTPUT loki-sca/cloudsc2.sca.F90 loki-sca/cloudsc_driver_loki_mod.sca.F90
-        DEPENDS cloudsc2.F90 cloudsc_driver_loki_mod.F90 ${_OMNI_DEPENDENCIES}
-    )
-
-    ecbuild_add_executable( TARGET dwarf-cloudsc2-nl-loki-sca
-        SOURCES
-            dwarf_cloudsc.F90
-            loki-sca/cloudsc_driver_loki_mod.sca.F90
-            loki-sca/cloudsc2.sca.F90
-        LIBS
-            cloudsc-common-lib
-        DEFINITIONS ${CLOUDSC_DEFINITIONS}
-    )
-
-    ecbuild_add_test(
-        TARGET dwarf-cloudsc2-nl-loki-sca-serial
-        COMMAND bin/dwarf-cloudsc2-nl-loki-sca
-        ARGS 1 100 16
-        WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/../../..
-        OMP 1
     )
 
     ####################################################
@@ -174,7 +137,7 @@ if( HAVE_CLOUDSC2_NL_LOKI )
 	    loki-scc/cloudsc2.scc.F90
 	    loki-scc/satur.scc.F90
         LIBS
-            cloudsc-common-lib
+            cloudsc2-common-lib
         DEFINITIONS ${CLOUDSC_DEFINITIONS}
     )
 
@@ -218,7 +181,7 @@ if( HAVE_CLOUDSC2_NL_LOKI )
             loki-scc-hoist/cloudsc_driver_loki_mod.scc_hoist.F90
             loki-scc-hoist/cloudsc2.scc_hoist.F90
         LIBS
-            cloudsc-common-lib
+            cloudsc2-common-lib
         DEFINITIONS ${CLOUDSC_DEFINITIONS}
     )
 

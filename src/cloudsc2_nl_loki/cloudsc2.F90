@@ -216,12 +216,12 @@ REAL(KIND=JPRB) :: ZSUPSAT
 REAL(KIND=JPRB) :: ZFAC1,ZFAC2,ZFAC3,ZFAC4 
 
 REAL(KIND=JPRB) :: ZEPS1,ZEPS2
+REAL(KIND=JPRB) :: Z2S, Z5ALCP, ZALDCP, ZCOND1, ZQP, ZTARG
 INTEGER(KIND=JPIM) :: IK,ICALL
 
 LOGICAL :: LLO1, LLO2, LLFLAG(KLON)
 !REAL(KIND=JPRB) :: ZHOOK_HANDLE
 
-#include "cuadjtqs.intfb.h"
 
 !     ------------------------------------------------------------------
 #include "fcttre.func.h"
