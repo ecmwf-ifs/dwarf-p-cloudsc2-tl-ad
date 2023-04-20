@@ -1,3 +1,5 @@
+MODULE SATUR_MOD
+CONTAINS
 ! Copyright (C) 2003- ECMWF
 !
 ! This software is licensed under the terms of the Apache Licence Version 2.0
@@ -142,3 +144,4 @@ ENDIF
 END ASSOCIATE
 !IF (LHOOK) CALL DR_HOOK('SATUR',1,ZHOOK_HANDLE)
 END SUBROUTINE SATUR
+END MODULE SATUR_MOD
