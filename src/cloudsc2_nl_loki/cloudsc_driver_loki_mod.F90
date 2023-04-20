@@ -14,10 +14,6 @@ MODULE CLOUDSC_DRIVER_MOD
   USE CLOUDSC_MPI_MOD, ONLY: NUMPROC, IRANK
   USE TIMER_MOD, ONLY : PERFORMANCE_TIMER, GET_THREAD_NUM
   USE EC_PMON_MOD, ONLY: EC_PMON
-  USE YOECLD, ONLY : TECLD, YRECLD
-  USE YOECLDP, ONLY : TECLDP, YRECLDP
-  USE YOEPHLI, ONLY : TEPHLI, YREPHLI
-  USE YOPHNC, ONLY : TPHNC, YRPHNC
 
   IMPLICIT NONE
 
@@ -30,12 +26,18 @@ CONTAINS
      & PLU,      PLUDE,    PMFU,     PMFD, &
      & PA,       PCLV,     PSUPSAT,&
      & PCOVPTOT, &
-     & PFPLSL,   PFPLSN,   PFHPSL,   PFHPSN &
-     & )
+     & PFPLSL,   PFPLSN,   PFHPSL,   PFHPSN, &
+     & YDCST, YDTHF, YHNC, YPHLI, YCLD, YCLDP)
     ! Driver routine that performans the parallel NPROMA-blocking and
     ! invokes the CLOUDSC2 kernel
 
     USE CLOUDSC2_MOD, ONLY: CLOUDSC2
+    USE YOMCST   , ONLY : TOMCST
+    USE YOETHF   , ONLY : TOETHF
+    USE YOPHNC   , ONLY : TPHNC
+    USE YOEPHLI  , ONLY : TEPHLI
+    USE YOECLD   , ONLY : TECLD
+    USE YOECLDP  , ONLY : TECLDP
 
     INTEGER(KIND=JPIM), INTENT(IN)    :: NUMOMP, NPROMA, NLEV, NGPTOT, NGPTOTG, NGPBLKS
     REAL(KIND=JPRB),    INTENT(IN)    :: PTSPHY       ! Physics timestep
@@ -60,10 +62,6 @@ CONTAINS
     REAL(KIND=JPRB),    INTENT(OUT)   :: PFHPSL(NPROMA,NLEV+1,NGPBLKS) ! Enthalpy flux for liq
     REAL(KIND=JPRB),    INTENT(OUT)   :: PFHPSN(NPROMA,NLEV+1,NGPBLKS) ! Enthalp flux for ice
 
-    TYPE(TECLD)  :: YRECLD_LOCAL
-    TYPE(TECLDP) :: YRECLDP_LOCAL
-    TYPE(TEPHLI) :: YREPHLI_LOCAL
-    TYPE(TPHNC)  :: YRPHNC_LOCAL
 
     INTEGER(KIND=JPIM) :: JKGLO,IBL,ICEND
 
@@ -73,7 +71,13 @@ CONTAINS
     INTEGER(KIND=JPIM) :: TID ! thread id from 0 .. NUMOMP - 1
     LOGICAL            :: LDRAIN1D = .FALSE.
     REAL(KIND=JPRB)    :: ZQSAT(NPROMA,NLEV) ! local array
-
+    TYPE(TOMCST)    :: YDCST
+    TYPE(TOETHF)    :: YDTHF
+    TYPE(TPHNC)     :: YHNC
+    TYPE(TEPHLI)    :: YPHLI
+    TYPE(TECLD)     :: YCLD
+    TYPE(TECLDP)    :: YCLDP
+#include "cloudsc2.intfb.h"
 #include "satur.intfb.h"
 
 ! 1003 format(5x,'NUMPROC=',i0', NUMOMP=',i0,', NGPTOTG=',i0,', NPROMA=',i0,', NGPBLKS=',i0)
@@ -83,12 +87,6 @@ CONTAINS
 
     ! Global timer for the parallel region
     CALL TIMER%START(NUMOMP)
-
-    ! Local timer for each thread
-    YRECLD_LOCAL = YRECLD
-    YRECLDP_LOCAL = YRECLDP
-    YREPHLI_LOCAL = YREPHLI
-    YRPHNC_LOCAL = YRPHNC
 
     !$acc data copyin( YRECLD_LOCAL, YRECLDP_LOCAL, YREPHLI_LOCAL, YRPHNC_LOCAL, &
     !$acc &   PT, PQ, BUFFER_CML, PAP, PAPH, PLU, PMFU, PMFD, PA, PCLV, PSUPSAT ) &
@@ -109,12 +107,11 @@ CONTAINS
 
          ! Fill in ZQSAT
          CALL SATUR (1, ICEND, NPROMA, 1, NLEV, .TRUE., &
-              & PAP(:,:,IBL), PT(:,:,IBL), ZQSAT(:,:), 2) 
+              & PAP(:,:,IBL), PT(:,:,IBL), ZQSAT(:,:), 2, YDCST , YDTHF) 
 
          CALL CLOUDSC2 ( &
-              & YRECLD_LOCAL, YRECLDP_LOCAL, YREPHLI_LOCAL, YRPHNC_LOCAL, &
               &  1, ICEND, NPROMA, 1, NLEV, LDRAIN1D, &
-              & PTSPHY, YRECLD_LOCAL%CETA, &
+              & PTSPHY, YCLD%CETA, &
               & PAPH(:,:,IBL),  PAP(:,:,IBL), &
               & PQ(:,:,IBL), ZQSAT(:,:), PT(:,:,IBL), &
               & PCLV(:,:,NCLDQL,IBL), PCLV(:,:,NCLDQI,IBL), &
@@ -125,7 +122,8 @@ CONTAINS
               & BUFFER_LOC(:,:,3+NCLDQI,IBL), BUFFER_CML(:,:,3+NCLDQI,IBL), &
               & PSUPSAT(:,:,IBL), &
               & PA(:,:,IBL), PFPLSL(:,:,IBL),   PFPLSN(:,:,IBL), &
-              & PFHPSL(:,:,IBL),   PFHPSN(:,:,IBL), PCOVPTOT(:,:,IBL))
+              & PFHPSL(:,:,IBL),   PFHPSN(:,:,IBL), PCOVPTOT(:,:,IBL), &
+              &  YDCST, YDTHF, YHNC, YPHLI, YCLD, YCLDP)
          
 #ifndef CLOUDSC_GPU_TIMING
          ! Log number of columns processed by this thread (OpenMP mode)
