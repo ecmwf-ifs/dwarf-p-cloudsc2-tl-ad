@@ -108,47 +108,47 @@ if( HAVE_CLOUDSC2_NL_LOKI )
         CONDITION HAVE_OMP
     )
 
-#   ####################################################
-#   ##  "Single Column Coalesced" (SCC) mode          ##
-#   ##   * Removes horizontal vector loops            ##
-#   ##   * Invokes compute kernel as `!$acc vector`   ##
-#   ####################################################
+    ####################################################
+    ##  "Single Column Coalesced" (SCC) mode          ##
+    ##   * Removes horizontal vector loops            ##
+    ##   * Invokes compute kernel as `!$acc vector`   ##
+    ####################################################
 
-#   cloudsc_xmod( loki-scc )
+    cloudsc_xmod( loki-scc )
 
-#   loki_transform_convert(
-#       MODE scc FRONTEND ${LOKI_FRONTEND} CPP
-#       CONFIG ${CMAKE_CURRENT_SOURCE_DIR}/cloudsc_loki.config
-#       PATH ${CMAKE_CURRENT_SOURCE_DIR}
-#       HEADERS ${COMMON_MODULE}/yomphyder.F90 ${COMMON_MODULE}/yoecldp.F90
-#       INCLUDES ${COMMON_INCLUDE}
-#       DEFINITIONS CLOUDSC_GPU_TIMING ${CLOUDSC_DEFINE_STMT_FUNC}
-#       DATA_OFFLOAD REMOVE_OPENMP
-#       XMOD ${_TARGET_XMOD_DIR} ${XMOD_DIR}
-#       OUTPATH ${CMAKE_CURRENT_BINARY_DIR}/loki-scc
-#       OUTPUT loki-scc/satur.scc.F90 loki-scc/cloudsc2.scc.F90 loki-scc/cloudsc_driver_loki_mod.scc.F90
-#       DEPENDS satur.F90 cloudsc2.F90 cloudsc_driver_loki_mod.F90 ${_OMNI_DEPENDENCIES}
-#   )
+    loki_transform_convert(
+        MODE scc FRONTEND ${LOKI_FRONTEND} CPP
+        CONFIG ${CMAKE_CURRENT_SOURCE_DIR}/cloudsc_loki.config
+        PATH ${CMAKE_CURRENT_SOURCE_DIR}
+        HEADERS ${COMMON_MODULE}/yomphyder.F90 ${COMMON_MODULE}/yoecldp.F90
+        INCLUDES ${COMMON_INCLUDE}
+        DEFINITIONS CLOUDSC_GPU_TIMING ${CLOUDSC_DEFINE_STMT_FUNC}
+        DATA_OFFLOAD REMOVE_OPENMP
+        XMOD ${_TARGET_XMOD_DIR} ${XMOD_DIR}
+        OUTPATH ${CMAKE_CURRENT_BINARY_DIR}/loki-scc
+        OUTPUT loki-scc/satur.scc.F90 loki-scc/cloudsc2.scc.F90 loki-scc/cloudsc_driver_loki_mod.scc.F90
+        DEPENDS satur.F90 cloudsc2.F90 cloudsc_driver_loki_mod.F90 ${_OMNI_DEPENDENCIES}
+    )
 
-#   ecbuild_add_executable( TARGET dwarf-cloudsc2-nl-loki-scc
-#       SOURCES
-#           dwarf_cloudsc.F90
-#           loki-scc/cloudsc_driver_loki_mod.scc.F90
-#           loki-scc/cloudsc2.scc.F90
-#           loki-scc/satur.scc.F90
-#       LIBS
-#           cloudsc2-common-lib
-#       DEFINITIONS ${CLOUDSC_DEFINITIONS}
-#   )
+    ecbuild_add_executable( TARGET dwarf-cloudsc2-nl-loki-scc
+        SOURCES
+            dwarf_cloudsc.F90
+            loki-scc/cloudsc_driver_loki_mod.scc.F90
+            loki-scc/cloudsc2.scc.F90
+            loki-scc/satur.scc.F90
+        LIBS
+            cloudsc2-common-lib
+        DEFINITIONS ${CLOUDSC_DEFINITIONS}
+    )
 
-#   ecbuild_add_test(
-#       TARGET dwarf-cloudsc2-nl--loki-scc-serial
-#       COMMAND bin/dwarf-cloudsc2-nl-loki-scc
-#       ARGS 1 1280 128
-#       WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/../../..
-#       OMP 1
-#       ENVIRONMENT "NVCOMPILER_ACC_CUDA_HEAPSIZE=64M"
-#   )
+    ecbuild_add_test(
+        TARGET dwarf-cloudsc2-nl--loki-scc-serial
+        COMMAND bin/dwarf-cloudsc2-nl-loki-scc
+        ARGS 1 1280 128
+        WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/../../..
+        OMP 1
+        ENVIRONMENT "NVCOMPILER_ACC_CUDA_HEAPSIZE=64M"
+    )
 
 #   ####################################################
 #   ##  SCC-hoist mode                                ##
