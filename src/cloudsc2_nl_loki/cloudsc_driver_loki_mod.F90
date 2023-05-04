@@ -110,11 +110,11 @@ CONTAINS
 
          ! Fill in ZQSAT
          CALL SATUR (1, ICEND, NPROMA, 1, NLEV, .TRUE., &
-              & PAP(:,:,IBL), PT(:,:,IBL), ZQSAT(:,:), 2, YDCST , YDTHF) 
+              & PAP(:,:,IBL), PT(:,:,IBL), ZQSAT(:,:), 2, LOCAL_YDCST ,LOCAL_YDTHF) 
 
          CALL CLOUDSC2 ( &
               &  1, ICEND, NPROMA, 1, NLEV, LDRAIN1D, &
-              & PTSPHY, YCLD%CETA, &
+              & PTSPHY,  LOCAL_YCLD%CETA, &
               & PAPH(:,:,IBL),  PAP(:,:,IBL), &
               & PQ(:,:,IBL), ZQSAT(:,:), PT(:,:,IBL), &
               & PCLV(:,:,NCLDQL,IBL), PCLV(:,:,NCLDQI,IBL), &
