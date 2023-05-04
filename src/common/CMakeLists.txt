@@ -27,62 +27,98 @@ list(APPEND CLOUDSC2_COMMON_SOURCES
 )
 
 
-ecbuild_add_library( TARGET cloudsc2-common-lib
-    SOURCES ${CLOUDSC2_COMMON_SOURCES}
-    DEFINITIONS ${CLOUDSC_DEFINITIONS}
-)
-target_include_directories( cloudsc2-common-lib PUBLIC $<INSTALL_INTERFACE:include> )
-target_include_directories( cloudsc2-common-lib PUBLIC $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>)
-target_include_directories( cloudsc2-common-lib PUBLIC $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}/module>)
-
-# We do all I/O via HDF% in this dwarf
-target_link_libraries( cloudsc2-common-lib PUBLIC HDF5::HDF5 )
-
-if( HAVE_OMP AND TARGET OpenMP::OpenMP_Fortran )
-    target_link_libraries( cloudsc2-common-lib PRIVATE OpenMP::OpenMP_Fortran )
-endif()
-
-if( HAVE_ACC AND TARGET OpenACC::OpenACC_Fortran )
-  target_link_libraries( cloudsc2-common-lib PRIVATE OpenACC::OpenACC_Fortran )
-endif()
-
-if( HAVE_MPI AND TARGET MPI::MPI_Fortran )
-    target_sources( cloudsc2-common-lib PRIVATE module/cloudsc_mpif.F90 )
-    target_link_libraries( cloudsc2-common-lib PRIVATE MPI::MPI_Fortran )
-endif()
-
-
 if( HAVE_ACC )
-  # ========================================================================
-  # For OpenACC runs we can ensure global module variables from our utility
-  # modules are copied to devices via `!$acc declare copyin(<module_vars>)`
-  # However, this requries static linking as per this thread:
-  # https://www.pgroup.com/userforum/viewtopic.php?t=7296
-  # ========================================================================
-
-  ecbuild_add_library( TARGET cloudsc2-common-lib-static
-    SOURCES ${CLOUDSC2_COMMON_SOURCES}
-    TYPE STATIC
-    DEFINITIONS ${CLOUDSC_DEFINITIONS}
-    DEPENDS cloudsc2-common-lib
-  )
-  target_include_directories( cloudsc2-common-lib-static PUBLIC $<INSTALL_INTERFACE:include> )
-  target_include_directories( cloudsc2-common-lib-static PUBLIC $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>)
-  target_include_directories( cloudsc2-common-lib-static PUBLIC $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}/module>)
-
-  target_include_directories( cloudsc2-common-lib-static PUBLIC ${HDF5_Fortran_INCLUDE_DIRS} )
-  target_link_libraries( cloudsc2-common-lib-static PUBLIC ${HDF5_LIBRARIES} )
-
-  if( HAVE_OMP AND TARGET OpenMP::OpenMP_Fortran )
-    target_link_libraries( cloudsc2-common-lib-static PRIVATE OpenMP::OpenMP_Fortran )
-  endif()
-
-  if( HAVE_MPI AND TARGET MPI::MPI_Fortran )
-    target_sources( cloudsc2-common-lib-static PRIVATE module/cloudsc_mpif.F90 )
-    target_link_libraries( cloudsc2-common-lib-static PRIVATE MPI::MPI_Fortran )
-  endif()
-
-  if( HAVE_ACC AND TARGET OpenACC::OpenACC_Fortran )
-    target_link_libraries( cloudsc2-common-lib-static PRIVATE OpenACC::OpenACC_Fortran )
-  endif()
+    # ========================================================================
+    # For OpenACC runs we can ensure global module variables from our utility
+    # modules are copied to devices via `!$acc declare copyin(<module_vars>)`
+    # However, this requries static linking as per this thread:
+    # https://www.pgroup.com/userforum/viewtopic.php?t=7296
+    # ========================================================================
+    set( LIBRARY_TYPE STATIC )
+else()
+    set( LIBRARY_TYPE SHARED )
 endif()
+
+ecbuild_add_library( TARGET cloudsc2-common-lib
+    TYPE ${LIBRARY_TYPE}
+    DEFINITIONS
+        ${CLOUDSC_DEFINITIONS}
+    SOURCES
+        ${CLOUDSC2_COMMON_SOURCES}
+        $<${HAVE_MPI}:module/cloudsc_mpif.F90>
+        $<${HAVE_HDF5}:module/hdf5_file_mod.F90>
+    PRIVATE_INCLUDES
+        $<${HAVE_HDF5}:${HDF5_Fortran_INCLUDE_DIRS}>
+    PUBLIC_INCLUDES
+        $<INSTALL_INTERFACE:include>
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}/module>
+    PUBLIC_LIBS
+        $<${HAVE_ACC}:OpenACC::OpenACC_Fortran>
+        $<${HAVE_OMP}:OpenMP::OpenMP_Fortran>
+        $<${HAVE_MPI}:MPI::MPI_Fortran>
+        $<${HAVE_HDF5}:hdf5::hdf5_fortran>
+)
+
+
+
+
+##ecbuild_add_library( TARGET cloudsc2-common-lib
+##    SOURCES ${CLOUDSC2_COMMON_SOURCES}
+##    DEFINITIONS ${CLOUDSC_DEFINITIONS}
+##)
+##target_include_directories( cloudsc2-common-lib PUBLIC $<INSTALL_INTERFACE:include> )
+##target_include_directories( cloudsc2-common-lib PUBLIC $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>)
+##target_include_directories( cloudsc2-common-lib PUBLIC $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}/module>)
+##
+### We do all I/O via HDF% in this dwarf
+##target_link_libraries( cloudsc2-common-lib PUBLIC HDF5::HDF5 )
+##
+##if( HAVE_OMP AND TARGET OpenMP::OpenMP_Fortran )
+##    target_link_libraries( cloudsc2-common-lib PRIVATE OpenMP::OpenMP_Fortran )
+##endif()
+##
+##if( HAVE_ACC AND TARGET OpenACC::OpenACC_Fortran )
+##  target_link_libraries( cloudsc2-common-lib PRIVATE OpenACC::OpenACC_Fortran )
+##endif()
+##
+##if( HAVE_MPI AND TARGET MPI::MPI_Fortran )
+##    target_sources( cloudsc2-common-lib PRIVATE module/cloudsc_mpif.F90 )
+##    target_link_libraries( cloudsc2-common-lib PRIVATE MPI::MPI_Fortran )
+##endif()
+##
+##
+##if( HAVE_ACC )
+##  # ========================================================================
+##  # For OpenACC runs we can ensure global module variables from our utility
+##  # modules are copied to devices via `!$acc declare copyin(<module_vars>)`
+##  # However, this requries static linking as per this thread:
+##  # https://www.pgroup.com/userforum/viewtopic.php?t=7296
+##  # ========================================================================
+##
+##  ecbuild_add_library( TARGET cloudsc2-common-lib-static
+##    SOURCES ${CLOUDSC2_COMMON_SOURCES}
+##    TYPE STATIC
+##    DEFINITIONS ${CLOUDSC_DEFINITIONS}
+##    DEPENDS cloudsc2-common-lib
+##  )
+##  target_include_directories( cloudsc2-common-lib-static PUBLIC $<INSTALL_INTERFACE:include> )
+##  target_include_directories( cloudsc2-common-lib-static PUBLIC $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>)
+##  target_include_directories( cloudsc2-common-lib-static PUBLIC $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}/module>)
+##
+##  target_include_directories( cloudsc2-common-lib-static PUBLIC ${HDF5_Fortran_INCLUDE_DIRS} )
+##  target_link_libraries( cloudsc2-common-lib-static PUBLIC ${HDF5_LIBRARIES} )
+##
+##  if( HAVE_OMP AND TARGET OpenMP::OpenMP_Fortran )
+##    target_link_libraries( cloudsc2-common-lib-static PRIVATE OpenMP::OpenMP_Fortran )
+##  endif()
+##
+##  if( HAVE_MPI AND TARGET MPI::MPI_Fortran )
+##    target_sources( cloudsc2-common-lib-static PRIVATE module/cloudsc_mpif.F90 )
+##    target_link_libraries( cloudsc2-common-lib-static PRIVATE MPI::MPI_Fortran )
+##  endif()
+##
+##  if( HAVE_ACC AND TARGET OpenACC::OpenACC_Fortran )
+##    target_link_libraries( cloudsc2-common-lib-static PRIVATE OpenACC::OpenACC_Fortran )
+##  endif()
+##endif()

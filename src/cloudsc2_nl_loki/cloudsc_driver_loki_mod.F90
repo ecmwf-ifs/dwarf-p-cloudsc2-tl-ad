@@ -72,12 +72,12 @@ CONTAINS
     INTEGER(KIND=JPIM) :: TID ! thread id from 0 .. NUMOMP - 1
     LOGICAL            :: LDRAIN1D = .FALSE.
     REAL(KIND=JPRB)    :: ZQSAT(NPROMA,NLEV) ! local array
-    TYPE(TOMCST)    :: YDCST
-    TYPE(TOETHF)    :: YDTHF
-    TYPE(TPHNC)     :: YHNC
-    TYPE(TEPHLI)    :: YPHLI
-    TYPE(TECLD)     :: YCLD
-    TYPE(TECLDP)    :: YCLDP
+    TYPE(TOMCST)    :: YDCST, LOCAL_YDCST
+    TYPE(TOETHF)    :: YDTHF, LOCAL_YDTHF
+    TYPE(TPHNC)     :: YHNC, LOCAL_YHNC
+    TYPE(TEPHLI)    :: YPHLI, LOCAL_YPHLI
+    TYPE(TECLD)     :: YCLD, LOCAL_YCLD
+    TYPE(TECLDP)    :: YCLDP, LOCAL_YCLDP
 !#include "cloudsc2loki.intfb.h"
 
 ! 1003 format(5x,'NUMPROC=',i0', NUMOMP=',i0,', NGPTOTG=',i0,', NPROMA=',i0,', NGPBLKS=',i0)
@@ -87,11 +87,14 @@ CONTAINS
 
     ! Global timer for the parallel region
     CALL TIMER%START(NUMOMP)
+    LOCAL_YDCST=YDCST
+    LOCAL_YDTHF=YDTHF
+    LOCAL_YHNC=YHNC
+    LOCAL_YPHLI=YPHLI
+    LOCAL_YCLD=YCLD
+    LOCAL_YCLDP=YCLDP
 
-    !$acc data copyin( YRECLD_LOCAL, YRECLDP_LOCAL, YREPHLI_LOCAL, YRPHNC_LOCAL, &
-    !$acc &   PT, PQ, BUFFER_CML, PAP, PAPH, PLU, PMFU, PMFD, PA, PCLV, PSUPSAT ) &
-    !$acc & copy( PLUDE, PCOVPTOT ) &
-    !$acc & copyout( BUFFER_LOC, PFPLSL, PFPLSN, PFHPSL, PFHPSN )
+  !$loki data
 
     TID = GET_THREAD_NUM()
     CALL TIMER%THREAD_START(TID)
@@ -123,7 +126,7 @@ CONTAINS
               & PSUPSAT(:,:,IBL), &
               & PA(:,:,IBL), PFPLSL(:,:,IBL),   PFPLSN(:,:,IBL), &
               & PFHPSL(:,:,IBL),   PFHPSN(:,:,IBL), PCOVPTOT(:,:,IBL), &
-              &  YDCST, YDTHF, YHNC, YPHLI, YCLD, YCLDP)
+              &  LOCAL_YDCST, LOCAL_YDTHF, LOCAL_YHNC, LOCAL_YPHLI, LOCAL_YCLD, LOCAL_YCLDP)
          
 #ifndef CLOUDSC_GPU_TIMING
          ! Log number of columns processed by this thread (OpenMP mode)
@@ -133,7 +136,6 @@ CONTAINS
 
       CALL TIMER%THREAD_END(TID)
 
-      !$acc end data
 
       CALL TIMER%END()
 

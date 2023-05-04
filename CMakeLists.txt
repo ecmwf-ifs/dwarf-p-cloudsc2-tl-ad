@@ -52,13 +52,25 @@ ecbuild_add_option( FEATURE ACC
 ### OpenMP
 ecbuild_add_option( FEATURE OMP
     DESCRIPTION "OpenMP" DEFAULT ON
-    CONDITION OpenMP_C_FOUND AND OpenMP_Fortran_FOUND 
     REQUIRED_PACKAGES "OpenMP COMPONENTS Fortran C" )
 include(features/OMP)
 
-# HDF5: This dwarf fully depends on HDF5 for input and reference data
-ecbuild_find_package( NAME HDF5 REQUIRED COMPONENTS Fortran )
-list(APPEND CLOUDSC_DEFINITIONS HAVE_HDF5 ${HDF5_Fortran_DEFINITIONS})
+### MPI
+ecbuild_add_option( FEATURE MPI
+    DESCRIPTION "MPI" DEFAULT OFF
+    REQUIRED_PACKAGES "MPI COMPONENTS Fortran" )
+if( HAVE_MPI )
+    list(APPEND CLOUDSC_DEFINITIONS HAVE_MPI )
+endif()
+
+### HDF5
+ecbuild_add_option( FEATURE HDF5
+    DESCRIPTION "Use HDF5 to read input and reference data"
+    REQUIRED_PACKAGES "HDF5 COMPONENTS Fortran"
+    DEFAULT ON )
+if( HAVE_HDF5 )
+    list(APPEND CLOUDSC_DEFINITIONS HAVE_HDF5 )
+endif()
 
 ecbuild_find_package( NAME loki REQUIRED )
 
