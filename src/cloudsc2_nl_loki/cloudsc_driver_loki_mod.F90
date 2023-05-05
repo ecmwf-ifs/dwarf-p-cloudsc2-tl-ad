@@ -85,15 +85,15 @@ CONTAINS
     !   write(0,1003) NUMPROC,NUMOMP,NGPTOTG,NPROMA,NGPBLKS
     ! end if
 
-    ! Global timer for the parallel region
-    CALL TIMER%START(NUMOMP)
     LOCAL_YDCST=YDCST
     LOCAL_YDTHF=YDTHF
     LOCAL_YHNC=YHNC
     LOCAL_YPHLI=YPHLI
     LOCAL_YCLD=YCLD
     LOCAL_YCLDP=YCLDP
-
+    IF(.NOT. ALLOCATED(LOCAL_YCLD%CETA)) ALLOCATE (LOCAL_YCLD%CETA(NLEV))
+    ! Global timer for the parallel region
+    CALL TIMER%START(NUMOMP)
   !$loki data
 
     TID = GET_THREAD_NUM()
@@ -114,7 +114,7 @@ CONTAINS
 
          CALL CLOUDSC2 ( &
               &  1, ICEND, NPROMA, 1, NLEV, LDRAIN1D, &
-              & PTSPHY,  LOCAL_YCLD%CETA, &
+              & PTSPHY,  & !LOCAL_YCLD%CETA, &
               & PAPH(:,:,IBL),  PAP(:,:,IBL), &
               & PQ(:,:,IBL), ZQSAT(:,:), PT(:,:,IBL), &
               & PCLV(:,:,NCLDQL,IBL), PCLV(:,:,NCLDQI,IBL), &
