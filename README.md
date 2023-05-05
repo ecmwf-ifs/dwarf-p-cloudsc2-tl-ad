@@ -37,10 +37,17 @@ install the bundle via:
 ./cloudsc-bundle build [--build-type=debug|bit|release] [--arch=$PWD/arch/ecmwf/machine/compiler/version/env.sh]
 ```
 ## Loki variant build
-At the moment, Loki variant cannot be compiled with GNU compiler. On ATOS HPC, Loki variant may be built using
+At the moment, Loki variant cannot be compiled with GNU 11 compiler due to the internal compiler error. On ATOS HPC, Loki variant may be built using
 ```
+./cloudsc-bundle build --clean --with-loki --loki-frontend=fp --arch=./arch/ecmwf/hpc2020/gnu/9.3.0/
 ./cloudsc-bundle build --with-loki --loki-frontend=fp --clean --arch=./arch/ecmwf/hpc2020/intel/2021.4.0
 ```
+Targetting GPU, one should use:
+```
+ ./cloudsc-bundle build --with-gpu --with-loki --loki-frontend=fp --arch=./arch/ecmwf/hpc2020/nvhpc/22.1 
+```
+NVHPC will not build Loki variant with --build-type=debug due to the compiler error. Possibly, look into the compiler flags is needed here.
+
 ## Example usage and verification
 
 Following the build, please run the following to set up the environment:
