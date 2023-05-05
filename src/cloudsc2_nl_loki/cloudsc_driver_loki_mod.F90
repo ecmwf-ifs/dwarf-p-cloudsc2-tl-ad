@@ -27,7 +27,7 @@ CONTAINS
      & PA,       PCLV,     PSUPSAT,&
      & PCOVPTOT, &
      & PFPLSL,   PFPLSN,   PFHPSL,   PFHPSN, &
-     & YDCST, YDTHF, YHNC, YPHLI, YCLD, YCLDP)
+     & YDCST, YDTHF, YHNC, YPHLI, YCLD, YCLDP, LCETA)
     ! Driver routine that performans the parallel NPROMA-blocking and
     ! invokes the CLOUDSC2 kernel
 
@@ -42,6 +42,7 @@ CONTAINS
 
     INTEGER(KIND=JPIM), INTENT(IN)    :: NUMOMP, NPROMA, NLEV, NGPTOT, NGPTOTG, NGPBLKS
     REAL(KIND=JPRB),    INTENT(IN)    :: PTSPHY       ! Physics timestep
+    REAL(KIND=JPRB),    INTENT(IN)    :: LCETA(NLEV) 
     REAL(KIND=JPRB),    INTENT(IN)    :: PT(NPROMA,NLEV,NGPBLKS)    ! T at start of callpar
     REAL(KIND=JPRB),    INTENT(IN)    :: PQ(NPROMA,NLEV,NGPBLKS)    ! Q at start of callpar
     TYPE(STATE_TYPE),   INTENT(IN)    :: TENDENCY_CML(NGPBLKS) ! cumulative tendency used for final output
@@ -114,7 +115,7 @@ CONTAINS
 
          CALL CLOUDSC2 ( &
               &  1, ICEND, NPROMA, 1, NLEV, LDRAIN1D, &
-              & PTSPHY,  & !LOCAL_YCLD%CETA, &
+              & PTSPHY,  LCETA, &
               & PAPH(:,:,IBL),  PAP(:,:,IBL), &
               & PQ(:,:,IBL), ZQSAT(:,:), PT(:,:,IBL), &
               & PCLV(:,:,NCLDQL,IBL), PCLV(:,:,NCLDQI,IBL), &
