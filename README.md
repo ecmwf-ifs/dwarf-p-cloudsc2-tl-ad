@@ -61,3 +61,15 @@ Verify the correctness of the adjoint, please run:
 ./bin/dwarf-cloudsc2-ad 1 100 100
 ```
 _Note that this is not yet ready for performance evaluation._
+
+## Performance
+ATOS node was allocated with:
+```sh
+   export OMP_NUM_THREADS=64
+   OMP_PLACES="{$(seq -s '},{' 0 $(($OMP_NUM_THREADS-1)) )}" srun -q np --ntasks=1 --hint=nomultithread --cpus-per-task=$OMP_NUM_THREADS --pty /bin/bash
+```
+Command:
+```./bin/dwarf-cloudsc2-nl $OMP_NUM_THREADS 163840 32```
+Current performance on gcc/11.2.0:  76 MFlops/s
+Current performance on intel/2021.4.0: 94k MFlops/s
+ 

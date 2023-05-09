@@ -26,10 +26,17 @@ CONTAINS
      & PLU,      PLUDE,    PMFU,     PMFD, &
      & PA,       PCLV,     PSUPSAT,&
      & PCOVPTOT, &
-     & PFPLSL,   PFPLSN,   PFHPSL,   PFHPSN &
-     & )
-    ! Driver routine that performans the parallel NPROMA-blocking and
+     & PFPLSL,   PFPLSN,   PFHPSL,   PFHPSN, &
+     & YDCST, YDTHF, YHNC, YPHLI, YCLD, YCLDP)
+    ! Driver routine that performs the parallel NPROMA-blocking and
     ! invokes the CLOUDSC2 kernel
+
+    USE YOMCST   , ONLY : TOMCST
+    USE YOETHF   , ONLY : TOETHF
+    USE YOPHNC   , ONLY : TPHNC
+    USE YOEPHLI  , ONLY : TEPHLI
+    USE YOECLD   , ONLY : TECLD
+    USE YOECLDP  , ONLY : TECLDP
 
     INTEGER(KIND=JPIM), INTENT(IN)    :: NUMOMP, NPROMA, NLEV, NGPTOT, NGPTOTG
     REAL(KIND=JPRB),    INTENT(IN)    :: PTSPHY       ! Physics timestep
@@ -61,6 +68,13 @@ CONTAINS
     LOGICAL            :: LDRAIN1D = .FALSE.
     REAL(KIND=JPRB)    :: ZQSAT(NPROMA,NLEV) ! local array
 
+    TYPE(TOMCST)    :: YDCST
+    TYPE(TOETHF)    :: YDTHF
+    TYPE(TPHNC)     :: YHNC
+    TYPE(TEPHLI)    :: YPHLI
+    TYPE(TECLD)     :: YCLD
+    TYPE(TECLDP)    :: YCLDP
+
     NGPBLKS = (NGPTOT / NPROMA) + MIN(MOD(NGPTOT,NPROMA), 1)
 1003 format(5x,'NUMPROC=',i0', NUMOMP=',i0,', NGPTOTG=',i0,', NPROMA=',i0,', NGPBLKS=',i0)
     if (irank == 0) then
@@ -89,7 +103,7 @@ CONTAINS
 
          ! Fill in ZQSAT
          CALL SATUR (1, ICEND, NPROMA, 1, NLEV, .TRUE., &
-              & PAP(:,:,IBL), PT(:,:,IBL), ZQSAT(:,:), 2) 
+              & PAP(:,:,IBL), PT(:,:,IBL), ZQSAT(:,:), 2, YDCST, YDTHF) 
 
          CALL CLOUDSC2 ( &
               &  1, ICEND, NPROMA, 1, NLEV, LDRAIN1D, &
@@ -104,7 +118,8 @@ CONTAINS
               &  TENDENCY_LOC(IBL)%CLD(:,:,NCLDQI), TENDENCY_CML(IBL)%CLD(:,:,NCLDQI), &
               &  PSUPSAT(:,:,IBL), &
               &  PA(:,:,IBL), PFPLSL(:,:,IBL),   PFPLSN(:,:,IBL), &
-              &  PFHPSL(:,:,IBL),   PFHPSN(:,:,IBL), PCOVPTOT(:,:,IBL))
+              &  PFHPSL(:,:,IBL),   PFHPSN(:,:,IBL), PCOVPTOT(:,:,IBL), &
+              &  YDCST, YDTHF, YHNC, YPHLI, YCLD, YCLDP)
 
          ! Log number of columns processed by this thread
          CALL TIMER%THREAD_LOG(TID, IGPC=ICEND)
