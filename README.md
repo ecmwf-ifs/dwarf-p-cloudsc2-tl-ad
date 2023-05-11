@@ -25,7 +25,7 @@ See [LICENSE](LICENSE) file for details.
 - **dwarf-cloudsc2-tl**: Tangent linear version of CLOUDSC2 that performs a Taylor
   test to validate the TL code.
 - **dwarf-cloudsc2-ad**: Adjoint test of CLOUDSC2 that validates adjoint symmetry.
-- **dwarf-cloudsc2-nl-loki**: Experimental version of Loki port of CLOUDSC2
+- **dwarf-cloudsc2-nl-loki**: Experimental version of Loki port of CLOUDSC2 NL
 
 ## Download and Installation
 

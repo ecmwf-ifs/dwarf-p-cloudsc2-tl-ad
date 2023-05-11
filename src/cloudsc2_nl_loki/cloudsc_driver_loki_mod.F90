@@ -87,11 +87,7 @@ CONTAINS
 
     ! Global timer for the parallel region
     CALL TIMER%START(NUMOMP)
-
-    !$acc data copyin( YRECLD_LOCAL, YRECLDP_LOCAL, YREPHLI_LOCAL, YRPHNC_LOCAL, &
-    !$acc &   PT, PQ, BUFFER_CML, PAP, PAPH, PLU, PMFU, PMFD, PA, PCLV, PSUPSAT ) &
-    !$acc & copy( PLUDE, PCOVPTOT ) &
-    !$acc & copyout( BUFFER_LOC, PFPLSL, PFPLSN, PFHPSL, PFHPSN )
+  !$loki data
 
     TID = GET_THREAD_NUM()
     CALL TIMER%THREAD_START(TID)
@@ -132,8 +128,6 @@ CONTAINS
       ENDDO
 
       CALL TIMER%THREAD_END(TID)
-
-      !$acc end data
 
       CALL TIMER%END()
 
