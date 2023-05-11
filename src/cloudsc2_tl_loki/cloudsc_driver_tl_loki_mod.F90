@@ -18,21 +18,9 @@ MODULE CLOUDSC_DRIVER_TL_MOD
 
 CONTAINS
 
-  SUBROUTINE ERROR_NORM(NLON, FIELD, PERT5, PERT, ZNORM, ZCOUNT, ZLAMBDA)
-    INTEGER(KIND=JPIM), INTENT(IN) :: NLON
-    REAL(KIND=JPRB), INTENT(IN) :: FIELD(:,:), PERT5(:,:), PERT(:,:)
-    REAL(KIND=JPRB), INTENT(IN) :: ZLAMBDA
-    REAL(KIND=JPRB), INTENT(INOUT) :: ZNORM, ZCOUNT
-
-    IF (ABS(SUM(PERT(1:NLON,:)*ZLAMBDA)) > EPSILON(ZLAMBDA) ) THEN
-      ZCOUNT = ZCOUNT + 1._JPRB
-      ZNORM = ZNORM + ABS(SUM(FIELD(1:NLON,:)-PERT5(1:NLON,:)) / SUM(PERT(1:NLON,:)*ZLAMBDA))
-    END IF
-  END SUBROUTINE ERROR_NORM
-
   SUBROUTINE CLOUDSC_DRIVER_TL( &
-     & NUMOMP, NPROMA, NLEV, NGPTOT, NGPTOTG, PTSPHY, &
-     & PT, PQ, TENDENCY_CML, TENDENCY_LOC, &
+     & NUMOMP, NPROMA, NLEV, NGPTOT, NGPTOTG, NGPBLKS, PTSPHY, &
+     & PT, PQ, BUFFER_CML, BUFFER_LOC, &
      & PAP,      PAPH, &
      & PLU,      PLUDE,    PMFU,     PMFD, &
      & PA,       PCLV,     PSUPSAT,&
@@ -42,6 +30,9 @@ CONTAINS
     ! Driver routine that performans the parallel NPROMA-blocking and
     ! invokes the CLOUDSC2 kernel
     USE CLOUDSC2_MOD, ONLY: CLOUDSC2
+    USE CLOUDSC2TL_MOD, ONLY: CLOUDSC2TL
+    USE SATUR_MOD, ONLY: SATUR 
+    USE ERROR_MOD, ONLY: ERROR_NORM 
     USE YOMCST   , ONLY : TOMCST
     USE YOETHF   , ONLY : TOETHF
     USE YOPHNC   , ONLY : TPHNC
@@ -50,29 +41,28 @@ CONTAINS
     USE YOECLDP  , ONLY : TECLDP
     USE YOMNCL   , ONLY : TNCL
 
-    INTEGER(KIND=JPIM), INTENT(IN)    :: NUMOMP, NPROMA, NLEV, NGPTOT, NGPTOTG
+    INTEGER(KIND=JPIM), INTENT(IN)    :: NUMOMP, NPROMA, NLEV, NGPTOT, NGPTOTG, NGPBLKS
     REAL(KIND=JPRB),    INTENT(IN)    :: PTSPHY       ! Physics timestep
     REAL(KIND=JPRB),    INTENT(IN)    :: LCETA(NLEV)
-    REAL(KIND=JPRB),    INTENT(IN)    :: PT(:,:,:)    ! T at start of callpar
-    REAL(KIND=JPRB),    INTENT(IN)    :: PQ(:,:,:)    ! Q at start of callpar
-    TYPE(STATE_TYPE),   INTENT(IN)    :: TENDENCY_CML(:) ! cumulative tendency used for final output
-    TYPE(STATE_TYPE),   INTENT(OUT)   :: TENDENCY_LOC(:) ! local tendency from cloud scheme
-    REAL(KIND=JPRB),    INTENT(IN)    :: PAP(:,:,:)   ! Pressure on full levels
-    REAL(KIND=JPRB),    INTENT(IN)    :: PAPH(:,:,:)  ! Pressure on half levels
-    REAL(KIND=JPRB),    INTENT(IN)    :: PLU(:,:,:)   ! Conv. condensate
-    REAL(KIND=JPRB),    INTENT(INOUT) :: PLUDE(:,:,:) ! Conv. detrained water
-    REAL(KIND=JPRB),    INTENT(IN)    :: PMFU(:,:,:)  ! Conv. mass flux up
-    REAL(KIND=JPRB),    INTENT(IN)    :: PMFD(:,:,:)  ! Conv. mass flux down
-    REAL(KIND=JPRB),    INTENT(INOUT)    :: PA(:,:,:)    ! Original Cloud fraction (t)
-    REAL(KIND=JPRB),    INTENT(IN)    :: PCLV(:,:,:,:) 
-    REAL(KIND=JPRB),    INTENT(IN)    :: PSUPSAT(:,:,:)
-    REAL(KIND=JPRB),    INTENT(INOUT) :: PCOVPTOT(:,:,:) ! Precip fraction
-    REAL(KIND=JPRB),    INTENT(OUT)   :: PFPLSL(:,:,:) ! liq+rain sedim flux
-    REAL(KIND=JPRB),    INTENT(OUT)   :: PFPLSN(:,:,:) ! ice+snow sedim flux
-    REAL(KIND=JPRB),    INTENT(OUT)   :: PFHPSL(:,:,:) ! Enthalpy flux for liq
-    REAL(KIND=JPRB),    INTENT(OUT)   :: PFHPSN(:,:,:) ! Enthalp flux for ice
-
-    INTEGER(KIND=JPIM) :: JKGLO,IBL,ICEND,NGPBLKS,ISTART,ITEST,INEGAT,ITEMPNEGAT
+    REAL(KIND=JPRB),    INTENT(IN)    :: PT(NPROMA,NLEV,NGPBLKS)    ! T at start of callpar
+    REAL(KIND=JPRB),    INTENT(IN)    :: PQ(NPROMA,NLEV,NGPBLKS)    ! Q at start of callpar
+    REAL(KIND=JPRB),    INTENT(IN)    :: BUFFER_CML(NPROMA,NLEV,3+NCLV,NGPBLKS) ! TENDENCY_CML storage buffer
+    REAL(KIND=JPRB),    INTENT(OUT)   :: BUFFER_LOC(NPROMA,NLEV,3+NCLV,NGPBLKS) ! TENDENCY_LOC storage buffer
+    REAL(KIND=JPRB),    INTENT(IN)    :: PAP(NPROMA,NLEV,NGPBLKS)   ! Pressure on full levels
+    REAL(KIND=JPRB),    INTENT(IN)    :: PAPH(NPROMA,NLEV+1,NGPBLKS)  ! Pressure on half levels
+    REAL(KIND=JPRB),    INTENT(IN)    :: PLU(NPROMA,NLEV,NGPBLKS)   ! Conv. condensate
+    REAL(KIND=JPRB),    INTENT(INOUT) :: PLUDE(NPROMA,NLEV,NGPBLKS) ! Conv. detrained water
+    REAL(KIND=JPRB),    INTENT(IN)    :: PMFU(NPROMA,NLEV,NGPBLKS)  ! Conv. mass flux up
+    REAL(KIND=JPRB),    INTENT(IN)    :: PMFD(NPROMA,NLEV,NGPBLKS)  ! Conv. mass flux down
+    REAL(KIND=JPRB),    INTENT(INOUT)  :: PA(NPROMA,NLEV,NGPBLKS)    ! Original Cloud fraction (t)
+    REAL(KIND=JPRB),    INTENT(IN)    :: PCLV(NPROMA,NLEV,NCLV,NGPBLKS)
+    REAL(KIND=JPRB),    INTENT(IN)    :: PSUPSAT(NPROMA,NLEV,NGPBLKS)
+    REAL(KIND=JPRB),    INTENT(INOUT) :: PCOVPTOT(NPROMA,NLEV,NGPBLKS) ! Precip fraction
+    REAL(KIND=JPRB),    INTENT(OUT)   :: PFPLSL(NPROMA,NLEV+1,NGPBLKS) ! liq+rain sedim flux
+    REAL(KIND=JPRB),    INTENT(OUT)   :: PFPLSN(NPROMA,NLEV+1,NGPBLKS) ! ice+snow sedim flux
+    REAL(KIND=JPRB),    INTENT(OUT)   :: PFHPSL(NPROMA,NLEV+1,NGPBLKS) ! Enthalpy flux for liq
+    REAL(KIND=JPRB),    INTENT(OUT)   :: PFHPSN(NPROMA,NLEV+1,NGPBLKS) ! Enthalp flux for ice
+    INTEGER(KIND=JPIM) :: JKGLO,IBL,ICEND,ISTART,ITEST,INEGAT,ITEMPNEGAT
 
     TYPE(PERFORMANCE_TIMER) :: TIMER
     REAL(KIND=JPRD), PARAMETER :: ZHPM = 3996006.0_JPRD  ! The nominal number of flops per 100 columns
@@ -111,12 +101,6 @@ CONTAINS
     TYPE(TECLDP)    :: YCLDP, LOCAL_YCLDP
     TYPE(TNCL)      :: YNCL, LOCAL_YNCL
 
-    NGPBLKS = (NGPTOT / NPROMA) + MIN(MOD(NGPTOT,NPROMA), 1)
-1003 format(5x,'NUMPROC=',i0', NUMOMP=',i0,', NGPTOTG=',i0,', NPROMA=',i0,', NGPBLKS=',i0)
-    if (irank == 0) then
-      write(0,1003) NUMPROC,NUMOMP,NGPTOTG,NPROMA,NGPBLKS
-    end if
-
     LOCAL_YDCST=YDCST
     LOCAL_YDTHF=YDTHF
     LOCAL_YHNC=YHNC
@@ -130,31 +114,17 @@ CONTAINS
     
     ZNORMG(:)=0.
 
-    !$omp parallel default(shared) private(JKGLO,IBL,ICEND,TID) &
-    !$omp& private(ZQSAT) &
-    !$omp& private(ILAM,ZLAMBDA,ZCOUNT,ZNORM) &
-    !$omp& private(ZAPH,ZAP,ZQ,ZZQSAT,ZT,ZL,ZI,ZLUDE,ZLU,ZMFU,ZMFD) &
-    !$omp& private(ZTENI_T,ZTENI_Q,ZTENI_L,ZTENI_I, ZSUPSAT) &
-    !$omp& private(ZTENO_T,ZTENO_Q,ZTENO_L,ZTENO_I) &
-    !$omp& private(ZCLC,ZFPLSL,ZFPLSN,ZFHPSL,ZFHPSN,ZCOVPTOT) &
-    !$omp& private(PAPH5,PAP5,PQ5,ZQSAT5,PT5,PCLVL5,PCLVI5,PLUDE5,PLU5) &
-    !$omp& private(PMFU5,PMFD5,ZTENI_T5,ZTENI_Q5,ZTENI_L5,ZTENI_I5,PSUPSAT5) &
-    !$omp& private(ZTENO_T5,ZTENO_Q5,ZTENO_L5,ZTENO_I5,PA5) &
-    !$omp& private(PFPLSL5, PFPLSN5, PFHPSL5,PFHPSN5, PCOVPTOT5) &
-    !$omp& num_threads(NUMOMP)
-
     ! Local timer for each thread
     TID = GET_THREAD_NUM()
     CALL TIMER%THREAD_START(TID)
 
-    !$omp do schedule(runtime) reduction(max:znormg)
     DO JKGLO=1,NGPTOT,NPROMA
        IBL=(JKGLO-1)/NPROMA+1
        ICEND=MIN(NPROMA,NGPTOT-JKGLO+1)
 
          !-- These were uninitialized : meaningful only when we compare error differences
          PCOVPTOT(:,:,IBL) = 0.0_JPRB
-         TENDENCY_LOC(IBL)%cld(:,:,NCLV) = 0.0_JPRB
+!        TENDENCY_LOC(IBL)%cld(:,:,NCLV) = 0.0_JPRB
 
          ! Fill in ZQSAT
          CALL SATUR (1, ICEND, NPROMA, 1, NLEV, .TRUE., &
@@ -167,10 +137,10 @@ CONTAINS
               & PQ(:,:,IBL), ZQSAT(:,:), PT(:,:,IBL), &
               & PCLV(:,:,NCLDQL,IBL), PCLV(:,:,NCLDQI,IBL), &
               & PLUDE(:,:,IBL), PLU(:,:,IBL), PMFU(:,:,IBL), PMFD(:,:,IBL),&
-              &  TENDENCY_LOC(IBL)%T, TENDENCY_CML(IBL)%T, &
-              &  TENDENCY_LOC(IBL)%Q, TENDENCY_CML(IBL)%Q, &
-              &  TENDENCY_LOC(IBL)%CLD(:,:,NCLDQL), TENDENCY_CML(IBL)%CLD(:,:,NCLDQL), &
-              &  TENDENCY_LOC(IBL)%CLD(:,:,NCLDQI), TENDENCY_CML(IBL)%CLD(:,:,NCLDQI), &
+              & BUFFER_LOC(:,:,1,IBL), BUFFER_CML(:,:,1,IBL), &
+              & BUFFER_LOC(:,:,3,IBL), BUFFER_CML(:,:,3,IBL), &
+              & BUFFER_LOC(:,:,3+NCLDQL,IBL), BUFFER_CML(:,:,3+NCLDQL,IBL), &
+              & BUFFER_LOC(:,:,3+NCLDQI,IBL), BUFFER_CML(:,:,3+NCLDQI,IBL), &
               &  PSUPSAT(:,:,IBL), &
               &  PA(:,:,IBL), PFPLSL(:,:,IBL),   PFPLSN(:,:,IBL), &
               &  PFHPSL(:,:,IBL),   PFHPSN(:,:,IBL), PCOVPTOT(:,:,IBL), & 
@@ -190,24 +160,24 @@ CONTAINS
          ZLU     = PLU(:,:,IBL)*0.01_JPRB
          ZMFU    = PMFU(:,:,IBL)*0.01_JPRB
          ZMFD    = PMFD(:,:,IBL)*0.01_JPRB
-         ZTENI_T = TENDENCY_CML(IBL)%T*0.01_JPRB
-         ZTENI_Q = TENDENCY_CML(IBL)%Q*0.01_JPRB
-         ZTENI_L = TENDENCY_CML(IBL)%CLD(:,:,NCLDQL)*0.01_JPRB
-         ZTENI_I = TENDENCY_CML(IBL)%CLD(:,:,NCLDQI)*0.01_JPRB
+         ZTENI_T = BUFFER_CML(:,:,1,IBL)*0.01_JPRB
+         ZTENI_Q = BUFFER_CML(:,:,3,IBL)*0.01_JPRB
+         ZTENI_L = BUFFER_CML(:,:,3+NCLDQL,IBL)*0.01_JPRB
+         ZTENI_I = BUFFER_CML(:,:,3+NCLDQI,IBL)*0.01_JPRB
          ZSUPSAT = PSUPSAT(:,:,IBL)*0.01_JPRB
          ! Call TL
          CALL  CLOUDSC2TL ( &
             &  1, ICEND, NPROMA, 1, NLEV, LDRAIN1D, &
-            & PTSPHY,&
+            & PTSPHY,LCETA,&
             ! trajectory
             & PAPH(:,:,IBL),  PAP(:,:,IBL), &
             & PQ(:,:,IBL), ZQSAT(:,:), PT(:,:,IBL), &
             & PCLV(:,:,NCLDQL,IBL), PCLV(:,:,NCLDQI,IBL), &
             & PLUDE(:,:,IBL), PLU(:,:,IBL), PMFU(:,:,IBL), PMFD(:,:,IBL),&
-            & TENDENCY_LOC(IBL)%T, TENDENCY_CML(IBL)%T, &
-            & TENDENCY_LOC(IBL)%Q, TENDENCY_CML(IBL)%Q, &
-            & TENDENCY_LOC(IBL)%CLD(:,:,NCLDQL), TENDENCY_CML(IBL)%CLD(:,:,NCLDQL), &
-            & TENDENCY_LOC(IBL)%CLD(:,:,NCLDQI), TENDENCY_CML(IBL)%CLD(:,:,NCLDQI), &
+            & BUFFER_LOC(:,:,1,IBL), BUFFER_CML(:,:,1,IBL), &
+            & BUFFER_LOC(:,:,3,IBL), BUFFER_CML(:,:,3,IBL), &
+            & BUFFER_LOC(:,:,3+NCLDQL,IBL), BUFFER_CML(:,:,3+NCLDQL,IBL), &
+            & BUFFER_LOC(:,:,3+NCLDQI,IBL), BUFFER_CML(:,:,3+NCLDQI,IBL), &
             & PSUPSAT(:,:,IBL), &
             & PA(:,:,IBL), PFPLSL(:,:,IBL),   PFPLSN(:,:,IBL), &
             & PFHPSL(:,:,IBL),   PFHPSN(:,:,IBL), PCOVPTOT(:,:,IBL), &
@@ -235,10 +205,10 @@ CONTAINS
            PLU5(:,:)  = PLU(:,:,IBL)  + ZLAMBDA*ZLU(:,:)
            PMFU5(:,:) = PMFU(:,:,IBL) + ZLAMBDA*ZMFU(:,:)
            PMFD5(:,:) = PMFD(:,:,IBL) + ZLAMBDA*ZMFD(:,:)
-           ZTENI_T5(:,:)=TENDENCY_CML(IBL)%T(:,:) + ZLAMBDA*ZTENI_T(:,:)
-           ZTENI_Q5(:,:)=TENDENCY_CML(IBL)%Q(:,:) + ZLAMBDA*ZTENI_Q(:,:)
-           ZTENI_L5(:,:)=TENDENCY_CML(IBL)%CLD(:,:,NCLDQL) + ZLAMBDA*ZTENI_L(:,:)
-           ZTENI_I5(:,:)=TENDENCY_CML(IBL)%CLD(:,:,NCLDQI) + ZLAMBDA*ZTENI_I(:,:)
+           ZTENI_T5(:,:)=BUFFER_CML(:,:,1,IBL) + ZLAMBDA*ZTENI_T(:,:)
+           ZTENI_Q5(:,:)=BUFFER_CML(:,:,3,IBL) + ZLAMBDA*ZTENI_Q(:,:)
+           ZTENI_L5(:,:)=BUFFER_CML(:,:,3+NCLDQL,IBL) + ZLAMBDA*ZTENI_L(:,:)
+           ZTENI_I5(:,:)=BUFFER_CML(:,:,3+NCLDQI,IBL) + ZLAMBDA*ZTENI_I(:,:)
            PSUPSAT5(:,:)=PSUPSAT(:,:,IBL) + ZLAMBDA*ZSUPSAT(:,:)
            ! Call the NL code
            CALL CLOUDSC2 ( &
@@ -260,10 +230,10 @@ CONTAINS
            ! Compute final test norm
            ZCOUNT=0._JPRB
            ZNORM= 0._JPRB 
-           CALL ERROR_NORM(ICEND, TENDENCY_LOC(IBL)%T, ZTENO_T5, ZTENO_T, ZNORM, ZCOUNT, ZLAMBDA)
-           CALL ERROR_NORM(ICEND, TENDENCY_LOC(IBL)%Q, ZTENO_Q5, ZTENO_Q, ZNORM, ZCOUNT, ZLAMBDA)
-           CALL ERROR_NORM(ICEND, TENDENCY_LOC(IBL)%CLD(:,:,NCLDQL), ZTENO_L5, ZTENO_L, ZNORM, ZCOUNT, ZLAMBDA)
-           CALL ERROR_NORM(ICEND, TENDENCY_LOC(IBL)%CLD(:,:,NCLDQI), ZTENO_I5, ZTENO_I, ZNORM, ZCOUNT, ZLAMBDA)
+           CALL ERROR_NORM(ICEND, BUFFER_CML(:,:,1,IBL), ZTENO_T5, ZTENO_T, ZNORM, ZCOUNT, ZLAMBDA)
+           CALL ERROR_NORM(ICEND, BUFFER_CML(:,:,3,IBL), ZTENO_Q5, ZTENO_Q, ZNORM, ZCOUNT, ZLAMBDA)
+           CALL ERROR_NORM(ICEND, BUFFER_CML(:,:,3+NCLDQL,IBL), ZTENO_L5, ZTENO_L, ZNORM, ZCOUNT, ZLAMBDA)
+           CALL ERROR_NORM(ICEND, BUFFER_CML(:,:,3+NCLDQI,IBL), ZTENO_I5, ZTENO_I, ZNORM, ZCOUNT, ZLAMBDA)
            CALL ERROR_NORM(ICEND, PA(:,:,IBL), PA5, ZCLC, ZNORM, ZCOUNT, ZLAMBDA)
            CALL ERROR_NORM(ICEND, PFPLSL(:,:,IBL), PFPLSL5, ZFPLSL, ZNORM, ZCOUNT, ZLAMBDA)
            CALL ERROR_NORM(ICEND, PFPLSN(:,:,IBL), PFPLSN5, ZFPLSN, ZNORM, ZCOUNT, ZLAMBDA)
@@ -285,13 +255,7 @@ CONTAINS
          CALL TIMER%THREAD_LOG(TID, IGPC=ICEND)
       ENDDO
 
-      !-- The "nowait" is here to get correct local timings (tloc) per thread
-      !   i.e. we should not wait for slowest thread to finish before measuring tloc
-      !$omp end do nowait
-
       CALL TIMER%THREAD_END(TID)
-
-      !$omp end parallel
 
       CALL TIMER%END()
 
