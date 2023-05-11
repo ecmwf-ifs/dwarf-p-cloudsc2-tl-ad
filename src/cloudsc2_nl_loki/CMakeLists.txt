@@ -93,7 +93,7 @@ if( HAVE_CLOUDSC2_NL_LOKI )
         ARGS 1 1280 128
         WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/../../..
         OMP 1
-        ENVIRONMENT "NVCOMPILER_ACC_CUDA_HEAPSIZE=64M"
+        ENVIRONMENT NV_ACC_CUDA_HEAPSIZE=19G         
     )
 
     ####################################################
@@ -137,5 +137,6 @@ if( HAVE_CLOUDSC2_NL_LOKI )
         ARGS 1 1280 128
         WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/../../..
         OMP 1
+        ENVIRONMENT NV_ACC_CUDA_HEAPSIZE=19G         
     )
 endif()
