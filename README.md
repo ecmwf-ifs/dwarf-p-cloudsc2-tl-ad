@@ -40,8 +40,8 @@ install the bundle via:
 ## Loki variant build
 At the moment, Loki variant cannot be compiled with GNU 11 compiler due to the internal compiler error. On ATOS HPC, Loki variant may be built using
 ```
-./cloudsc-bundle build --clean --with-loki --loki-frontend=fp --arch=./arch/ecmwf/hpc2020/gnu/9.3.0/
-./cloudsc-bundle build --with-loki --loki-frontend=fp --clean --arch=./arch/ecmwf/hpc2020/intel/2021.4.0
+./cloudsc-bundle build --with-loki --loki-frontend=fp --arch=./arch/ecmwf/hpc2020/gnu/9.3.0/
+./cloudsc-bundle build --with-loki --loki-frontend=fp --arch=./arch/ecmwf/hpc2020/intel/2021.4.0
 ```
 Targetting GPU, one should use:
 ```
