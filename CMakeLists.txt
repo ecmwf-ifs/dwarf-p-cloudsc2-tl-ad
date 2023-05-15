@@ -72,7 +72,7 @@ if( HAVE_HDF5 )
     list(APPEND CLOUDSC_DEFINITIONS HAVE_HDF5 )
 endif()
 
-ecbuild_find_package( NAME loki REQUIRED )
+ecbuild_find_package( NAME loki )
 
 # build executables
 add_subdirectory(src)

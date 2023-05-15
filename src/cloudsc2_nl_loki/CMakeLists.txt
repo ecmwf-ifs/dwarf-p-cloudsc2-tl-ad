@@ -1,5 +1,5 @@
 # Define this dwarf variant as an ECBuild feature
-ecbuild_add_option( FEATURE CLOUDSC2_NL_LOKI DEFAULT ON
+ecbuild_add_option( FEATURE CLOUDSC2_NL_LOKI DEFAULT OFF
     DESCRIPTION "Build the Fortran CLOUDSC2 non-linear dwarf with Loki transformations"
 )
 

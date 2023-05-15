@@ -35,19 +35,11 @@ options :
         help  : Specify compiler options via supplied toolchain file
         cmake : CMAKE_TOOLCHAIN_FILE={{value}}
 
-    - cloudsc-fortran :
-        help  : Build the new Fortran version of CLOUDSC [ON|OFF]
-        cmake : ENABLE_CLOUDSC_FORTRAN={{value}}
-
     - with-loki :
         help  : Enable Loki/CLAW source-to-source transformations
         cmake : >
-            ENABLE_CLOUDSC_LOKI=ON
+            ENABLE_CLOUDSC2_NL_LOKI=ON
             LOKI_ENABLE_NO_INSTALL=OFF
-
-    - cloudsc-loki :
-        help  : Build the optimized Loki-based GPU version CLOUDSC  [ON|OFF]
-        cmake : ENABLE_CLOUDSC_LOKI={{value}}
 
     - without-loki-install :
         help  : Skip installation of Loki (Requires Loki to be on the PATH)
@@ -58,5 +50,12 @@ options :
         help  : Frontend parser to use for Loki transformations
         cmake : LOKI_FRONTEND={{value}}
 
+    - cloudsc-fortran :
+        help  : Build the new Fortran version of CLOUDSC [ON|OFF]
+        cmake : ENABLE_CLOUDSC_FORTRAN={{value}}
+
+    - cloudsc2-nl-loki :
+        help  : Build the optimized Loki-based GPU version CLOUDSC2-NL  [ON|OFF]
+        cmake : ENABLE_CLOUDSC2_NL_LOKI={{value}}
 
 ...
