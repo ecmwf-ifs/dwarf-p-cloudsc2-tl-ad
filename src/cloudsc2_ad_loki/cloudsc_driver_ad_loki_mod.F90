@@ -20,14 +20,14 @@ MODULE CLOUDSC_DRIVER_AD_MOD
 CONTAINS
 
   SUBROUTINE CLOUDSC_DRIVER_AD( &
-     & NUMOMP, NPROMA, NLEV, NGPTOT, NGPTOTG, PTSPHY, &
-     & PT, PQ, TENDENCY_CML, TENDENCY_LOC, &
+     & NUMOMP, NPROMA, NLEV, NGPTOT, NGPTOTG, NGPBLKS, PTSPHY, &
+     & PT, PQ, BUFFER_CML, BUFFER_LOC, &
      & PAP,      PAPH, &
      & PLU,      PLUDE,    PMFU,     PMFD, &
      & PA,       PCLV,     PSUPSAT,&
      & PCOVPTOT, &
      & PFPLSL,   PFPLSN,   PFHPSL,   PFHPSN, &
-     & YDCST, YDTHF, YHNC, YPHLI, YCLD, YCLDP, YNCL )
+     & YDCST, YDTHF, YHNC, YPHLI, YCLD, YCLDP, YNCL, LCETA )
     ! Driver routine that performans the parallel NPROMA-blocking and
     ! invokes the CLOUDSC2 kernel
     USE YOMNCL   , ONLY : TNCL
@@ -37,27 +37,31 @@ CONTAINS
     USE YOEPHLI  , ONLY : TEPHLI
     USE YOECLD   , ONLY : TECLD
     USE YOECLDP  , ONLY : TECLDP
+    USE CLOUDSC2AD_MOD, ONLY : CLOUDSC2AD
+    USE CLOUDSC2TL_MOD, ONLY : CLOUDSC2TL
+    USE SATUR_MOD, ONLY : SATUR 
 
     INTEGER(KIND=JPIM), INTENT(IN)    :: NUMOMP, NPROMA, NLEV, NGPTOT, NGPTOTG
     REAL(KIND=JPRB),    INTENT(IN)    :: PTSPHY       ! Physics timestep
-    REAL(KIND=JPRB),    INTENT(IN)    :: PT(:,:,:)    ! T at start of callpar
-    REAL(KIND=JPRB),    INTENT(IN)    :: PQ(:,:,:)    ! Q at start of callpar
-    TYPE(STATE_TYPE),   INTENT(IN)    :: TENDENCY_CML(:) ! cumulative tendency used for final output
-    TYPE(STATE_TYPE),   INTENT(OUT)   :: TENDENCY_LOC(:) ! local tendency from cloud scheme
-    REAL(KIND=JPRB),    INTENT(IN)    :: PAP(:,:,:)   ! Pressure on full levels
-    REAL(KIND=JPRB),    INTENT(IN)    :: PAPH(:,:,:)  ! Pressure on half levels
-    REAL(KIND=JPRB),    INTENT(IN)    :: PLU(:,:,:)   ! Conv. condensate
-    REAL(KIND=JPRB),    INTENT(INOUT) :: PLUDE(:,:,:) ! Conv. detrained water
-    REAL(KIND=JPRB),    INTENT(IN)    :: PMFU(:,:,:)  ! Conv. mass flux up
-    REAL(KIND=JPRB),    INTENT(IN)    :: PMFD(:,:,:)  ! Conv. mass flux down
-    REAL(KIND=JPRB),    INTENT(IN)    :: PA(:,:,:)    ! Original Cloud fraction (t)
-    REAL(KIND=JPRB),    INTENT(IN)    :: PCLV(:,:,:,:) 
-    REAL(KIND=JPRB),    INTENT(IN)    :: PSUPSAT(:,:,:)
-    REAL(KIND=JPRB),    INTENT(INOUT) :: PCOVPTOT(:,:,:) ! Precip fraction
-    REAL(KIND=JPRB),    INTENT(OUT)   :: PFPLSL(:,:,:) ! liq+rain sedim flux
-    REAL(KIND=JPRB),    INTENT(OUT)   :: PFPLSN(:,:,:) ! ice+snow sedim flux
-    REAL(KIND=JPRB),    INTENT(OUT)   :: PFHPSL(:,:,:) ! Enthalpy flux for liq
-    REAL(KIND=JPRB),    INTENT(OUT)   :: PFHPSN(:,:,:) ! Enthalp flux for ice
+    REAL(KIND=JPRB),    INTENT(IN)    :: LCETA(NLEV)
+    REAL(KIND=JPRB),    INTENT(IN)    :: PT(NPROMA,NLEV,NGPBLKS)    ! T at start of callpar
+    REAL(KIND=JPRB),    INTENT(IN)    :: PQ(NPROMA,NLEV,NGPBLKS)    ! Q at start of callpar
+    REAL(KIND=JPRB),    INTENT(INOUT) :: BUFFER_CML(NPROMA,NLEV,3+NCLV,NGPBLKS) ! TENDENCY_CML storage buffer
+    REAL(KIND=JPRB),    INTENT(INOUT) :: BUFFER_LOC(NPROMA,NLEV,3+NCLV,NGPBLKS) ! TENDENCY_LOC storage buffer
+    REAL(KIND=JPRB),    INTENT(IN)    :: PAP(NPROMA,NLEV,NGPBLKS)   ! Pressure on full levels
+    REAL(KIND=JPRB),    INTENT(IN)    :: PAPH(NPROMA,NLEV+1,NGPBLKS)  ! Pressure on half levels
+    REAL(KIND=JPRB),    INTENT(IN)    :: PLU(NPROMA,NLEV,NGPBLKS)   ! Conv. condensate
+    REAL(KIND=JPRB),    INTENT(INOUT) :: PLUDE(NPROMA,NLEV,NGPBLKS) ! Conv. detrained water
+    REAL(KIND=JPRB),    INTENT(IN)    :: PMFU(NPROMA,NLEV,NGPBLKS)  ! Conv. mass flux up
+    REAL(KIND=JPRB),    INTENT(IN)    :: PMFD(NPROMA,NLEV,NGPBLKS)  ! Conv. mass flux down
+    REAL(KIND=JPRB),    INTENT(INOUT)  :: PA(NPROMA,NLEV,NGPBLKS)    ! Original Cloud fraction (t)
+    REAL(KIND=JPRB),    INTENT(IN)    :: PCLV(NPROMA,NLEV,NCLV,NGPBLKS)
+    REAL(KIND=JPRB),    INTENT(IN)    :: PSUPSAT(NPROMA,NLEV,NGPBLKS)
+    REAL(KIND=JPRB),    INTENT(INOUT) :: PCOVPTOT(NPROMA,NLEV,NGPBLKS) ! Precip fraction
+    REAL(KIND=JPRB),    INTENT(OUT)   :: PFPLSL(NPROMA,NLEV+1,NGPBLKS) ! liq+rain sedim flux
+    REAL(KIND=JPRB),    INTENT(OUT)   :: PFPLSN(NPROMA,NLEV+1,NGPBLKS) ! ice+snow sedim flux
+    REAL(KIND=JPRB),    INTENT(OUT)   :: PFHPSL(NPROMA,NLEV+1,NGPBLKS) ! Enthalpy flux for liq
+    REAL(KIND=JPRB),    INTENT(OUT)   :: PFHPSN(NPROMA,NLEV+1,NGPBLKS) ! Enthalp flux for ice
 
     INTEGER(KIND=JPIM) :: JKGLO,IBL,JROF,ICEND,NGPBLKS
 
@@ -91,40 +95,27 @@ CONTAINS
     TYPE(TEPHLI)    :: YPHLI
     TYPE(TECLD)     :: YCLD
     TYPE(TECLDP)    :: YCLDP
-    NGPBLKS = (NGPTOT / NPROMA) + MIN(MOD(NGPTOT,NPROMA), 1)
-1003 format(5x,'NUMPROC=',i0', NUMOMP=',i0,', NGPTOTG=',i0,', NPROMA=',i0,', NGPBLKS=',i0)
-    if (irank == 0) then
-      write(0,1003) NUMPROC,NUMOMP,NGPTOTG,NPROMA,NGPBLKS
-    end if
+!1003 format(5x,'NUMPROC=',i0', NUMOMP=',i0,', NGPTOTG=',i0,', NPROMA=',i0,', NGPBLKS=',i0)
+!   if (irank == 0) then
+!     write(0,1003) NUMPROC,NUMOMP,NGPTOTG,NPROMA,NGPBLKS
+!   end if
 
     ! Global timer for the parallel region
     CALL TIMER%START(NUMOMP)
     
     ZNORMG=0._JPRB
 
-    !$omp parallel default(shared) private(JKGLO,IBL,JROF,ICEND,TID) &
-    !$omp& private(ZQSAT) &
-    !$omp& private(ZNORM1,ZNORM2,ZNORM3) &
-    !$omp& private(ZAPH,ZAP,ZQ,ZZQSAT,ZT,ZL,ZI,ZLUDE,ZLU,ZMFU,ZMFD) &
-    !$omp& private(ZTENI_T,ZTENI_Q,ZTENI_L,ZTENI_I,ZSUPSAT) &
-    !$omp& private(ZTENO_T,ZTENO_Q,ZTENO_L,ZTENO_I) &
-    !$omp& private(ZCLC,ZFPLSL,ZFPLSN,ZFHPSL,ZFHPSN,ZCOVPTOT) &
-    !$omp& private(ZAPH0,ZAP0,ZQ0,ZZQSAT0,ZT0,ZL0,ZI0,ZLUDE0,ZLU0,ZMFU0,ZMFD0) &
-    !$omp& private(ZTENI_T0,ZTENI_Q0,ZTENI_L0,ZTENI_I0,ZSUPSAT0) &
-    !$omp& num_threads(NUMOMP)
-
     ! Local timer for each thread
     TID = GET_THREAD_NUM()
     CALL TIMER%THREAD_START(TID)
 
-    !$omp do schedule(runtime) reduction(max:znormg)
     DO JKGLO=1,NGPTOT,NPROMA
        IBL=(JKGLO-1)/NPROMA+1
        ICEND=MIN(NPROMA,NGPTOT-JKGLO+1)
 
          !-- These were uninitialized : meaningful only when we compare error differences
          PCOVPTOT(:,:,IBL) = 0.0_JPRB
-         TENDENCY_LOC(IBL)%cld(:,:,NCLV) = 0.0_JPRB
+!        TENDENCY_LOC(IBL)%cld(:,:,NCLV) = 0.0_JPRB
 
          ! Fill in ZQSAT
          CALL SATUR (1, ICEND, NPROMA, 1, NLEV, .TRUE., &
@@ -145,10 +136,10 @@ CONTAINS
          ZLU     = PLU(:,:,IBL)*0.01_JPRB
          ZMFU    = PMFU(:,:,IBL)*0.01_JPRB
          ZMFD    = PMFD(:,:,IBL)*0.01_JPRB
-         ZTENI_T = TENDENCY_CML(IBL)%T*0.01_JPRB
-         ZTENI_Q = TENDENCY_CML(IBL)%Q*0.01_JPRB
-         ZTENI_L = TENDENCY_CML(IBL)%CLD(:,:,NCLDQL)*0.01_JPRB
-         ZTENI_I = TENDENCY_CML(IBL)%CLD(:,:,NCLDQI)*0.01_JPRB
+         ZTENI_T = BUFFER_CML(:,:,1,IBL)*0.01_JPRB
+         ZTENI_Q = BUFFER_CML(:,:,3,IBL)*0.01_JPRB
+         ZTENI_L = BUFFER_CML(:,:,3+NCLDQL,IBL)*0.01_JPRB
+         ZTENI_I = BUFFER_CML(:,:,3+NCLDQI,IBL)*0.01_JPRB
          ZSUPSAT = 0.00_JPRB  ! obsolette, beter not use
 
          ! Storage of initial increments
@@ -172,16 +163,16 @@ CONTAINS
          ! Tangent linear integration
          CALL  CLOUDSC2TL ( &
             &  1, ICEND, NPROMA, 1, NLEV, LDRAIN1D, &
-            & PTSPHY,&
+            & PTSPHY,LCETA, &
             ! trajectory
             & PAPH(:,:,IBL),  PAP(:,:,IBL), &
             & PQ(:,:,IBL), ZQSAT(:,:), PT(:,:,IBL), &
             & PCLV(:,:,NCLDQL,IBL), PCLV(:,:,NCLDQI,IBL), &
             & PLUDE(:,:,IBL), PLU(:,:,IBL), PMFU(:,:,IBL), PMFD(:,:,IBL),&
-            & TENDENCY_LOC(IBL)%T, TENDENCY_CML(IBL)%T, &
-            & TENDENCY_LOC(IBL)%Q, TENDENCY_CML(IBL)%Q, &
-            & TENDENCY_LOC(IBL)%CLD(:,:,NCLDQL), TENDENCY_CML(IBL)%CLD(:,:,NCLDQL), &
-            & TENDENCY_LOC(IBL)%CLD(:,:,NCLDQI), TENDENCY_CML(IBL)%CLD(:,:,NCLDQI), &
+            & BUFFER_LOC(:,:,1,IBL), BUFFER_CML(:,:,1,IBL), &
+            & BUFFER_LOC(:,:,3,IBL), BUFFER_CML(:,:,3,IBL), &
+            & BUFFER_LOC(:,:,3+NCLDQL,IBL), BUFFER_CML(:,:,3+NCLDQL,IBL), &
+            & BUFFER_LOC(:,:,3+NCLDQI,IBL), BUFFER_CML(:,:,3+NCLDQI,IBL), &
             & PSUPSAT(:,:,IBL), &
             & PA(:,:,IBL), PFPLSL(:,:,IBL),   PFPLSN(:,:,IBL), &
             & PFHPSL(:,:,IBL),   PFHPSN(:,:,IBL), PCOVPTOT(:,:,IBL), &
@@ -229,16 +220,16 @@ CONTAINS
          ! Adjoint integration
          CALL  CLOUDSC2AD ( &
             &  1, ICEND, NPROMA, 1, NLEV, LDRAIN1D, &
-            & PTSPHY,&
+            & PTSPHY, LCETA,&
             ! trajectory
             & PAPH(:,:,IBL),  PAP(:,:,IBL), &
             & PQ(:,:,IBL), ZQSAT(:,:), PT(:,:,IBL), &
             & PCLV(:,:,NCLDQL,IBL), PCLV(:,:,NCLDQI,IBL), &
             & PLUDE(:,:,IBL), PLU(:,:,IBL), PMFU(:,:,IBL), PMFD(:,:,IBL),&
-            & TENDENCY_LOC(IBL)%T, TENDENCY_CML(IBL)%T, &
-            & TENDENCY_LOC(IBL)%Q, TENDENCY_CML(IBL)%Q, &
-            & TENDENCY_LOC(IBL)%CLD(:,:,NCLDQL), TENDENCY_CML(IBL)%CLD(:,:,NCLDQL), &
-            & TENDENCY_LOC(IBL)%CLD(:,:,NCLDQI), TENDENCY_CML(IBL)%CLD(:,:,NCLDQI), &
+            & BUFFER_LOC(:,:,1,IBL), BUFFER_CML(:,:,1,IBL), &
+            & BUFFER_LOC(:,:,3,IBL), BUFFER_CML(:,:,3,IBL), &
+            & BUFFER_LOC(:,:,3+NCLDQL,IBL), BUFFER_CML(:,:,3+NCLDQL,IBL), &
+            & BUFFER_LOC(:,:,3+NCLDQI,IBL), BUFFER_CML(:,:,3+NCLDQI,IBL), &
             & PSUPSAT(:,:,IBL), &
             & PA(:,:,IBL), PFPLSL(:,:,IBL),   PFPLSN(:,:,IBL), &
             & PFHPSL(:,:,IBL),   PFHPSN(:,:,IBL), PCOVPTOT(:,:,IBL), &
@@ -287,11 +278,9 @@ CONTAINS
 
       !-- The "nowait" is here to get correct local timings (tloc) per thread
       !   i.e. we should not wait for slowest thread to finish before measuring tloc
-      !$omp end do nowait
 
       CALL TIMER%THREAD_END(TID)
 
-      !$omp end parallel
 
       CALL TIMER%END()
 

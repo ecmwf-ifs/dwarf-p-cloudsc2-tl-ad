@@ -314,7 +314,6 @@ TYPE(TPHNC)       ,INTENT(IN) :: YHNC
 TYPE(TEPHLI)      ,INTENT(IN) :: YPHLI
 TYPE(TECLD)       ,INTENT(IN) :: YCLD
 TYPE(TECLDP)      ,INTENT(IN) :: YCLDP
-!#include "cuadjtqstl.intfb.h"
 #include "fcttretl.ycst.h"
 #include "fcttre.ycst.h"
 !     ------------------------------------------------------------------

@@ -7,6 +7,9 @@
 ! granted to it by virtue of its status as an intergovernmental organisation
 ! nor does it submit to any jurisdiction.
 !
+MODULE SATUR_MOD
+
+CONTAINS
 SUBROUTINE SATUR ( KIDIA , KFDIA , KLON  , KTDIA , KLEV, LDPHYLIN, &
  & PAPRSF, PT    , PQSAT , KFLAG , YDCST , YDTHF ) 
 
@@ -144,3 +147,4 @@ ENDIF
 END ASSOCIATE
 !IF (LHOOK) CALL DR_HOOK('SATUR',1,ZHOOK_HANDLE)
 END SUBROUTINE SATUR
+END MODULE SATUR_MOD
