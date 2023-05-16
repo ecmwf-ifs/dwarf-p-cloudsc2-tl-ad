@@ -16,7 +16,6 @@ find_package( ecbuild REQUIRED )
 # define the project
 project(dwarf-p-cloudsc2-tl-ad VERSION 1.0 LANGUAGES C Fortran )
 
-include( cmake/compat.cmake )
 if( CMAKE_Fortran_COMPILER_ID MATCHES "GNU")
   ecbuild_add_fortran_flags("-ffree-line-length-none")
   if( CMAKE_Fortran_COMPILER_VERSION VERSION_GREATER_EQUAL "10.0")
@@ -53,7 +52,6 @@ ecbuild_add_option( FEATURE ACC
 ecbuild_add_option( FEATURE OMP
     DESCRIPTION "OpenMP" DEFAULT ON
     REQUIRED_PACKAGES "OpenMP COMPONENTS Fortran C" )
-include(features/OMP)
 
 ### MPI
 ecbuild_add_option( FEATURE MPI
@@ -72,7 +70,7 @@ if( HAVE_HDF5 )
     list(APPEND CLOUDSC_DEFINITIONS HAVE_HDF5 )
 endif()
 
-ecbuild_find_package( NAME loki REQUIRED )
+ecbuild_find_package( NAME loki )
 
 # build executables
 add_subdirectory(src)
