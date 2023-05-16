@@ -58,5 +58,5 @@ ecbuild_add_library( TARGET cloudsc2-common-lib
         $<${HAVE_OMP}:OpenMP::OpenMP_Fortran>
         $<${HAVE_MPI}:MPI::MPI_Fortran>
         $<${HAVE_HDF5}:hdf5::hdf5_fortran>
-)
+  )
 
