@@ -25,6 +25,7 @@ See [LICENSE](LICENSE) file for details.
 - **dwarf-cloudsc2-tl**: Tangent linear version of CLOUDSC2 that performs a Taylor
   test to validate the TL code.
 - **dwarf-cloudsc2-ad**: Adjoint test of CLOUDSC2 that validates adjoint symmetry.
+- **dwarf-cloudsc2-nl-loki**: Experimental version of Loki port of CLOUDSC2 NL
 
 ## Download and Installation
 
@@ -35,7 +36,12 @@ install the bundle via:
 ./cloudsc-bundle create  # Checks out dependency packages
 ./cloudsc-bundle build [--build-type=debug|bit|release] [--arch=$PWD/arch/ecmwf/machine/compiler/version/env.sh]
 ```
-
+## Loki variant build
+At the moment, Loki variant cannot be compiled with GNU 11 compiler. On ATOS HPC, Loki variant may be built using
+```
+./cloudsc-bundle build --with-loki --loki-frontend=fp --arch=./arch/ecmwf/hpc2020/gnu/9.3.0/
+./cloudsc-bundle build --with-loki --loki-frontend=fp --arch=./arch/ecmwf/hpc2020/intel/2021.4.0
+```
 ## Example usage and verification
 
 Following the build, please run the following to set up the environment:
