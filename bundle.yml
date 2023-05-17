@@ -50,13 +50,6 @@ options :
         help  : Frontend parser to use for Loki transformations
         cmake : LOKI_FRONTEND={{value}}
 
-#   - with-gpu :
-#       help  : Enable GPU kernels
-#       cmake : >
-#           ENABLE_CLOUDSC_GPU_SCC=ON
-#           ENABLE_CLOUDSC_GPU_SCC_HOIST=ON
-#           ENABLE_CLOUDSC_GPU_SCC_K_CACHING=ON
-#           ENABLE_CLOUDSC_GPU_OMP_SCC_HOIST=ON
     - cloudsc-fortran :
         help  : Build the new Fortran version of CLOUDSC [ON|OFF]
         cmake : ENABLE_CLOUDSC_FORTRAN={{value}}

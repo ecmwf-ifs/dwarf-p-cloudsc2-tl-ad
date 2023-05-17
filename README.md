@@ -43,14 +43,9 @@ install the bundle via:
 ## Loki variant build
 On ATOS HPC, Loki variant may be built using
 ```
-./cloudsc-bundle build --with-loki --loki-frontend=fp --arch=./arch/ecmwf/hpc2020/gnu/9.3.0/
-./cloudsc-bundle build --with-loki --loki-frontend=fp --arch=./arch/ecmwf/hpc2020/intel/2021.4.0
+./cloudsc-bundle build --with-loki --loki-frontend=fp --cloudsc2-nl-loki=ON --cloudsc2-tl-loki=ON --cloudsc2-ad-loki=ON --cmake=ENABLE_ACC=off --arch=./arch/ecmwf/hpc2020/gnu/9.3.0/
+./cloudsc-bundle build --with-loki --loki-frontend=fp --cloudsc2-nl-loki=ON --cloudsc2-tl-loki=ON --cloudsc2-ad-loki=ON --cmake=ENABLE_ACC=off --arch=./arch/ecmwf/hpc2020/intel/2021.4.0
 ```
-Targetting GPU, one should use:
-```
- ./cloudsc-bundle build --with-gpu --with-loki --loki-frontend=fp --arch=./arch/ecmwf/hpc2020/nvhpc/22.1 
-```
-NVHPC will not build Loki variant with --build-type=debug due to the compiler error. Possibly, look into the compiler flags is needed here.
 
 ## Example usage and verification
 

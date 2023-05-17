@@ -37,7 +37,6 @@ set(ECBUILD_Fortran_FLAGS "${ECBUILD_Fortran_FLAGS} -fno-second-underscore")
 set(ECBUILD_Fortran_FLAGS "${ECBUILD_Fortran_FLAGS} -ffast-math")
 set(ECBUILD_Fortran_FLAGS "${ECBUILD_Fortran_FLAGS} -fno-unsafe-math-optimizations")
 set(ECBUILD_Fortran_FLAGS "${ECBUILD_Fortran_FLAGS} -march=znver2")
-set(ECBUILD_Fortran_FLAGS "${ECBUILD_Fortran_FLAGS} -fno-openacc")
 
 # This is dangerous! But GNU 10+ complains about argument mismatch for MPI routines
 set(ECBUILD_Fortran_FLAGS "${ECBUILD_Fortran_FLAGS} -fallow-argument-mismatch")
