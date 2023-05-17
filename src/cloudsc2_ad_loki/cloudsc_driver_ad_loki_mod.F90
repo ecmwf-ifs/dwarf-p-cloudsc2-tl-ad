@@ -95,10 +95,6 @@ CONTAINS
     TYPE(TEPHLI)    :: YPHLI
     TYPE(TECLD)     :: YCLD
     TYPE(TECLDP)    :: YCLDP
-!1003 format(5x,'NUMPROC=',i0', NUMOMP=',i0,', NGPTOTG=',i0,', NPROMA=',i0,', NGPBLKS=',i0)
-!   if (irank == 0) then
-!     write(0,1003) NUMPROC,NUMOMP,NGPTOTG,NPROMA,NGPBLKS
-!   end if
 
     ! Global timer for the parallel region
     CALL TIMER%START(NUMOMP)
@@ -115,7 +111,6 @@ CONTAINS
 
          !-- These were uninitialized : meaningful only when we compare error differences
          PCOVPTOT(:,:,IBL) = 0.0_JPRB
-!        TENDENCY_LOC(IBL)%cld(:,:,NCLV) = 0.0_JPRB
 
          ! Fill in ZQSAT
          CALL SATUR (1, ICEND, NPROMA, 1, NLEV, .TRUE., &
