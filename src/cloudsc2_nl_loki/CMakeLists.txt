@@ -31,7 +31,7 @@ if( HAVE_CLOUDSC2_NL_LOKI )
         PATH ${CMAKE_CURRENT_SOURCE_DIR}
         HEADERS ${COMMON_MODULE}/yomphyder.F90
         INCLUDES ${COMMON_INCLUDE}
-        DIRECTIVE none 
+#       DIRECTIVE none 
         OUTPATH ${CMAKE_CURRENT_BINARY_DIR}/loki-idem
         OUTPUT loki-idem/satur.idem.F90 loki-idem/cloudsc2.idem.F90 loki-idem/cloudsc_driver_loki_mod.idem.F90
         DEPENDS satur.F90 cloudsc2.F90 cloudsc_driver_loki_mod.F90 
@@ -71,7 +71,7 @@ if( HAVE_CLOUDSC2_NL_LOKI )
         HEADERS ${COMMON_MODULE}/yomphyder.F90 ${COMMON_MODULE}/yoecldp.F90
         INCLUDES ${COMMON_INCLUDE}
         DEFINITIONS CLOUDSC_GPU_TIMING ${CLOUDSC_DEFINE_STMT_FUNC}
-        DIRECTIVE none
+#       DIRECTIVE none
         DATA_OFFLOAD REMOVE_OPENMP
         OUTPATH ${CMAKE_CURRENT_BINARY_DIR}/loki-scc
         OUTPUT loki-scc/satur.scc.F90 loki-scc/cloudsc2.scc.F90 loki-scc/cloudsc_driver_loki_mod.scc.F90
