@@ -28,7 +28,8 @@ See [LICENSE](LICENSE) file for details.
 - **dwarf-cloudsc2-nl-loki**: Experimental version of Loki port of CLOUDSC2 NL
 - **dwarf-cloudsc2-tl-loki**: Experimental version of Loki port of CLOUDSC2 TL
 - **dwarf-cloudsc2-ad-loki**: Experimental version of Loki port of CLOUDSC2 AD 
-
+The Loki ports can currently be compiled with GCC or Intel compilers, targetting CPU execution.
+These are turned off by default, to test use ./cloudsc-bundle build --cloudsc2-nl-loki=ON --cloudsc2-tl-loki=ON --cloudsc2-ad-loki=ON 
 ## Download and Installation
 
 The preferred method to install the CLOUDSC dwarf uses the bundle

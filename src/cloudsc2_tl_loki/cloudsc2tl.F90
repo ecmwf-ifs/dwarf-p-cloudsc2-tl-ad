@@ -315,8 +315,8 @@ TYPE(TEPHLI)      ,INTENT(IN) :: YPHLI
 TYPE(TECLD)       ,INTENT(IN) :: YCLD
 TYPE(TECLDP)      ,INTENT(IN) :: YCLDP
 
-#include "fcttretl.ycst.h"
 #include "fcttre.ycst.h"
+#include "fcttretl.ycst.h"
 !     ------------------------------------------------------------------
 
 !IF (LHOOK) CALL DR_HOOK('CLOUDSC2TL',0,ZHOOK_HANDLE)

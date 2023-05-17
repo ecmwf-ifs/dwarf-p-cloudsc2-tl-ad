@@ -98,7 +98,7 @@ CONTAINS
 
     ! Global timer for the parallel region
     CALL TIMER%START(NUMOMP)
-    
+    !$loki data 
     ZNORMG=0._JPRB
 
     ! Local timer for each thread
@@ -276,6 +276,7 @@ CONTAINS
 
       CALL TIMER%THREAD_END(TID)
 
+      !$loki end data 
 
       CALL TIMER%END()
 

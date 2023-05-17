@@ -21,7 +21,7 @@ CONTAINS
 
   SUBROUTINE CLOUDSC_DRIVER( &
      & NUMOMP, NPROMA, NLEV, NGPTOT, NGPTOTG, NGPBLKS, PTSPHY, &
-     & PT, PQ, TENDENCY_CML, TENDENCY_LOC, BUFFER_CML, BUFFER_LOC, &
+     & PT, PQ, BUFFER_CML, BUFFER_LOC, &
      & PAP,      PAPH, &
      & PLU,      PLUDE,    PMFU,     PMFD, &
      & PA,       PCLV,     PSUPSAT,&
@@ -45,8 +45,6 @@ CONTAINS
     REAL(KIND=JPRB),    INTENT(IN)    :: LCETA(NLEV) 
     REAL(KIND=JPRB),    INTENT(IN)    :: PT(NPROMA,NLEV,NGPBLKS)    ! T at start of callpar
     REAL(KIND=JPRB),    INTENT(IN)    :: PQ(NPROMA,NLEV,NGPBLKS)    ! Q at start of callpar
-    TYPE(STATE_TYPE),   INTENT(IN)    :: TENDENCY_CML(NGPBLKS) ! cumulative tendency used for final output
-    TYPE(STATE_TYPE),   INTENT(OUT)   :: TENDENCY_LOC(NGPBLKS) ! local tendency from cloud scheme
     REAL(KIND=JPRB),    INTENT(IN)    :: BUFFER_CML(NPROMA,NLEV,3+NCLV,NGPBLKS) ! TENDENCY_CML storage buffer
     REAL(KIND=JPRB),    INTENT(OUT)   :: BUFFER_LOC(NPROMA,NLEV,3+NCLV,NGPBLKS) ! TENDENCY_LOC storage buffer
     REAL(KIND=JPRB),    INTENT(IN)    :: PAP(NPROMA,NLEV,NGPBLKS)   ! Pressure on full levels
