@@ -95,7 +95,8 @@ CONTAINS
     IF(.NOT. ALLOCATED(LOCAL_YCLD%CETA)) ALLOCATE (LOCAL_YCLD%CETA(NLEV))
     ! Global timer for the parallel region
     CALL TIMER%START(NUMOMP)
-  !$loki data
+
+    !$loki data
 
     TID = GET_THREAD_NUM()
     CALL TIMER%THREAD_START(TID)
@@ -136,6 +137,8 @@ CONTAINS
       ENDDO
 
       CALL TIMER%THREAD_END(TID)
+
+      !$loki end data
 
       CALL TIMER%END()
 
