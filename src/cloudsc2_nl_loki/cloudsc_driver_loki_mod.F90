@@ -21,7 +21,7 @@ CONTAINS
 
   SUBROUTINE CLOUDSC_DRIVER( &
      & NUMOMP, NPROMA, NLEV, NGPTOT, NGPTOTG, NGPBLKS, PTSPHY, &
-     & PT, PQ, TENDENCY_CML, TENDENCY_LOC, BUFFER_CML, BUFFER_LOC, &
+     & PT, PQ, BUFFER_CML, BUFFER_LOC, &
      & PAP,      PAPH, &
      & PLU,      PLUDE,    PMFU,     PMFD, &
      & PA,       PCLV,     PSUPSAT,&
@@ -45,8 +45,6 @@ CONTAINS
     REAL(KIND=JPRB),    INTENT(IN)    :: LCETA(NLEV) 
     REAL(KIND=JPRB),    INTENT(IN)    :: PT(NPROMA,NLEV,NGPBLKS)    ! T at start of callpar
     REAL(KIND=JPRB),    INTENT(IN)    :: PQ(NPROMA,NLEV,NGPBLKS)    ! Q at start of callpar
-    TYPE(STATE_TYPE),   INTENT(IN)    :: TENDENCY_CML(NGPBLKS) ! cumulative tendency used for final output
-    TYPE(STATE_TYPE),   INTENT(OUT)   :: TENDENCY_LOC(NGPBLKS) ! local tendency from cloud scheme
     REAL(KIND=JPRB),    INTENT(IN)    :: BUFFER_CML(NPROMA,NLEV,3+NCLV,NGPBLKS) ! TENDENCY_CML storage buffer
     REAL(KIND=JPRB),    INTENT(OUT)   :: BUFFER_LOC(NPROMA,NLEV,3+NCLV,NGPBLKS) ! TENDENCY_LOC storage buffer
     REAL(KIND=JPRB),    INTENT(IN)    :: PAP(NPROMA,NLEV,NGPBLKS)   ! Pressure on full levels
@@ -73,25 +71,26 @@ CONTAINS
     INTEGER(KIND=JPIM) :: TID ! thread id from 0 .. NUMOMP - 1
     LOGICAL            :: LDRAIN1D = .FALSE.
     REAL(KIND=JPRB)    :: ZQSAT(NPROMA,NLEV) ! local array
-    TYPE(TOMCST)    :: YDCST, LOCAL_YDCST
-    TYPE(TOETHF)    :: YDTHF, LOCAL_YDTHF
-    TYPE(TPHNC)     :: YHNC, LOCAL_YHNC
-    TYPE(TEPHLI)    :: YPHLI, LOCAL_YPHLI
-    TYPE(TECLD)     :: YCLD, LOCAL_YCLD
-    TYPE(TECLDP)    :: YCLDP, LOCAL_YCLDP
-!#include "cloudsc2loki.intfb.h"
-
-! 1003 format(5x,'NUMPROC=',i0', NUMOMP=',i0,', NGPTOTG=',i0,', NPROMA=',i0,', NGPBLKS=',i0)
-    ! if (irank == 0) then
-    !   write(0,1003) NUMPROC,NUMOMP,NGPTOTG,NPROMA,NGPBLKS
-    ! end if
+    TYPE(TOMCST),  INTENT(IN)  :: YDCST
+    TYPE(TOETHF),  INTENT(IN)  :: YDTHF
+    TYPE(TPHNC) ,  INTENT(IN)  :: YHNC
+    TYPE(TEPHLI),  INTENT(IN)  :: YPHLI
+    TYPE(TECLD) ,  INTENT(IN)  :: YCLD
+    TYPE(TECLDP),  INTENT(IN)  :: YCLDP
+    TYPE(TOMCST)    :: LOCAL_YDCST
+    TYPE(TOETHF)    :: LOCAL_YDTHF
+    TYPE(TPHNC)     :: LOCAL_YHNC
+    TYPE(TEPHLI)    :: LOCAL_YPHLI
+    TYPE(TECLD)     :: LOCAL_YCLD
+    TYPE(TECLDP)    :: LOCAL_YCLDP
 
     LOCAL_YDCST=YDCST
     LOCAL_YDTHF=YDTHF
-    LOCAL_YHNC=YHNC
+    LOCAL_YHNC =YHNC
     LOCAL_YPHLI=YPHLI
-    LOCAL_YCLD=YCLD
+    LOCAL_YCLD =YCLD
     LOCAL_YCLDP=YCLDP
+
     IF(.NOT. ALLOCATED(LOCAL_YCLD%CETA)) ALLOCATE (LOCAL_YCLD%CETA(NLEV))
     ! Global timer for the parallel region
     CALL TIMER%START(NUMOMP)
