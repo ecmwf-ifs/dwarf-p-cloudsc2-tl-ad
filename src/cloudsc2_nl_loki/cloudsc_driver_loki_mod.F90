@@ -107,7 +107,8 @@ CONTAINS
          !-- These were uninitialized : meaningful only when we compare error differences
          PCOVPTOT(:,:,IBL) = 0.0_JPRB
          ! TENDENCY_LOC(IBL)%cld(:,:,NCLV) = 0.0_JPRB
-         BUFFER_LOC(:,:,3+NCLV,IBL) = 0.0_JPRB
+         BUFFER_LOC(:,:,2,IBL) = 0.0_JPRB
+         BUFFER_LOC(:,:,4:3+NCLV,IBL) = 0.0_JPRB
 
          ! Fill in ZQSAT
          CALL SATUR (1, ICEND, NPROMA, 1, NLEV, .TRUE., &
