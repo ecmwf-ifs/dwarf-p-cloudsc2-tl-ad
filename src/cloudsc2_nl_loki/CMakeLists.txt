@@ -119,7 +119,7 @@ if( HAVE_CLOUDSC2_NL_LOKI )
       	    loki-scc-hoist/satur.scc_hoist.F90
             loki-scc-hoist/cloudsc2.scc_hoist.F90
             loki-scc-hoist/cloudsc_driver_loki_mod.scc_hoist.F90
-	      DEPENDS satur.F90 cloudsc2.F90 cloudsc_driver_loki_mod.F90 
+        DEPENDS satur.F90 cloudsc2.F90 cloudsc_driver_loki_mod.F90 
     )
 
     ecbuild_add_executable( TARGET dwarf-cloudsc2-nl-loki-scc-hoist

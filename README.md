@@ -46,6 +46,11 @@ Targetting GPU, one should use:
 ```
  ./cloudsc-bundle build --with-gpu --with-loki --loki-frontend=fp --arch=./arch/ecmwf/hpc2020/nvhpc/22.1 
 ```
+Running on a GPU node requires specificaton of the CUDA heapsize, e.g. 
+```
+NV_ACC_CUDA_HEAPSIZE=19GB ./bin/dwarf-cloudsc2-nl-loki-scc-hoist 1 262144 128 
+
+```
 NVHPC will not build Loki variant with --build-type=debug due to the compiler error. Possibly, look into the compiler flags is needed here.
 
 ## Example usage and verification
