@@ -70,7 +70,7 @@ CONTAINS
 
     INTEGER(KIND=JPIM) :: TID ! thread id from 0 .. NUMOMP - 1
     LOGICAL            :: LDRAIN1D = .FALSE.
-    REAL(KIND=JPRB)    :: ZQSAT(NPROMA,NLEV) ! local array
+    REAL(KIND=JPRB)    :: ZQSAT(NPROMA,NLEV,NGPBLKS) ! local array
     TYPE(TOMCST),  INTENT(IN)  :: YDCST
     TYPE(TOETHF),  INTENT(IN)  :: YDTHF
     TYPE(TPHNC) ,  INTENT(IN)  :: YHNC
@@ -112,13 +112,13 @@ CONTAINS
 
          ! Fill in ZQSAT
          CALL SATUR (1, ICEND, NPROMA, 1, NLEV, .TRUE., &
-              & PAP(:,:,IBL), PT(:,:,IBL), ZQSAT(:,:), 2, LOCAL_YDCST ,LOCAL_YDTHF) 
+              & PAP(:,:,IBL), PT(:,:,IBL), ZQSAT(:,:,IBL), 2, LOCAL_YDCST ,LOCAL_YDTHF)
 
          CALL CLOUDSC2 ( &
               &  1, ICEND, NPROMA, 1, NLEV, LDRAIN1D, &
               & PTSPHY,  LCETA, &
               & PAPH(:,:,IBL),  PAP(:,:,IBL), &
-              & PQ(:,:,IBL), ZQSAT(:,:), PT(:,:,IBL), &
+              & PQ(:,:,IBL), ZQSAT(:,:,IBL), PT(:,:,IBL), &
               & PCLV(:,:,NCLDQL,IBL), PCLV(:,:,NCLDQI,IBL), &
               & PLUDE(:,:,IBL), PLU(:,:,IBL), PMFU(:,:,IBL), PMFD(:,:,IBL),&
               & BUFFER_LOC(:,:,1,IBL), BUFFER_CML(:,:,1,IBL), &
