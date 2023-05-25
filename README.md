@@ -48,8 +48,14 @@ Targetting GPU, one should use:
 ```
 Running on a GPU node requires specificaton of the CUDA heapsize, e.g. 
 ```
-NV_ACC_CUDA_HEAPSIZE=19GB ./bin/dwarf-cloudsc2-nl-loki-scc-hoist 1 262144 128 
+# Go into build directory and enable environment
+cd build && . env.sh
 
+# Run Loki-SCC with vector-level kernels
+NV_ACC_CUDA_HEAPSIZE=9G ./bin/dwarf-cloudsc2-nl-loki-scc 1 256000 128
+
+# Run Loki-SCC-hoist with hoisted temporaries
+./bin/dwarf-cloudsc2-nl-loki-scc-hoist 1 256000 128
 ```
 NVHPC will not build Loki variant with --build-type=debug due to the compiler error. Possibly, look into the compiler flags is needed here.
 
