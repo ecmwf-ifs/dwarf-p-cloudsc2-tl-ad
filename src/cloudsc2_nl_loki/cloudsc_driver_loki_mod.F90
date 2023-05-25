@@ -61,7 +61,12 @@ CONTAINS
     REAL(KIND=JPRB),    INTENT(OUT)   :: PFPLSN(NPROMA,NLEV+1,NGPBLKS) ! ice+snow sedim flux
     REAL(KIND=JPRB),    INTENT(OUT)   :: PFHPSL(NPROMA,NLEV+1,NGPBLKS) ! Enthalpy flux for liq
     REAL(KIND=JPRB),    INTENT(OUT)   :: PFHPSN(NPROMA,NLEV+1,NGPBLKS) ! Enthalp flux for ice
-
+    TYPE(TOMCST),       INTENT(IN)    :: YDCST
+    TYPE(TOETHF),       INTENT(IN)    :: YDTHF
+    TYPE(TPHNC) ,       INTENT(IN)    :: YHNC
+    TYPE(TEPHLI),       INTENT(IN)    :: YPHLI
+    TYPE(TECLD) ,       INTENT(IN)    :: YCLD
+    TYPE(TECLDP),       INTENT(IN)    :: YCLDP
 
     INTEGER(KIND=JPIM) :: JKGLO,IBL,ICEND
 
@@ -71,27 +76,7 @@ CONTAINS
     INTEGER(KIND=JPIM) :: TID ! thread id from 0 .. NUMOMP - 1
     LOGICAL            :: LDRAIN1D = .FALSE.
     REAL(KIND=JPRB)    :: ZQSAT(NPROMA,NLEV,NGPBLKS) ! local array
-    TYPE(TOMCST),  INTENT(IN)  :: YDCST
-    TYPE(TOETHF),  INTENT(IN)  :: YDTHF
-    TYPE(TPHNC) ,  INTENT(IN)  :: YHNC
-    TYPE(TEPHLI),  INTENT(IN)  :: YPHLI
-    TYPE(TECLD) ,  INTENT(IN)  :: YCLD
-    TYPE(TECLDP),  INTENT(IN)  :: YCLDP
-    TYPE(TOMCST)    :: LOCAL_YDCST
-    TYPE(TOETHF)    :: LOCAL_YDTHF
-    TYPE(TPHNC)     :: LOCAL_YHNC
-    TYPE(TEPHLI)    :: LOCAL_YPHLI
-    TYPE(TECLD)     :: LOCAL_YCLD
-    TYPE(TECLDP)    :: LOCAL_YCLDP
 
-    LOCAL_YDCST=YDCST
-    LOCAL_YDTHF=YDTHF
-    LOCAL_YHNC =YHNC
-    LOCAL_YPHLI=YPHLI
-    LOCAL_YCLD =YCLD
-    LOCAL_YCLDP=YCLDP
-
-    IF(.NOT. ALLOCATED(LOCAL_YCLD%CETA)) ALLOCATE (LOCAL_YCLD%CETA(NLEV))
     ! Global timer for the parallel region
     CALL TIMER%START(NUMOMP)
 
@@ -112,7 +97,7 @@ CONTAINS
 
          ! Fill in ZQSAT
          CALL SATUR (1, ICEND, NPROMA, 1, NLEV, .TRUE., &
-              & PAP(:,:,IBL), PT(:,:,IBL), ZQSAT(:,:,IBL), 2, LOCAL_YDCST ,LOCAL_YDTHF)
+              & PAP(:,:,IBL), PT(:,:,IBL), ZQSAT(:,:,IBL), 2, YDCST ,YDTHF)
 
          CALL CLOUDSC2 ( &
               &  1, ICEND, NPROMA, 1, NLEV, LDRAIN1D, &
@@ -128,7 +113,7 @@ CONTAINS
               & PSUPSAT(:,:,IBL), &
               & PA(:,:,IBL), PFPLSL(:,:,IBL),   PFPLSN(:,:,IBL), &
               & PFHPSL(:,:,IBL),   PFHPSN(:,:,IBL), PCOVPTOT(:,:,IBL), &
-              &  LOCAL_YDCST, LOCAL_YDTHF, LOCAL_YHNC, LOCAL_YPHLI, LOCAL_YCLD, LOCAL_YCLDP)
+              & YDCST, YDTHF, YHNC, YPHLI, YCLD, YCLDP)
          
 #ifndef CLOUDSC_GPU_TIMING
          ! Log number of columns processed by this thread (OpenMP mode)
