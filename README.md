@@ -28,9 +28,7 @@ See [LICENSE](LICENSE) file for details.
 - **dwarf-cloudsc2-nl-loki**: Experimental version of Loki port of CLOUDSC2 NL
 - **dwarf-cloudsc2-tl-loki**: Experimental version of Loki port of CLOUDSC2 TL
 - **dwarf-cloudsc2-ad-loki**: Experimental version of Loki port of CLOUDSC2 AD 
-The Loki ports can currently be compiled with GCC or Intel compilers, targetting CPU execution.
-These are turned off by default, to test use ./cloudsc-bundle build --cloudsc2-nl-loki=ON --cloudsc2-tl-loki=ON --cloudsc2-ad-loki=ON 
-For newer GCC, use --cmake=ENABLE_ACC=off to deactivate ACC directives
+
 ## Download and Installation
 
 The preferred method to install the CLOUDSC dwarf uses the bundle
@@ -41,11 +39,29 @@ install the bundle via:
 ./cloudsc-bundle build [--build-type=debug|bit|release] [--arch=$PWD/arch/ecmwf/machine/compiler/version/env.sh]
 ```
 ## Loki variant build
-On ATOS HPC, Loki variant may be built using
+On ATOS HPC, Loki variant may be built (targetting CPU)  using 
 ```
-./cloudsc-bundle build --with-loki --loki-frontend=fp --cloudsc2-nl-loki=ON --cloudsc2-tl-loki=ON --cloudsc2-ad-loki=ON --cmake=ENABLE_ACC=off --arch=./arch/ecmwf/hpc2020/gnu/9.3.0/
+./cloudsc-bundle build --with-loki --loki-frontend=fp --cloudsc2-nl-loki=ON --cloudsc2-tl-loki=ON --cloudsc2-ad-loki=ON --cmake=ENABLE_ACC=off --arch=./arch/ecmwf/hpc2020/gnu/11.2.0/
 ./cloudsc-bundle build --with-loki --loki-frontend=fp --cloudsc2-nl-loki=ON --cloudsc2-tl-loki=ON --cloudsc2-ad-loki=ON --cmake=ENABLE_ACC=off --arch=./arch/ecmwf/hpc2020/intel/2021.4.0
 ```
+Targetting GPU, one should use:
+```
+ ./cloudsc-bundle build --with-gpu --with-loki --loki-frontend=fp -cloudsc2-nl-loki=ON --cloudsc2-tl-loki=ON --cloudsc2-ad-loki=ON --arch=./arch/ecmwf/hpc2020/nvhpc/22.1
+```
+Running on a GPU node requires specificaton of the CUDA heapsize, e.g.
+```
+NV_ACC_CUDA_HEAPSIZE=19GB ./bin/dwarf-cloudsc2-nl-loki-scc-hoist 1 262144 128
+
+```
+<<<<<<< HEAD
+=======
+Running on a GPU node requires specificaton of the CUDA heapsize, e.g. 
+```
+NV_ACC_CUDA_HEAPSIZE=19GB ./bin/dwarf-cloudsc2-nl-loki-scc-hoist 1 262144 128 
+
+```
+NVHPC will not build Loki variant with --build-type=debug due to the compiler error. Possibly, look into the compiler flags is needed here.
+>>>>>>> origin/napz-loki-nl-gpu
 
 ## Example usage and verification
 

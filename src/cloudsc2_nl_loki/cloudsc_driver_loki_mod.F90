@@ -70,30 +70,32 @@ CONTAINS
 
     INTEGER(KIND=JPIM) :: TID ! thread id from 0 .. NUMOMP - 1
     LOGICAL            :: LDRAIN1D = .FALSE.
-    REAL(KIND=JPRB)    :: ZQSAT(NPROMA,NLEV) ! local array
-    TYPE(TOMCST)    :: YDCST, LOCAL_YDCST
-    TYPE(TOETHF)    :: YDTHF, LOCAL_YDTHF
-    TYPE(TPHNC)     :: YHNC, LOCAL_YHNC
-    TYPE(TEPHLI)    :: YPHLI, LOCAL_YPHLI
-    TYPE(TECLD)     :: YCLD, LOCAL_YCLD
-    TYPE(TECLDP)    :: YCLDP, LOCAL_YCLDP
-!#include "cloudsc2loki.intfb.h"
-
-! 1003 format(5x,'NUMPROC=',i0', NUMOMP=',i0,', NGPTOTG=',i0,', NPROMA=',i0,', NGPBLKS=',i0)
-    ! if (irank == 0) then
-    !   write(0,1003) NUMPROC,NUMOMP,NGPTOTG,NPROMA,NGPBLKS
-    ! end if
+    REAL(KIND=JPRB)    :: ZQSAT(NPROMA,NLEV,NGPBLKS) ! local array
+    TYPE(TOMCST),  INTENT(IN)  :: YDCST
+    TYPE(TOETHF),  INTENT(IN)  :: YDTHF
+    TYPE(TPHNC) ,  INTENT(IN)  :: YHNC
+    TYPE(TEPHLI),  INTENT(IN)  :: YPHLI
+    TYPE(TECLD) ,  INTENT(IN)  :: YCLD
+    TYPE(TECLDP),  INTENT(IN)  :: YCLDP
+    TYPE(TOMCST)    :: LOCAL_YDCST
+    TYPE(TOETHF)    :: LOCAL_YDTHF
+    TYPE(TPHNC)     :: LOCAL_YHNC
+    TYPE(TEPHLI)    :: LOCAL_YPHLI
+    TYPE(TECLD)     :: LOCAL_YCLD
+    TYPE(TECLDP)    :: LOCAL_YCLDP
 
     LOCAL_YDCST=YDCST
     LOCAL_YDTHF=YDTHF
-    LOCAL_YHNC=YHNC
+    LOCAL_YHNC =YHNC
     LOCAL_YPHLI=YPHLI
-    LOCAL_YCLD=YCLD
+    LOCAL_YCLD =YCLD
     LOCAL_YCLDP=YCLDP
+
     IF(.NOT. ALLOCATED(LOCAL_YCLD%CETA)) ALLOCATE (LOCAL_YCLD%CETA(NLEV))
     ! Global timer for the parallel region
     CALL TIMER%START(NUMOMP)
-  !$loki data
+
+    !$loki data
 
     TID = GET_THREAD_NUM()
     CALL TIMER%THREAD_START(TID)
@@ -105,17 +107,18 @@ CONTAINS
          !-- These were uninitialized : meaningful only when we compare error differences
          PCOVPTOT(:,:,IBL) = 0.0_JPRB
          ! TENDENCY_LOC(IBL)%cld(:,:,NCLV) = 0.0_JPRB
-         BUFFER_LOC(:,:,3+NCLV,IBL) = 0.0_JPRB
+         BUFFER_LOC(:,:,2,IBL) = 0.0_JPRB
+         BUFFER_LOC(:,:,4:3+NCLV,IBL) = 0.0_JPRB
 
          ! Fill in ZQSAT
          CALL SATUR (1, ICEND, NPROMA, 1, NLEV, .TRUE., &
-              & PAP(:,:,IBL), PT(:,:,IBL), ZQSAT(:,:), 2, LOCAL_YDCST ,LOCAL_YDTHF) 
+              & PAP(:,:,IBL), PT(:,:,IBL), ZQSAT(:,:,IBL), 2, LOCAL_YDCST ,LOCAL_YDTHF)
 
          CALL CLOUDSC2 ( &
               &  1, ICEND, NPROMA, 1, NLEV, LDRAIN1D, &
               & PTSPHY,  LCETA, &
               & PAPH(:,:,IBL),  PAP(:,:,IBL), &
-              & PQ(:,:,IBL), ZQSAT(:,:), PT(:,:,IBL), &
+              & PQ(:,:,IBL), ZQSAT(:,:,IBL), PT(:,:,IBL), &
               & PCLV(:,:,NCLDQL,IBL), PCLV(:,:,NCLDQI,IBL), &
               & PLUDE(:,:,IBL), PLU(:,:,IBL), PMFU(:,:,IBL), PMFD(:,:,IBL),&
               & BUFFER_LOC(:,:,1,IBL), BUFFER_CML(:,:,1,IBL), &
@@ -134,6 +137,8 @@ CONTAINS
       ENDDO
 
       CALL TIMER%THREAD_END(TID)
+
+      !$loki end data
 
       CALL TIMER%END()
 
