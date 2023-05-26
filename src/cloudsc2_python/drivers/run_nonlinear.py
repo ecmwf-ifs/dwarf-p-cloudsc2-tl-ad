@@ -95,9 +95,9 @@ def core(config: PythonConfig, io_config: IOConfig) -> None:
         to_csv(
             io_config.output_csv_file,
             io_config.host_name,
-            config.gt4py_config.backend,
+            "nl-" + config.gt4py_config.backend,
             nx,
-            24,
+            config.num_threads,
             1,
             config.num_runs,
             runtime_mean,
@@ -108,7 +108,7 @@ def core(config: PythonConfig, io_config: IOConfig) -> None:
 
     if config.enable_validation:
         validator = Validator(config.reference_file, config.data_types)
-        failing_fields = validator.run(tendencies, diagnostics)
+        failing_fields = validator(tendencies, diagnostics)
         if failing_fields:
             print(f"Validation failed on the following fields: {', '.join(failing_fields)}.")
         else:
@@ -146,6 +146,14 @@ def core(config: PythonConfig, io_config: IOConfig) -> None:
     help="Number of executions.\n\nDefault: 1.",
 )
 @click.option(
+    "--num-threads",
+    type=int,
+    default=1,
+    help="Number of threads."
+    "\n\nRecommended values: 24 on Piz Daint's CPUs, 128 on MLux's CPUs, 1 on GPUs."
+    "\n\nDefault: 1.",
+)
+@click.option(
     "--precision",
     type=str,
     default="double",
@@ -170,6 +178,7 @@ def main(
     enable_validation: bool,
     num_cols: Optional[int],
     num_runs: Optional[int],
+    num_threads: Optional[int],
     precision: str,
     host_alias: Optional[str],
     output_csv_file: Optional[str],
@@ -186,33 +195,37 @@ def main(
         .with_validation(enable_validation)
         .with_num_cols(num_cols)
         .with_num_runs(num_runs)
+        .with_num_threads(num_threads)
         .with_precision(precision)
     )
     io_config = default_io_config.with_output_csv_file(output_csv_file).with_host_name(host_alias)
     core(config, io_config)
 
-    # if output_csv_file_stencils is not None:
-    #     call_time = None
-    #     for key, value in config.gt4py_config.exec_info.items():
-    #         if "cloudsc" in key:
-    #             call_time = value["total_call_time"] * 1000 / config.num_runs
-    #
-    #     if not os.path.exists(output_csv_file_stencils):
-    #         with open(output_csv_file_stencils, "w") as f:
-    #             writer = csv.writer(f, delimiter=",")
-    #             writer.writerow(("date", "host", "backend", "num_cols", "num_runs", "cloudsc"))
-    #     with open(output_csv_file_stencils, "a") as f:
-    #         writer = csv.writer(f, delimiter=",")
-    #         writer.writerow(
-    #             (
-    #                 datetime.date.today().strftime("%Y%m%d"),
-    #                 io_config.host_name,
-    #                 config.gt4py_config.backend,
-    #                 config.num_cols,
-    #                 config.num_runs,
-    #                 call_time,
-    #             )
-    #         )
+    if output_csv_file_stencils is not None:
+        call_time = None
+        for key, value in config.gt4py_config.exec_info.items():
+            if "cloudsc2" in key:
+                call_time = value["total_call_time"] * 1000 / config.num_runs
+
+        if not os.path.exists(output_csv_file_stencils):
+            with open(output_csv_file_stencils, "w") as f:
+                writer = csv.writer(f, delimiter=",")
+                writer.writerow(
+                    ("date", "host", "variant", "num_cols", "num_runs", "num_threads", "stencils")
+                )
+        with open(output_csv_file_stencils, "a") as f:
+            writer = csv.writer(f, delimiter=",")
+            writer.writerow(
+                (
+                    datetime.date.today().strftime("%Y%m%d"),
+                    io_config.host_name,
+                    "nl-" + config.gt4py_config.backend,
+                    config.num_cols,
+                    config.num_runs,
+                    config.num_threads,
+                    call_time,
+                )
+            )
 
 
 if __name__ == "__main__":

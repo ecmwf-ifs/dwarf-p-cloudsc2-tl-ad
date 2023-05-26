@@ -50,7 +50,7 @@ def cuadjtqs_nl(ap, t, q):
         z5alcp = R5ALSCP
         zaldcp = RALSDCP
 
-    if __INLINED(ICALL == 0):
+    if ICALL == 0:
         t, q = cuadjtqs_nl_0(ap, t, q, z3es, z4es, z5alcp, zaldcp)
         t, q = cuadjtqs_nl_0(ap, t, q, z3es, z4es, z5alcp, zaldcp)
         return t, q

@@ -65,7 +65,7 @@ def print_performance(
 ) -> Tuple[float, float, float, float]:
     """Print means and standard deviation of runtimes and MFLOPS."""
     n = len(runtime_l)
-    print(f"Performance over {num_cols} columns and {n} runs:")
+    print(f"Performance (number of columns: {num_cols}, number of runs: {n}):")
 
     runtime_mean = sum(runtime_l) / n
     runtime_stddev = (

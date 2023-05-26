@@ -20,13 +20,16 @@ class StateIncrement(DiagnosticComponent):
         self,
         computational_grid: ComputationalGrid,
         factor: float,
+        ignore_supsat: bool = False,
         *,
         enable_checks: bool = True,
         gt4py_config: GT4PyConfig,
     ):
         super().__init__(computational_grid, enable_checks=enable_checks, gt4py_config=gt4py_config)
         self.f = factor
-        self.increment = self.compile_stencil("state_increment")
+        self.increment = self.compile_stencil(
+            "state_increment", externals={"IGNORE_SUPSAT": ignore_supsat}
+        )
 
     @cached_property
     @ported_method(from_file="cloudsc2_tl/cloudsc_driver_tl_mod.F90", from_line=155, to_line=171)

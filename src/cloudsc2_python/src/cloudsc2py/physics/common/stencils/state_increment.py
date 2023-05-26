@@ -41,20 +41,25 @@ def state_increment_def(
     *,
     f: "float",
 ):
+    from __externals__ import IGNORE_SUPSAT
+
     with computation(PARALLEL), interval(...):
-        out_aph_i[0, 0, 0] = f * in_aph[0, 0, 0]
-        out_ap_i[0, 0, 0] = f * in_ap[0, 0, 0]
-        out_q_i[0, 0, 0] = f * in_q[0, 0, 0]
-        out_qsat_i[0, 0, 0] = f * in_qsat[0, 0, 0]
-        out_t_i[0, 0, 0] = f * in_t[0, 0, 0]
-        out_ql_i[0, 0, 0] = f * in_ql[0, 0, 0]
-        out_qi_i[0, 0, 0] = f * in_qi[0, 0, 0]
-        out_lude_i[0, 0, 0] = f * in_lude[0, 0, 0]
-        out_lu_i[0, 0, 0] = f * in_lu[0, 0, 0]
-        out_mfu_i[0, 0, 0] = f * in_mfu[0, 0, 0]
-        out_mfd_i[0, 0, 0] = f * in_mfd[0, 0, 0]
-        out_tnd_cml_t_i[0, 0, 0] = f * in_tnd_cml_t[0, 0, 0]
-        out_tnd_cml_q_i[0, 0, 0] = f * in_tnd_cml_q[0, 0, 0]
-        out_tnd_cml_ql_i[0, 0, 0] = f * in_tnd_cml_ql[0, 0, 0]
-        out_tnd_cml_qi_i[0, 0, 0] = f * in_tnd_cml_qi[0, 0, 0]
-        out_supsat_i[0, 0, 0] = 0.0  #f * in_supsat[0, 0, 0]
+        out_aph_i[0, 0, 0] = f * in_aph
+        out_ap_i[0, 0, 0] = f * in_ap
+        out_q_i[0, 0, 0] = f * in_q
+        out_qsat_i[0, 0, 0] = f * in_qsat
+        out_t_i[0, 0, 0] = f * in_t
+        out_ql_i[0, 0, 0] = f * in_ql
+        out_qi_i[0, 0, 0] = f * in_qi
+        out_lude_i[0, 0, 0] = f * in_lude
+        out_lu_i[0, 0, 0] = f * in_lu
+        out_mfu_i[0, 0, 0] = f * in_mfu
+        out_mfd_i[0, 0, 0] = f * in_mfd
+        out_tnd_cml_t_i[0, 0, 0] = f * in_tnd_cml_t
+        out_tnd_cml_q_i[0, 0, 0] = f * in_tnd_cml_q
+        out_tnd_cml_ql_i[0, 0, 0] = f * in_tnd_cml_ql
+        out_tnd_cml_qi_i[0, 0, 0] = f * in_tnd_cml_qi
+        if not IGNORE_SUPSAT:
+            out_supsat_i[0, 0, 0] = f * in_supsat
+        else:
+            out_supsat_i[0, 0, 0] = 0.0

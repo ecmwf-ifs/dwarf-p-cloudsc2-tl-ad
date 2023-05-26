@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 from __future__ import annotations
 import numpy as np
+import os
 from os.path import dirname, join, normpath, splitext
 from pydantic import BaseModel, validator
 import socket
@@ -61,6 +62,7 @@ class PythonConfig(BaseModel):
 
     # run
     num_runs: int
+    num_threads: int
 
     # low-level and/or backend-related
     data_types: DataTypes
@@ -97,6 +99,11 @@ class PythonConfig(BaseModel):
             args["num_runs"] = num_runs
         return PythonConfig(**args)
 
+    def with_num_threads(self, num_threads: Optional[int]) -> PythonConfig:
+        args = self.dict()
+        args["num_threads"] = num_threads or os.environ.get("OMP_NUM_THREADS", 1)
+        return PythonConfig(**args)
+
     def with_precision(self, precision: Literal["double", "single"]) -> PythonConfig:
         args = self.dict()
         args["data_types"] = self.data_types.with_precision(precision)
@@ -115,6 +122,7 @@ default_python_config = PythonConfig(
     input_file=join(config_files_dir, "input.h5"),
     reference_file=join(config_files_dir, "reference.h5"),
     num_runs=15,
+    num_threads=1,
     data_types=DataTypes(bool=bool, float=np.float64, int=np.int64),
     gt4py_config=GT4PyConfig(backend="numpy", rebuild=False, validate_args=True, verbose=True),
     sympl_enable_checks=True,
@@ -124,7 +132,6 @@ default_python_config = PythonConfig(
 class FortranConfig(BaseModel):
     """Gathers options controlling execution of FORTRAN code."""
 
-    arch: Literal["cpu", "gpu"]
     build_dir: str
     variant: str
     nproma: int
@@ -160,30 +167,9 @@ class FortranConfig(BaseModel):
     def with_variant(self, variant: str) -> FortranConfig:
         args = self.dict()
         args["variant"] = variant
-        args["arch"] = fortran_variants[variant]
         return FortranConfig(**args)
 
 
-fortran_variants = {
-    "c": "cpu",
-    "cuda": "gpu",
-    "cuda-hoist": "gpu",
-    "cuda-k-caching": "gpu",
-    "fortran": "cpu",
-    "gpu-omp-scc-hoist": "gpu",
-    "gpu-scc": "gpu",
-    "gpu-scc-cuf": "gpu",
-    "gpu-scc-cuf-k-caching": "gpu",
-    "gpu-scc-hoist": "gpu",
-    "gpu-scc-k-caching": "gpu",
-    "loki-c": "cpu",
-    "loki-idem": "cpu",
-    "loki-sca": "cpu",
-    "loki-scc": "gpu",
-    "loki-scc-cuf-hoist": "gpu",
-    "loki-scc-cuf-parametrise": "gpu",
-    "loki-scc-hoist": "gpu",
-}
 default_fortran_config = FortranConfig(
-    arch="cpu", build_dir=".", variant="fortran", nproma=32, num_cols=1, num_runs=1, num_threads=1
+    build_dir=".", variant="fortran", nproma=32, num_cols=1, num_runs=1, num_threads=1
 )

@@ -14,6 +14,7 @@ if TYPE_CHECKING:
     from typing import Optional
 
     from sympl._core.typingx import PropertyDict
+    from gt4py.cartesian import StencilObject
 
     from cloudsc2py.framework.config import GT4PyConfig
     from cloudsc2py.framework.grid import ComputationalGrid
@@ -21,6 +22,8 @@ if TYPE_CHECKING:
 
 
 class Cloudsc2NL(ImplicitTendencyComponent):
+    cloudsc2: StencilObject
+
     def __init__(
         self,
         computational_grid: ComputationalGrid,
@@ -56,15 +59,10 @@ class Cloudsc2NL(ImplicitTendencyComponent):
                 "ZSCAL": 0.9,
             }
         )
-
         self.cloudsc2 = self.compile_stencil("cloudsc2_nl", externals)
 
     @cached_property
-    @ported_method(
-        from_file="cloudsc2_nl/cloudsc_driver_mod.F90",
-        from_line=94,
-        to_line=107,
-    )
+    @ported_method(from_file="cloudsc2_nl/cloudsc_driver_mod.F90", from_line=94, to_line=107)
     @ported_method(from_file="cloudsc2_nl/cloudsc2.F90", from_line=50, to_line=66)
     def _input_properties(self) -> PropertyDict:
         return {
@@ -119,43 +117,41 @@ class Cloudsc2NL(ImplicitTendencyComponent):
     ) -> None:
         with managed_temporary_storage(
             self.computational_grid, *repeat((I, J), 5), gt4py_config=self.gt4py_config
-        ) as (tmp_aph_s, tmp_rfl, tmp_sfl, tmp_covptot, tmp_trpaus):
-            tmp_aph_s[...] = state["f_aph"][
-                ..., self.computational_grid.grids[I, J, K - 1 / 2].shape[2] - 1
-            ]
+        ) as (aph_s, rfl, sfl, covptot, trpaus):
+            aph_s[...] = state["f_aph"][..., -1]
             self.cloudsc2(
-                in_eta=state["f_eta"],
                 in_ap=state["f_ap"],
                 in_aph=state["f_aph"],
-                in_t=state["f_t"],
-                in_q=state["f_q"],
-                in_qsat=state["f_qsat"],
-                in_ql=state["f_ql"],
-                in_qi=state["f_qi"],
+                in_eta=state["f_eta"],
                 in_lu=state["f_lu"],
                 in_lude=state["f_lude"],
                 in_mfd=state["f_mfd"],
                 in_mfu=state["f_mfu"],
+                in_q=state["f_q"],
+                in_qi=state["f_qi"],
+                in_ql=state["f_ql"],
+                in_qsat=state["f_qsat"],
                 in_supsat=state["f_supsat"],
-                in_tnd_cml_t=state["f_tnd_cml_t"],
+                in_t=state["f_t"],
                 in_tnd_cml_q=state["f_tnd_cml_q"],
-                in_tnd_cml_ql=state["f_tnd_cml_ql"],
                 in_tnd_cml_qi=state["f_tnd_cml_qi"],
-                tmp_aph_s=tmp_aph_s,
-                tmp_rfl=tmp_rfl,
-                tmp_sfl=tmp_sfl,
-                tmp_covptot=tmp_covptot,
-                tmp_trpaus=tmp_trpaus,
-                out_tnd_t=out_tendencies["f_t"],
-                out_tnd_q=out_tendencies["f_q"],
-                out_tnd_ql=out_tendencies["f_ql"],
-                out_tnd_qi=out_tendencies["f_qi"],
+                in_tnd_cml_ql=state["f_tnd_cml_ql"],
+                in_tnd_cml_t=state["f_tnd_cml_t"],
                 out_clc=out_diagnostics["f_clc"],
+                out_covptot=out_diagnostics["f_covptot"],
                 out_fhpsl=out_diagnostics["f_fhpsl"],
                 out_fhpsn=out_diagnostics["f_fhpsn"],
                 out_fplsl=out_diagnostics["f_fplsl"],
                 out_fplsn=out_diagnostics["f_fplsn"],
-                out_covptot=out_diagnostics["f_covptot"],
+                out_tnd_q=out_tendencies["f_q"],
+                out_tnd_qi=out_tendencies["f_qi"],
+                out_tnd_ql=out_tendencies["f_ql"],
+                out_tnd_t=out_tendencies["f_t"],
+                tmp_aph_s=aph_s,
+                tmp_covptot=covptot,
+                tmp_rfl=rfl,
+                tmp_sfl=sfl,
+                tmp_trpaus=trpaus,
                 dt=timestep.total_seconds(),
                 origin=(0, 0, 0),
                 domain=self.computational_grid.grids[I, J, K - 1 / 2].shape,
