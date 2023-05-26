@@ -2,25 +2,30 @@
 from __future__ import annotations
 from functools import cached_property
 from itertools import repeat
+import numpy as np
 from typing import TYPE_CHECKING
 
 from cloudsc2py.framework.components import ImplicitTendencyComponent
 from cloudsc2py.framework.grid import I, J, K
-from cloudsc2py.framework.storage import managed_temporary_storage
+from cloudsc2py.framework.storage import managed_temporary_storage, zeros
 from cloudsc2py.utils.f2py import ported_method
 
 if TYPE_CHECKING:
     from datetime import timedelta
     from typing import Optional
 
+    from gt4py.cartesian import StencilObject
     from sympl._core.typingx import PropertyDict
 
     from cloudsc2py.framework.config import GT4PyConfig
     from cloudsc2py.framework.grid import ComputationalGrid
-    from cloudsc2py.utils.typingx import ArrayDict, ParameterDict
+    from cloudsc2py.utils.typingx import Array, ArrayDict, ParameterDict
 
 
 class Cloudsc2AD(ImplicitTendencyComponent):
+    cloudsc2: StencilObject
+    klevel: Array
+
     def __init__(
         self,
         computational_grid: ComputationalGrid,
@@ -39,10 +44,17 @@ class Cloudsc2AD(ImplicitTendencyComponent):
     ) -> None:
         super().__init__(computational_grid, enable_checks=enable_checks, gt4py_config=gt4py_config)
 
+        nk = self.computational_grid.grids[I, J, K].shape[2]
+        self.klevel = zeros(
+            self.computational_grid, (K,), gt4py_config=self.gt4py_config, dtype="int"
+        )
+        self.klevel[:] = np.arange(0, nk + 1)
+
         externals = {
             "ICALL": 0,
-            "LPHYLIN": lphylin,
             "LDRAIN1D": ldrain1d,
+            "LPHYLIN": lphylin,
+            "NLEV": nk,
             "ZEPS1": 1e-12,
             "ZEPS2": 1e-10,
             "ZQMAX": 0.5,
@@ -55,7 +67,6 @@ class Cloudsc2AD(ImplicitTendencyComponent):
         externals.update(yrephli_parameters or {})
         externals.update(yrncl_parameters or {})
         externals.update(yrphnc_parameters or {})
-
         self.cloudsc2 = self.compile_stencil("cloudsc2_ad", externals)
 
     @cached_property
@@ -138,67 +149,72 @@ class Cloudsc2AD(ImplicitTendencyComponent):
         overwrite_tendencies: dict[str, bool],
     ) -> None:
         with managed_temporary_storage(
-            self.computational_grid, *repeat((I, J), 2), gt4py_config=self.gt4py_config
-        ) as (tmp_aph_s, tmp_trpaus):
-            tmp_aph_s[...] = state["f_aph"][
-                ..., self.computational_grid.grids[I, J, K - 1 / 2].shape[2] - 1
-            ]
+            self.computational_grid, *repeat((I, J), 8), gt4py_config=self.gt4py_config
+        ) as (aph_s, aph_s_i, covptotp, rfln, rfln_i, sfln, sfln_i, trpaus):
+            aph_s[...] = state["f_aph"][..., -1]
             self.cloudsc2(
-                in_eta=state["f_eta"],
                 in_ap=state["f_ap"],
                 in_aph=state["f_aph"],
-                in_t=state["f_t"],
-                in_q=state["f_q"],
-                in_qsat=state["f_qsat"],
-                in_ql=state["f_ql"],
-                in_qi=state["f_qi"],
-                in_lu=state["f_lu"],
-                in_lude=state["f_lude"],
-                in_mfd=state["f_mfd"],
-                in_mfu=state["f_mfu"],
-                in_supsat=state["f_supsat"],
-                in_tnd_cml_t=state["f_tnd_cml_t"],
-                in_tnd_t_i=state["f_tnd_t_i"],
-                in_tnd_cml_q=state["f_tnd_cml_q"],
-                in_tnd_q_i=state["f_tnd_q_i"],
-                in_tnd_cml_ql=state["f_tnd_cml_ql"],
-                in_tnd_ql_i=state["f_tnd_ql_i"],
-                in_tnd_cml_qi=state["f_tnd_cml_qi"],
-                in_tnd_qi_i=state["f_tnd_qi_i"],
                 in_clc_i=state["f_clc_i"],
+                in_covptot_i=state["f_covptot_i"],
+                in_eta=state["f_eta"],
                 in_fhpsl_i=state["f_fhpsl_i"],
                 in_fhpsn_i=state["f_fhpsn_i"],
                 in_fplsl_i=state["f_fplsl_i"],
                 in_fplsn_i=state["f_fplsn_i"],
-                in_covptot_i=state["f_covptot_i"],
-                tmp_aph_s=tmp_aph_s,
-                tmp_trpaus=tmp_trpaus,
+                in_lu=state["f_lu"],
+                in_lude=state["f_lude"],
+                in_mfd=state["f_mfd"],
+                in_mfu=state["f_mfu"],
+                in_q=state["f_q"],
+                in_qi=state["f_qi"],
+                in_ql=state["f_ql"],
+                in_qsat=state["f_qsat"],
+                in_supsat=state["f_supsat"],
+                in_t=state["f_t"],
+                in_tnd_cml_q=state["f_tnd_cml_q"],
+                in_tnd_cml_qi=state["f_tnd_cml_qi"],
+                in_tnd_cml_ql=state["f_tnd_cml_ql"],
+                in_tnd_cml_t=state["f_tnd_cml_t"],
+                in_tnd_q_i=state["f_tnd_q_i"],
+                in_tnd_qi_i=state["f_tnd_qi_i"],
+                in_tnd_ql_i=state["f_tnd_ql_i"],
+                in_tnd_t_i=state["f_tnd_t_i"],
                 out_ap_i=out_diagnostics["f_ap_i"],
                 out_aph_i=out_diagnostics["f_aph_i"],
-                out_t_i=out_diagnostics["f_t_i"],
-                out_q_i=out_diagnostics["f_q_i"],
-                out_qsat_i=out_diagnostics["f_qsat_i"],
-                out_ql_i=out_diagnostics["f_ql_i"],
-                out_qi_i=out_diagnostics["f_qi_i"],
-                out_lu_i=out_diagnostics["f_lu_i"],
-                out_lude_i=out_diagnostics["f_lude_i"],
-                out_mfd_i=out_diagnostics["f_mfd_i"],
-                out_mfu_i=out_diagnostics["f_mfu_i"],
-                out_supsat_i=out_diagnostics["f_supsat_i"],
-                out_tnd_t=out_tendencies["f_t"],
-                out_tnd_cml_t_i=out_tendencies["f_cml_t_i"],
-                out_tnd_q=out_tendencies["f_q"],
-                out_tnd_cml_q_i=out_tendencies["f_cml_q_i"],
-                out_tnd_ql=out_tendencies["f_ql"],
-                out_tnd_cml_ql_i=out_tendencies["f_cml_ql_i"],
-                out_tnd_qi=out_tendencies["f_qi"],
-                out_tnd_cml_qi_i=out_tendencies["f_cml_qi_i"],
                 out_clc=out_diagnostics["f_clc"],
+                out_covptot=out_diagnostics["f_covptot"],
                 out_fhpsl=out_diagnostics["f_fhpsl"],
                 out_fhpsn=out_diagnostics["f_fhpsn"],
                 out_fplsl=out_diagnostics["f_fplsl"],
                 out_fplsn=out_diagnostics["f_fplsn"],
-                out_covptot=out_diagnostics["f_covptot"],
+                out_lu_i=out_diagnostics["f_lu_i"],
+                out_lude_i=out_diagnostics["f_lude_i"],
+                out_mfd_i=out_diagnostics["f_mfd_i"],
+                out_mfu_i=out_diagnostics["f_mfu_i"],
+                out_q_i=out_diagnostics["f_q_i"],
+                out_qi_i=out_diagnostics["f_qi_i"],
+                out_ql_i=out_diagnostics["f_ql_i"],
+                out_qsat_i=out_diagnostics["f_qsat_i"],
+                out_supsat_i=out_diagnostics["f_supsat_i"],
+                out_t_i=out_diagnostics["f_t_i"],
+                out_tnd_cml_q_i=out_tendencies["f_cml_q_i"],
+                out_tnd_cml_qi_i=out_tendencies["f_cml_qi_i"],
+                out_tnd_cml_ql_i=out_tendencies["f_cml_ql_i"],
+                out_tnd_cml_t_i=out_tendencies["f_cml_t_i"],
+                out_tnd_q=out_tendencies["f_q"],
+                out_tnd_qi=out_tendencies["f_qi"],
+                out_tnd_ql=out_tendencies["f_ql"],
+                out_tnd_t=out_tendencies["f_t"],
+                tmp_aph_s=aph_s,
+                tmp_aph_s_i=aph_s_i,
+                tmp_covptotp=covptotp,
+                tmp_klevel=self.klevel,
+                tmp_rfln=rfln,
+                tmp_rfln_i=rfln_i,
+                tmp_sfln=sfln,
+                tmp_sfln_i=sfln_i,
+                tmp_trpaus=trpaus,
                 dt=timestep.total_seconds(),
                 origin=(0, 0, 0),
                 domain=self.computational_grid.grids[I, J, K - 1 / 2].shape,

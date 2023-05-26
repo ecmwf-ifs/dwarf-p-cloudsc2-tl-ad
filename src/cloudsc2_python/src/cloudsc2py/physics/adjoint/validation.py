@@ -86,7 +86,11 @@ class SymmetryTest:
 
         # perturbation
         self.state_increment = StateIncrement(
-            computational_grid, factor, enable_checks=enable_checks, gt4py_config=gt4py_config
+            computational_grid,
+            factor,
+            ignore_supsat=True,
+            enable_checks=enable_checks,
+            gt4py_config=gt4py_config,
         )
 
         # auxiliary dictionaries
@@ -97,12 +101,7 @@ class SymmetryTest:
         self.tends_ad = None
         self.diags_ad = None
 
-    def __call__(self, state: DataArrayDict, timestep: timedelta) -> None:
-        self.run(state, timestep)
-        self.validate()
-
-    @ported_method(from_file="cloudsc2_ad/cloudsc_driver_ad_mod.F90", from_line=22, to_line=297)
-    def run(self, state: DataArrayDict, timestep: timedelta) -> None:
+    def __call__(self, state: DataArrayDict, timestep: timedelta, enable_validation: bool = True) -> None:
         self.diags_sat = self.saturation(state, out=self.diags_sat)
         state.update(self.diags_sat)
 
@@ -112,38 +111,29 @@ class SymmetryTest:
             state, timestep, out_tendencies=self.tends_tl, out_diagnostics=self.diags_tl
         )
 
+        if enable_validation:
+            norm1 = self.get_norm1(self.tends_tl, self.diags_tl)
+        else:
+            norm1 = None
+
         self.add_tendencies_to_state(state, self.tends_tl)
         state.update(self.diags_tl)
         self.tends_ad, self.diags_ad = self.cloudsc2_ad(
             state, timestep, out_tendencies=self.tends_ad, out_diagnostics=self.diags_ad
         )
 
-    @ported_method(from_file="cloudsc2_ad/cloudsc_driver_ad_mod.F90", from_line=260, to_line=294)
-    def validate(self) -> None:
-        norm1 = self.get_norm1(self.tends_tl, self.diags_tl)
-        norm2 = self.get_norm2(self.state_i, self.tends_ad, self.diags_ad)
-
-        norm3 = np.where(
-            norm2 == 0,
-            abs(norm1 - norm2) / sys.float_info.epsilon,
-            abs(norm1 - norm2) / sys.float_info.epsilon / norm2,
-        )
-
-        if norm3.max() < 1e4:
-            print("The symmetry test passed. HOORAY!")
-        else:
-            print("The symmetry test failed.")
-        print(f"The error is {norm3.max()} times the machine epsilon.")
-
-        # out = np.where(np.isclose(norm1, norm2) == False)[0]
-        # if out.size == 0:
-        #     print("The symmetry test passed. HOORAY!")
-        # else:
-        #     print(
-        #         f"The symmetry test failed on the following columns: "
-        #         f"{', '.join([str(idx+1) for idx in out])}.\n"
-        #         f"Failure rate: {out.size / norm1.size * 100} %."
-        #     )
+        if enable_validation:
+            norm2 = self.get_norm2(self.state_i, self.tends_ad, self.diags_ad)
+            norm3 = np.where(
+                norm2 == 0,
+                abs(norm1 - norm2) / sys.float_info.epsilon,
+                abs(norm1 - norm2) / (sys.float_info.epsilon * norm2),
+                )
+            if norm3.max() < 1e4:
+                print("The symmetry test passed. HOORAY!")
+            else:
+                print("The symmetry test failed.")
+            print(f"The maximum error is {norm3.max()} times the zero of the machine.")
 
     @ported_method(from_file="cloudsc2_ad/cloudsc_driver_ad_mod.F90", from_line=183, to_line=195)
     def get_norm1(self, tends_tl: DataArrayDict, diags_tl: DataArrayDict) -> np.ndarray:
@@ -192,6 +182,7 @@ class SymmetryTest:
         for name in diag_names:
             field_a = self.get_field(name, state_i)
             field_b = self.get_field(name, diags_ad)
+            out = np.zeros(field_a.shape[0]) if out is None else out
             out += np.sum(field_a * field_b, axis=1)
 
         return out

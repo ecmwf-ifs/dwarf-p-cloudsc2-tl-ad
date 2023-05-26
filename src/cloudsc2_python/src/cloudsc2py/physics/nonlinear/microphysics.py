@@ -13,8 +13,8 @@ if TYPE_CHECKING:
     from datetime import timedelta
     from typing import Optional
 
-    from sympl._core.typingx import PropertyDict
     from gt4py.cartesian import StencilObject
+    from sympl._core.typingx import PropertyDict
 
     from cloudsc2py.framework.config import GT4PyConfig
     from cloudsc2py.framework.grid import ComputationalGrid

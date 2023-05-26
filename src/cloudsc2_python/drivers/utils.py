@@ -73,7 +73,6 @@ def to_csv_stencils(
     call_time = 0.0
     for key, value in exec_info.items():
         if any(key_pattern in key for key_pattern in key_patterns):
-            print(f"{key=}: {value=}")
             call_time += value["total_call_time"] * 1000 / num_runs
 
     if not os.path.exists(output_file):

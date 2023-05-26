@@ -5,120 +5,13 @@ from cloudsc2py.framework.stencil import function_collection
 from cloudsc2py.utils.f2py import ported_function
 
 
-@ported_function(from_file="cloudsc2_ad/cuadjtqsad.F90", from_line=318, to_line=340)
-@function_collection("cuadjtqs_ad_00")
-@gtscript.function
-def cuadjtqs_ad_00(ap, t, q, z3es, z4es, z5alcp, zaldcp):
-    from __externals__ import R2ES, RETV, RTT, ZQMAX
-
-    foeew = R2ES * exp(z3es * (t - RTT) / (t - z4es))
-    qsat = foeew / ap
-    test = qsat > ZQMAX
-    qsat = min(qsat, ZQMAX)
-    cor = 1 / (1 - RETV * qsat)
-    qsat_ = qsat + 0
-    qsat *= cor
-    z2s = z5alcp / (t - z4es) ** 2
-    cond = (q - qsat) / (1 + qsat * cor * z2s)
-    t += zaldcp * cond
-    q -= cond
-
-    return t, q, cor, foeew, qsat, qsat_, test, z2s
-
-
-@ported_function(from_file="cloudsc2_as/cuadjtqsad.F90", from_line=546, to_line=590)
-@function_collection("cuadjtqs_ad_01")
-@gtscript.function
-def cuadjtqs_ad_01(
-    ap,
-    ap_i,
-    t_i,
-    q_i,
-    z3es,
-    z4es,
-    z5alcp,
-    zaldcp,
-    cor_a,
-    cor_b,
-    foeew_a,
-    foeew_b,
-    q_a,
-    q_b,
-    qsat_a,
-    qsat_b,
-    qsat_c,
-    qsat_d,
-    targ_a,
-    targ_b,
-    test1,
-    test2,
-    z2s_a,
-    z2s_b,
-):
-    from __externals__ import R2ES, RETV, RTT
-
-    cond = zaldcp * t_i - q_i
-    q_i += cond / (1 + qsat_a * cor_a * z2s_a)
-    qsat_i = (
-        -cond / (1 + qsat_a * cor_a * z2s_a)
-        - cond * (q_a - qsat_a) * cor_a * z2s_a / (1 + qsat_a * cor_a * z2s_a) ** 2
-    )
-    cor_i = -cond * (q_a - qsat_a) * qsat_a * z2s_a / (1 + qsat_a * cor_a * z2s_a) ** 2
-    z2s_i = -cond * (q_a - qsat_a) * qsat_a * cor_a / (1 + qsat_a * cor_a * z2s_a) ** 2
-    targ_i = -2 * z2s_i * z5alcp / (targ_a - z4es) ** 3
-    cor_i += qsat_i * qsat_c
-    qsat_i *= cor_a
-    qsat_i += cor_i * RETV / (1 - RETV * qsat_c) ** 2
-    if test1:
-        qsat_i = 0.0
-    foeew_i = qsat_i / ap
-    qp = qsat_i * foeew_a
-    targ_i += (
-        foeew_i
-        * R2ES
-        * z3es
-        * (RTT - z4es)
-        * exp(z3es * (targ_a - RTT) / (targ_a - z4es))
-        / (targ_a - z4es) ** 2
-    )
-    t_i += targ_i
-
-    cond = zaldcp * t_i - q_i
-    q_i += cond / (1 + qsat_b * cor_b * z2s_b)
-    qsat_i = (
-        -cond / (1 + qsat_b * cor_b * z2s_b)
-        - cond * (q_b - qsat_b) * cor_b * z2s_b / (1 + qsat_b * cor_b * z2s_b) ** 2
-    )
-    cor_i = -cond * (q_b - qsat_b) * qsat_b * z2s_b / (1 + qsat_b * cor_b * z2s_b) ** 2
-    z2s_i = -cond * (q_b - qsat_b) * qsat_b * cor_b / (1 + qsat_b * cor_b * z2s_b) ** 2
-    targ_i = -2 * z2s_i * z5alcp / (targ_b - z4es) ** 3
-    cor_i += qsat_i * qsat_d
-    qsat_i *= cor_b
-    qsat_i += cor_i * RETV / (1 - RETV * qsat_d) ** 2
-    if test2:
-        qsat_i = 0.0
-    foeew_i = qsat_i / ap
-    qp += qsat_i * foeew_b
-    targ_i += (
-        foeew_i
-        * R2ES
-        * z3es
-        * (RTT - z4es)
-        * exp(z3es * (targ_b - RTT) / (targ_b - z4es))
-        / (targ_b - z4es) ** 2
-    )
-    t_i += targ_i
-    ap_i -= qp / ap**2
-
-    return ap_i, t_i, q_i
-
-
 @ported_function(from_file="cloudsc2_ad/cuadjtqsad.F90", from_line=10, to_line=871)
 @function_collection("cuadjtqs_ad")
 @gtscript.function
 def cuadjtqs_ad(ap, ap_i, t, t_i, q, q_i):
     from __externals__ import (
         ICALL,
+        R2ES,
         R3IES,
         R3LES,
         R4IES,
@@ -127,7 +20,9 @@ def cuadjtqs_ad(ap, ap_i, t, t_i, q, q_i):
         R5ALVCP,
         RALSDCP,
         RALVDCP,
+        RETV,
         RTT,
+        ZQMAX,
     )
 
     if t > RTT:
@@ -141,53 +36,110 @@ def cuadjtqs_ad(ap, ap_i, t, t_i, q, q_i):
         z5alcp = R5ALSCP
         zaldcp = RALSDCP
 
-    if __INLINED(ICALL == 0):
-        targ_b = t + 0
+    if ICALL == 0:
+        targ = t + 0
+        foeew = R2ES * exp(z3es * (targ - RTT) / (targ - z4es))
+        foeew_b = foeew + 0
+        qsat = foeew / ap
+        ltest2 = qsat > ZQMAX
+        if ltest2:
+            qsat = ZQMAX
+        cor = 1 / (1 - RETV * qsat)
+        qsat_d = qsat + 0
+        qsat *= cor
+        targ_b = targ + 0
+        z2s = z5alcp / (targ - z4es) ** 2
+        qsat_b = qsat + 0
+        cor_b = cor + 0
+        z2s_b = z2s + 0
         q_b = q + 0
-        (
-            targ_a,
-            q_a,
-            cor_b,
-            foeew_b,
-            qsat_b,
-            qsat_d,
-            test2,
-            z2s_b,
-        ) = cuadjtqs_ad_00(ap, t, q, z3es, z4es, z5alcp, zaldcp)
-        (
-            t,
-            q,
-            cor_a,
-            foeew_a,
-            qsat_a,
-            qsat_c,
-            test1,
-            z2s_a,
-        ) = cuadjtqs_ad_00(ap, targ_a, q_a, z3es, z4es, z5alcp, zaldcp)
-        ap_i, t_i, q_i = cuadjtqs_ad_01(
-            ap,
-            ap_i,
-            t_i,
-            q_i,
-            z3es,
-            z4es,
-            z5alcp,
-            zaldcp,
-            cor_a,
-            cor_b,
-            foeew_a,
-            foeew_b,
-            q_a,
-            q_b,
-            qsat_a,
-            qsat_b,
-            qsat_c,
-            qsat_d,
-            targ_a,
-            targ_b,
-            test1,
-            test2,
-            z2s_a,
-            z2s_b,
+        cond1 = (q - qsat) / (1 + qsat * cor * z2s)
+        t += zaldcp * cond1
+        q -= cond1
+
+        targ = t + 0
+        foeew = R2ES * exp(z3es * (targ - RTT) / (targ - z4es))
+        foeew_a = foeew + 0
+        qsat = foeew / ap
+        ltest1 = qsat > ZQMAX
+        if ltest1:
+            qsat = ZQMAX
+        cor = 1 / (1 - RETV * qsat)
+        qsat_c = qsat + 0
+        qsat *= cor
+        targ_a = targ + 0
+        z2s = z5alcp / (targ - z4es) ** 2
+        qsat_a = qsat + 0
+        cor_a = cor + 0
+        z2s_a = z2s + 0
+        q_a = q + 0
+        cond1 = (q - qsat) / (1 + qsat * cor * z2s)
+        t += zaldcp * cond1
+        q -= cond1
+
+        cond1_i = -q_i + zaldcp * t_i
+        qsat = qsat_a + 0
+        cor = cor_a + 0
+        z2s = z2s_a + 0
+        q_i += cond1_i / (1 + qsat * cor * z2s)
+        qsat_i = (
+            -cond1_i / (1 + qsat * cor * z2s)
+            - cond1_i * (q_a - qsat) * cor * z2s / (1 + qsat * cor * z2s) ** 2
         )
+        cor_i = -cond1_i * (q_a - qsat) * qsat * z2s / (1 + qsat * cor * z2s) ** 2
+        z2s_i = -cond1_i * (q_a - qsat) * qsat * cor / (1 + qsat * cor * z2s) ** 2
+        targ = targ_a + 0
+        targ_i = -2 * z2s_i * z5alcp / (targ - z4es) ** 3
+        qsat = qsat_c + 0
+        cor_i += qsat_i * qsat
+        qsat_i *= cor
+        qsat_i += cor_i * RETV / (1 - RETV * qsat) ** 2
+        if ltest1:
+            qsat_i = 0.0
+        foeew_i = qsat_i / ap
+        foeew = foeew_a + 0
+        qp_i = qsat_i * foeew
+        targ_i += (
+            foeew_i
+            * R2ES
+            * z3es
+            * (RTT - z4es)
+            * exp(z3es * (targ - RTT) / (targ - z4es))
+            / (targ - z4es) ** 2
+        )
+        t_i += targ_i
+
+        cond1_i = -q_i + zaldcp * t_i
+        qsat = qsat_b + 0
+        cor = cor_b + 0
+        z2s = z2s_b + 0
+        q_i += cond1_i / (1 + qsat * cor * z2s)
+        qsat_i = (
+            -cond1_i / (1 + qsat * cor * z2s)
+            - cond1_i * (q_b - qsat) * cor * z2s / (1 + qsat * cor * z2s) ** 2
+        )
+        cor_i = -cond1_i * (q_b - qsat) * qsat * z2s / (1 + qsat * cor * z2s) ** 2
+        z2s_i = -cond1_i * (q_b - qsat) * qsat * cor / (1 + qsat * cor * z2s) ** 2
+        targ = targ_b + 0
+        targ_i = -2 * z2s_i * z5alcp / (targ - z4es) ** 3
+        qsat = qsat_d + 0
+        cor_i += qsat_i * qsat
+        qsat_i *= cor
+        qsat_i += cor_i * RETV / (1 - RETV * qsat) ** 2
+        if ltest2:
+            qsat_i = 0.0
+        foeew_i = qsat_i / ap
+        foeew = foeew_b + 0
+        qp_i += qsat_i * foeew
+        targ_i += (
+            foeew_i
+            * R2ES
+            * z3es
+            * (RTT - z4es)
+            * exp(z3es * (targ - RTT) / (targ - z4es))
+            / (targ - z4es) ** 2
+        )
+        t_i += targ_i
+        ap_i -= qp_i / ap**2
+
         return ap_i, t, t_i, q, q_i

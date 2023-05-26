@@ -336,8 +336,8 @@ def cloudsc2_tl_def(
             if LREGCL:
                 dqc_i *= 0.1
         else:
-            dqc = qc + 0
-            dqc_i = qc_i + 0
+            dqc = qc
+            dqc_i = qc_i
         qc -= dqc
         qc_i -= dqc_i
 
@@ -377,11 +377,11 @@ def cloudsc2_tl_def(
                 z2s_i = 0.0
 
             if tmp_sfl <= z2s:
-                snmlt = tmp_sfl + 0
-                snmlt_i = tmp_sfl_i + 0
+                snmlt = tmp_sfl
+                snmlt_i = tmp_sfl_i
             else:
-                snmlt = z2s + 0
-                snmlt_i = z2s_i + 0
+                snmlt = z2s
+                snmlt_i = z2s_i
 
             rfln = tmp_rfl + snmlt
             rfln_i = tmp_rfl_i + snmlt_i
@@ -390,10 +390,10 @@ def cloudsc2_tl_def(
             t -= snmlt / cons
             t_i -= (snmlt_i * cons - snmlt * cons_i) / cons**2
         else:
-            rfln = tmp_rfl + 0
-            rfln_i = tmp_rfl_i + 0
-            sfln = tmp_sfl + 0
-            sfln_i = tmp_sfl_i + 0
+            rfln = tmp_rfl
+            rfln_i = tmp_rfl_i
+            sfln = tmp_sfl
+            sfln_i = tmp_sfl_i
 
         if out_clc > ZEPS2:
             # diagnostic calculation of rain production from cloud liquid water
@@ -608,8 +608,8 @@ def cloudsc2_tl_def(
         t_i += dt * dtdt_i
         q += dt * dqdt
         q_i += dt * dqdt_i
-        qold = q + 0
-        qold_i = q_i + 0
+        qold = q
+        qold_i = q_i
 
         # clipping of final qv
         t, t_i, q, q_i = cuadjtqs_tl(in_ap, in_ap_i, t, t_i, q, q_i)
@@ -693,10 +693,10 @@ def cloudsc2_tl_def(
         out_tnd_qi_i[0, 0, 0] = (qiwc_i - qi_i) / dt
 
         # these fluxes will later be shifted one level downward
-        fplsl = rfln + 0
-        fplsl_i = rfln_i + 0
-        fplsn = sfln + 0
-        fplsn_i = sfln_i + 0
+        fplsl = rfln
+        fplsl_i = rfln_i
+        fplsn = sfln
+        fplsn_i = sfln_i
 
         # record rain flux for next level
         tmp_rfl[0, 0] = rfln
