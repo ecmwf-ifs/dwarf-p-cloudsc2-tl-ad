@@ -251,7 +251,7 @@ class HDF5Reader:
 
     @ported_method(from_file="cloudsc2_tl/dwarf_cloudsc.F90", from_line=103, to_line=105)
     def get_yrncl_parameters(self) -> dict[str, bool]:
-        return {"LREGCL": False}
+        return {"LREGCL": True}
 
     @ported_method(from_file="common/module/yophnc.F90", from_line=10, to_line=80)
     @ported_method(from_file="cloudsc2_nl/dwarf_cloudsc.F90", from_line=103, to_line=107)
