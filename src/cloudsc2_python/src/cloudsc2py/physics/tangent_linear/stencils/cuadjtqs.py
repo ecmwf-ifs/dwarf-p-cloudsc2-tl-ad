@@ -11,14 +11,15 @@ from cloudsc2py.utils.f2py import ported_function
 def cuadjtqs_tl_0(ap, ap_i, t, t_i, q, q_i, z3es, z4es, z5alcp, zaldcp):
     from __externals__ import R2ES, RETV, RTT, ZQMAX
 
+    qp = 1 / ap
+    qp_i = - ap_i / ap**2
     foeew = R2ES * exp(z3es * (t - RTT) / (t - z4es))
     foeew_i = foeew * z3es * t_i * (RTT - z4es) / (t - z4es) ** 2
-    qsat = foeew / ap
-    qsat_i = foeew_i / ap - foeew * ap_i / ap ** 2
+    qsat = qp * foeew
+    qsat_i = qp_i * foeew + qp * foeew_i
     if qsat > ZQMAX:
         qsat = ZQMAX
         qsat_i = 0.0
-
     cor = 1 / (1 - RETV * qsat)
     cor_i = RETV * qsat_i / (1 - RETV * qsat) ** 2
     qsat_i = qsat_i * cor + qsat * cor_i
@@ -65,7 +66,7 @@ def cuadjtqs_tl(ap, ap_i, t, t_i, q, q_i):
         z5alcp = R5ALSCP
         zaldcp = RALSDCP
 
-    if __INLINED(ICALL == 0):
+    if ICALL == 0:
         t, t_i, q, q_i = cuadjtqs_tl_0(ap, ap_i, t, t_i, q, q_i, z3es, z4es, z5alcp, zaldcp)
         t, t_i, q, q_i = cuadjtqs_tl_0(ap, ap_i, t, t_i, q, q_i, z3es, z4es, z5alcp, zaldcp)
         return t, t_i, q, q_i

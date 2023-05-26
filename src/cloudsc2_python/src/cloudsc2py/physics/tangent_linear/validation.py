@@ -9,7 +9,7 @@ from cloudsc2py.physics.common.saturation import Saturation
 from cloudsc2py.physics.nonlinear.microphysics import Cloudsc2NL
 from cloudsc2py.physics.tangent_linear.microphysics import Cloudsc2TL
 from cloudsc2py.utils.f2py import ported_method
-from cloudsc2py.utils.numpyx import to_numpy
+from cloudsc2py.utils.timing import timing
 
 if TYPE_CHECKING:
     from datetime import timedelta
@@ -44,6 +44,9 @@ class TaylorTest:
     ) -> None:
         self.f1 = factor1
         self.f2s = factor2s
+
+        # no regularization in Taylor test
+        yrncl_parameters["LREGCL"] = False
 
         # saturation
         self.saturation = Saturation(
@@ -96,10 +99,12 @@ class TaylorTest:
             for factor2 in factor2s
         ]
 
-        # ausiliary dicts
+        # auxiliary dicts
         self.diags_nl = None
         self.diags_nl_p = None
+        self.diags_sat = None
         self.diags_tl = None
+        self.state_i = None
         self.state_p = None
         self.tends_nl = None
         self.tends_nl_p = None
@@ -114,24 +119,35 @@ class TaylorTest:
         to_line=231,
     )
     def run(self, state: DataArrayDict, timestep: timedelta) -> np.ndarray:
-        diags_sat = self.saturation(state)
-        state.update(diags_sat)
+        with timing("run"):
+            self.diags_sat = self.saturation(state, out=self.diags_sat)
+            state.update(self.diags_sat)
 
-        self.tends_nl, self.diags_nl = self.cloudsc2_nl(state, timestep)
+            self.tends_nl, self.diags_nl = self.cloudsc2_nl(
+                state, timestep, out_tendencies=self.tends_tl, out_diagnostics=self.diags_nl
+            )
 
-        state_i = self.state_increment(state)
-        state.update(state_i)
-        self.tends_tl, self.diags_tl = self.cloudsc2_tl(state, timestep)
+            self.state_i = self.state_increment(state, out=self.state_i)
+            state.update(self.state_i)
+            self.tends_tl, self.diags_tl = self.cloudsc2_tl(
+                state, timestep, out_tendencies=self.tends_tl, out_diagnostics=self.diags_tl
+            )
 
         norms = np.zeros(len(self.f2s))
         for i, perturbed_state in enumerate(self.perturbed_states):
-            state_p = perturbed_state(state, out=self.state_p)
-            state_p["time"] = state["time"]
-            state_p["f_eta"] = state["f_eta"]
-            self.tends_nl_p, self.diags_nl_p = self.cloudsc2_nl(
-                state_p, timestep, out_tendencies=self.tends_nl_p, out_diagnostics=self.diags_nl_p
-            )
-            # norms[i] = self.get_norm(i)
+            with timing("run"):
+                self.state_p = perturbed_state(state, out=self.state_p)
+                self.state_p["time"] = state["time"]
+                self.state_p["f_eta"] = state["f_eta"]
+                self.tends_nl_p, self.diags_nl_p = self.cloudsc2_nl(
+                    self.state_p,
+                    timestep,
+                    out_tendencies=self.tends_nl_p,
+                    out_diagnostics=self.diags_nl_p,
+                )
+
+            with timing("norms"):
+                norms[i] = self.get_norm(i)
 
         return norms
 
@@ -183,14 +199,14 @@ class TaylorTest:
         for name in tend_names:
             field_nl, field_nl_p, field_tl = self.get_fields(name, "tends")
             norm = self.get_field_norm(i, field_nl, field_nl_p, field_tl)
-            total_count += (norm > 0)
+            total_count += norm > 0
             total_norm += norm
 
         diag_names = ("f_clc", "f_fhpsl", "f_fhpsn", "f_fplsl", "f_fplsn", "f_covptot")
         for name in diag_names:
             field_nl, field_nl_p, field_tl = self.get_fields(name, "diags")
             norm = self.get_field_norm(i, field_nl, field_nl_p, field_tl)
-            total_count += (norm > 0)
+            total_count += norm > 0
             total_norm += norm
 
         return total_norm / total_count if total_count > 0 else 0
