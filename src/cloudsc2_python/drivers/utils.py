@@ -60,6 +60,43 @@ def to_csv(
         )
 
 
+def to_csv_stencils(
+    output_file: str,
+    host_name: str,
+    variant: str,
+    num_cols: int,
+    num_threads: int,
+    num_runs: int,
+    exec_info: dict,
+    key_patterns: list[str],
+) -> None:
+    call_time = 0.0
+    for key, value in exec_info.items():
+        if any(key_pattern in key for key_pattern in key_patterns):
+            print(f"{key=}: {value=}")
+            call_time += value["total_call_time"] * 1000 / num_runs
+
+    if not os.path.exists(output_file):
+        with open(output_file, "w") as f:
+            writer = csv.writer(f, delimiter=",")
+            writer.writerow(
+                ("date", "host", "variant", "num_cols", "num_runs", "num_threads", "stencils")
+            )
+    with open(output_file, "a") as f:
+        writer = csv.writer(f, delimiter=",")
+        writer.writerow(
+            (
+                datetime.date.today().strftime("%Y%m%d"),
+                host_name,
+                variant,
+                num_cols,
+                num_runs,
+                num_threads,
+                call_time,
+            )
+        )
+
+
 def print_performance(
     num_cols: int, runtime_l: list[float], mflops_l: Optional[list[float]] = None
 ) -> Tuple[float, float, float, float]:

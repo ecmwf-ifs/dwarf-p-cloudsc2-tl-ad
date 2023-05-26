@@ -4,7 +4,7 @@ import click
 import csv
 import datetime
 import os
-from typing import Optional, Type
+from typing import Optional
 
 from cloudsc2py.framework.grid import ComputationalGrid
 from cloudsc2py.physics.common.diagnostics import EtaLevels
@@ -16,15 +16,16 @@ from cloudsc2py.utils.iox import HDF5Reader
 from cloudsc2py.utils.timing import timing
 
 from config import PythonConfig, IOConfig, default_python_config, default_io_config
-from utils import print_performance, to_csv
+from utils import print_performance, to_csv, to_csv_stencils
 
 
-def core(config: PythonConfig, io_config: IOConfig) -> None:
+def core(config: PythonConfig, io_config: IOConfig) -> PythonConfig:
     # input file
     hdf5_reader = HDF5Reader(config.input_file, config.data_types)
 
     # grid
     nx = config.num_cols or hdf5_reader.get_nlon()
+    config = config.with_num_cols(nx)
     nz = hdf5_reader.get_nlev()
     computational_grid = ComputationalGrid(nx, 1, nz)
 
@@ -114,6 +115,8 @@ def core(config: PythonConfig, io_config: IOConfig) -> None:
         else:
             print(f"Validation completed successfully. HOORAY HOORAY!")
 
+    return config
+
 
 @click.command()
 @click.option(
@@ -199,33 +202,18 @@ def main(
         .with_precision(precision)
     )
     io_config = default_io_config.with_output_csv_file(output_csv_file).with_host_name(host_alias)
-    core(config, io_config)
-
+    config = core(config, io_config)
     if output_csv_file_stencils is not None:
-        call_time = None
-        for key, value in config.gt4py_config.exec_info.items():
-            if "cloudsc2" in key:
-                call_time = value["total_call_time"] * 1000 / config.num_runs
-
-        if not os.path.exists(output_csv_file_stencils):
-            with open(output_csv_file_stencils, "w") as f:
-                writer = csv.writer(f, delimiter=",")
-                writer.writerow(
-                    ("date", "host", "variant", "num_cols", "num_runs", "num_threads", "stencils")
-                )
-        with open(output_csv_file_stencils, "a") as f:
-            writer = csv.writer(f, delimiter=",")
-            writer.writerow(
-                (
-                    datetime.date.today().strftime("%Y%m%d"),
-                    io_config.host_name,
-                    "nl-" + config.gt4py_config.backend,
-                    config.num_cols,
-                    config.num_runs,
-                    config.num_threads,
-                    call_time,
-                )
-            )
+        to_csv_stencils(
+            output_csv_file_stencils,
+            io_config.host_name,
+            "nl-" + config.gt4py_config.backend,
+            config.num_cols,
+            config.num_threads,
+            config.num_runs,
+            config.gt4py_config.exec_info,
+            key_patterns=["cloudsc", "saturation"],
+        )
 
 
 if __name__ == "__main__":
