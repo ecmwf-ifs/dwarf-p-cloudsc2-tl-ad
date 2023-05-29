@@ -9,6 +9,7 @@ from cloudsc2py.framework.components import ImplicitTendencyComponent
 from cloudsc2py.framework.grid import I, J, K
 from cloudsc2py.framework.storage import managed_temporary_storage, zeros
 from cloudsc2py.utils.f2py import ported_method
+from cloudsc2py.utils.numpyx import assign
 
 if TYPE_CHECKING:
     from datetime import timedelta
@@ -48,7 +49,7 @@ class Cloudsc2AD(ImplicitTendencyComponent):
         self.klevel = zeros(
             self.computational_grid, (K,), gt4py_config=self.gt4py_config, dtype="int"
         )
-        self.klevel[:] = np.arange(0, nk + 1)
+        assign(self.klevel[:], np.arange(0, nk + 1))
 
         externals = {
             "ICALL": 0,
