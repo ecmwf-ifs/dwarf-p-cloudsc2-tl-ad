@@ -93,21 +93,13 @@ CONTAINS
      & PFPLSL5(NPROMA,NLEV+1), PFPLSN5(NPROMA,NLEV+1), PFHPSL5(NPROMA,NLEV+1), &
      & PFHPSN5(NPROMA,NLEV+1), PCOVPTOT5(NPROMA,NLEV)
 
-    TYPE(TOMCST)    :: YDCST, LOCAL_YDCST
-    TYPE(TOETHF)    :: YDTHF, LOCAL_YDTHF
-    TYPE(TPHNC)     :: YHNC, LOCAL_YHNC
-    TYPE(TEPHLI)    :: YPHLI, LOCAL_YPHLI
-    TYPE(TECLD)     :: YCLD, LOCAL_YCLD
-    TYPE(TECLDP)    :: YCLDP, LOCAL_YCLDP
-    TYPE(TNCL)      :: YNCL, LOCAL_YNCL
-
-    LOCAL_YDCST=YDCST
-    LOCAL_YDTHF=YDTHF
-    LOCAL_YHNC=YHNC
-    LOCAL_YPHLI=YPHLI
-    LOCAL_YCLD=YCLD
-    LOCAL_YCLDP=YCLDP
-    LOCAL_YNCL=YNCL
+    TYPE(TOMCST)    :: YDCST
+    TYPE(TOETHF)    :: YDTHF
+    TYPE(TPHNC)     :: YHNC
+    TYPE(TEPHLI)    :: YPHLI
+    TYPE(TECLD)     :: YCLD
+    TYPE(TECLDP)    :: YCLDP
+    TYPE(TNCL)      :: YNCL
 
     ! Global timer for the parallel region
     CALL TIMER%START(NUMOMP)
@@ -125,11 +117,12 @@ CONTAINS
 
          !-- These were uninitialized : meaningful only when we compare error differences
          PCOVPTOT(:,:,IBL) = 0.0_JPRB
-!        TENDENCY_LOC(IBL)%cld(:,:,NCLV) = 0.0_JPRB
+         BUFFER_LOC(:,:,2,IBL) = 0.0_JPRB
+         BUFFER_LOC(:,:,4:3+NCLV,IBL) = 0.0_JPRB
 
          ! Fill in ZQSAT
          CALL SATUR (1, ICEND, NPROMA, 1, NLEV, .TRUE., &
-              & PAP(:,:,IBL), PT(:,:,IBL), ZQSAT(:,:), 2, LOCAL_YDCST, LOCAL_YDTHF) 
+              & PAP(:,:,IBL), PT(:,:,IBL), ZQSAT(:,:), 2, YDCST, YDTHF) 
 
          CALL CLOUDSC2 ( &
               &  1, ICEND, NPROMA, 1, NLEV, LDRAIN1D, &
@@ -145,7 +138,7 @@ CONTAINS
               &  PSUPSAT(:,:,IBL), &
               &  PA(:,:,IBL), PFPLSL(:,:,IBL),   PFPLSN(:,:,IBL), &
               &  PFHPSL(:,:,IBL),   PFHPSN(:,:,IBL), PCOVPTOT(:,:,IBL), & 
-              &  LOCAL_YDCST, LOCAL_YDTHF, LOCAL_YHNC, LOCAL_YPHLI, LOCAL_YCLD, LOCAL_YCLDP)
+              &  YDCST, YDTHF, YHNC, YPHLI, YCLD, YCLDP)
 
          ! Preparation for TL
 
@@ -189,7 +182,7 @@ CONTAINS
             & ZTENO_L, ZTENI_L, ZTENO_I, ZTENI_I, ZSUPSAT, &  ! o,i,o,i
             & ZCLC   , ZFPLSL   , ZFPLSN ,&        ! o
             & ZFHPSL , ZFHPSN   , ZCOVPTOT,&
-            & LOCAL_YDCST, LOCAL_YDTHF, LOCAL_YHNC, LOCAL_YPHLI, LOCAL_YCLD, LOCAL_YCLDP, LOCAL_YNCL )       ! o
+            & YDCST, YDTHF, YHNC, YPHLI, YCLD, YCLDP, YNCL )       ! o
 
          ! Loop over incrementing states
          DO ILAM=1,10
@@ -226,7 +219,7 @@ CONTAINS
               & PSUPSAT5, &
               & PA5(:,:), PFPLSL5(:,:),   PFPLSN5(:,:), &
               & PFHPSL5(:,:),   PFHPSN5(:,:), PCOVPTOT5(:,:), &
-              & LOCAL_YDCST, LOCAL_YDTHF, LOCAL_YHNC, LOCAL_YPHLI, LOCAL_YCLD, LOCAL_YCLDP)
+              & YDCST, YDTHF, YHNC, YPHLI, YCLD, YCLDP)
 
            ! Compute final test norm
            ZCOUNT=0._JPRB
