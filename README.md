@@ -63,7 +63,7 @@ Verify the correctness of the adjoint, please run:
 ./bin/dwarf-cloudsc2-ad 1 100 100
 ```
 
-## Targetting GPU accelerators via Loki
+## Targeting GPU accelerators via Loki
 
 The CLOUDSC2-TL/AD dwarf currently has limited GPU capabilities that
 are restricted to the non-linear variant only, via the Loki
@@ -78,11 +78,11 @@ When the Loki variant is enabled, two different transformations are run and buil
   transformation, which maps the outer block loop to SMs via `!$acc
   loop gang` and marks kernel routines as `!$acc routine vector`.
 * **Loki-SCC-H**, or Loki-SCC-hoist, is similar to Loki-SCC, but
-  hoists temporary array allocations, as well as the innter vector
+  hoists temporary array allocations, as well as the inner vector
   loop to the driver layer. These optimisations improve on-device
   memory movement and yield higher overall compute throughput.
 
-Running on a GPU node requires specificaton of the CUDA heapsize for the Loki-SCC variant, e.g.
+Running on a GPU node requires specification of the CUDA heapsize for the Loki-SCC variant, e.g.
 ```
 # Go into build directory and enable environment
 cd build && . env.sh
@@ -94,7 +94,7 @@ NV_ACC_CUDA_HEAPSIZE=9G ./bin/dwarf-cloudsc2-nl-loki-scc 1 256000 128
 ./bin/dwarf-cloudsc2-nl-loki-scc-hoist 1 256000 128
 ```
 
-To debug the Loki-generated code, one may also suppresse OpenACC during the build via:
+To debug the Loki-generated code, one may also suppress OpenACC during the build via:
 ```
 # Using NVHPC-22.11
 ./cloudsc-bundle build --clean --with-loki --cmake=ENABLE_ACC=off --arch=./arch/ecmwf/hpc2020/nvhpc/22.1/
