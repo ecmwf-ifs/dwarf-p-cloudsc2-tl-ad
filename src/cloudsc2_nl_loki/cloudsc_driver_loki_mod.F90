@@ -21,13 +21,13 @@ CONTAINS
 
   SUBROUTINE CLOUDSC_DRIVER( &
      & NUMOMP, NPROMA, NLEV, NGPTOT, NGPTOTG, NGPBLKS, PTSPHY, &
-     & PT, PQ, TENDENCY_CML, TENDENCY_LOC, BUFFER_CML, BUFFER_LOC, &
+     & PT, PQ, BUFFER_CML, BUFFER_LOC, &
      & PAP,      PAPH, &
      & PLU,      PLUDE,    PMFU,     PMFD, &
      & PA,       PCLV,     PSUPSAT,&
      & PCOVPTOT, &
      & PFPLSL,   PFPLSN,   PFHPSL,   PFHPSN, &
-     & YDCST, YDTHF, YHNC, YPHLI, YCLD, YCLDP)
+     & YDCST, YDTHF, YHNC, YPHLI, YCLD, YCLDP, LCETA)
     ! Driver routine that performans the parallel NPROMA-blocking and
     ! invokes the CLOUDSC2 kernel
 
@@ -42,10 +42,9 @@ CONTAINS
 
     INTEGER(KIND=JPIM), INTENT(IN)    :: NUMOMP, NPROMA, NLEV, NGPTOT, NGPTOTG, NGPBLKS
     REAL(KIND=JPRB),    INTENT(IN)    :: PTSPHY       ! Physics timestep
+    REAL(KIND=JPRB),    INTENT(IN)    :: LCETA(NLEV) 
     REAL(KIND=JPRB),    INTENT(IN)    :: PT(NPROMA,NLEV,NGPBLKS)    ! T at start of callpar
     REAL(KIND=JPRB),    INTENT(IN)    :: PQ(NPROMA,NLEV,NGPBLKS)    ! Q at start of callpar
-    TYPE(STATE_TYPE),   INTENT(IN)    :: TENDENCY_CML(NGPBLKS) ! cumulative tendency used for final output
-    TYPE(STATE_TYPE),   INTENT(OUT)   :: TENDENCY_LOC(NGPBLKS) ! local tendency from cloud scheme
     REAL(KIND=JPRB),    INTENT(IN)    :: BUFFER_CML(NPROMA,NLEV,3+NCLV,NGPBLKS) ! TENDENCY_CML storage buffer
     REAL(KIND=JPRB),    INTENT(OUT)   :: BUFFER_LOC(NPROMA,NLEV,3+NCLV,NGPBLKS) ! TENDENCY_LOC storage buffer
     REAL(KIND=JPRB),    INTENT(IN)    :: PAP(NPROMA,NLEV,NGPBLKS)   ! Pressure on full levels
@@ -62,7 +61,12 @@ CONTAINS
     REAL(KIND=JPRB),    INTENT(OUT)   :: PFPLSN(NPROMA,NLEV+1,NGPBLKS) ! ice+snow sedim flux
     REAL(KIND=JPRB),    INTENT(OUT)   :: PFHPSL(NPROMA,NLEV+1,NGPBLKS) ! Enthalpy flux for liq
     REAL(KIND=JPRB),    INTENT(OUT)   :: PFHPSN(NPROMA,NLEV+1,NGPBLKS) ! Enthalp flux for ice
-
+    TYPE(TOMCST),       INTENT(IN)    :: YDCST
+    TYPE(TOETHF),       INTENT(IN)    :: YDTHF
+    TYPE(TPHNC) ,       INTENT(IN)    :: YHNC
+    TYPE(TEPHLI),       INTENT(IN)    :: YPHLI
+    TYPE(TECLD) ,       INTENT(IN)    :: YCLD
+    TYPE(TECLDP),       INTENT(IN)    :: YCLDP
 
     INTEGER(KIND=JPIM) :: JKGLO,IBL,ICEND
 
@@ -71,23 +75,12 @@ CONTAINS
 
     INTEGER(KIND=JPIM) :: TID ! thread id from 0 .. NUMOMP - 1
     LOGICAL            :: LDRAIN1D = .FALSE.
-    REAL(KIND=JPRB)    :: ZQSAT(NPROMA,NLEV) ! local array
-    TYPE(TOMCST)    :: YDCST
-    TYPE(TOETHF)    :: YDTHF
-    TYPE(TPHNC)     :: YHNC
-    TYPE(TEPHLI)    :: YPHLI
-    TYPE(TECLD)     :: YCLD
-    TYPE(TECLDP)    :: YCLDP
-!#include "cloudsc2loki.intfb.h"
-
-! 1003 format(5x,'NUMPROC=',i0', NUMOMP=',i0,', NGPTOTG=',i0,', NPROMA=',i0,', NGPBLKS=',i0)
-    ! if (irank == 0) then
-    !   write(0,1003) NUMPROC,NUMOMP,NGPTOTG,NPROMA,NGPBLKS
-    ! end if
+    REAL(KIND=JPRB)    :: ZQSAT(NPROMA,NLEV,NGPBLKS) ! local array
 
     ! Global timer for the parallel region
     CALL TIMER%START(NUMOMP)
-  !$loki data
+
+    !$loki data
 
     TID = GET_THREAD_NUM()
     CALL TIMER%THREAD_START(TID)
@@ -99,17 +92,18 @@ CONTAINS
          !-- These were uninitialized : meaningful only when we compare error differences
          PCOVPTOT(:,:,IBL) = 0.0_JPRB
          ! TENDENCY_LOC(IBL)%cld(:,:,NCLV) = 0.0_JPRB
-         BUFFER_LOC(:,:,3+NCLV,IBL) = 0.0_JPRB
+         BUFFER_LOC(:,:,2,IBL) = 0.0_JPRB
+         BUFFER_LOC(:,:,4:3+NCLV,IBL) = 0.0_JPRB
 
          ! Fill in ZQSAT
          CALL SATUR (1, ICEND, NPROMA, 1, NLEV, .TRUE., &
-              & PAP(:,:,IBL), PT(:,:,IBL), ZQSAT(:,:), 2, YDCST , YDTHF) 
+              & PAP(:,:,IBL), PT(:,:,IBL), ZQSAT(:,:,IBL), 2, YDCST ,YDTHF)
 
          CALL CLOUDSC2 ( &
               &  1, ICEND, NPROMA, 1, NLEV, LDRAIN1D, &
-              & PTSPHY, YCLD%CETA, &
+              & PTSPHY,  LCETA, &
               & PAPH(:,:,IBL),  PAP(:,:,IBL), &
-              & PQ(:,:,IBL), ZQSAT(:,:), PT(:,:,IBL), &
+              & PQ(:,:,IBL), ZQSAT(:,:,IBL), PT(:,:,IBL), &
               & PCLV(:,:,NCLDQL,IBL), PCLV(:,:,NCLDQI,IBL), &
               & PLUDE(:,:,IBL), PLU(:,:,IBL), PMFU(:,:,IBL), PMFD(:,:,IBL),&
               & BUFFER_LOC(:,:,1,IBL), BUFFER_CML(:,:,1,IBL), &
@@ -119,7 +113,7 @@ CONTAINS
               & PSUPSAT(:,:,IBL), &
               & PA(:,:,IBL), PFPLSL(:,:,IBL),   PFPLSN(:,:,IBL), &
               & PFHPSL(:,:,IBL),   PFHPSN(:,:,IBL), PCOVPTOT(:,:,IBL), &
-              &  YDCST, YDTHF, YHNC, YPHLI, YCLD, YCLDP)
+              & YDCST, YDTHF, YHNC, YPHLI, YCLD, YCLDP)
          
 #ifndef CLOUDSC_GPU_TIMING
          ! Log number of columns processed by this thread (OpenMP mode)
@@ -128,6 +122,8 @@ CONTAINS
       ENDDO
 
       CALL TIMER%THREAD_END(TID)
+
+      !$loki end data
 
       CALL TIMER%END()
 

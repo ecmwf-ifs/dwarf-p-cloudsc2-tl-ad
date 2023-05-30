@@ -40,8 +40,8 @@ if( HAVE_CLOUDSC2_NL_LOKI )
         SOURCES
             dwarf_cloudsc.F90
             loki-idem/cloudsc_driver_loki_mod.idem.F90
-	    loki-idem/cloudsc2.idem.F90
-	    loki-idem/satur.idem.F90
+            loki-idem/cloudsc2.idem.F90
+            loki-idem/satur.idem.F90
         LIBS
             cloudsc2-common-lib
         DEFINITIONS ${CLOUDSC_DEFINITIONS}
@@ -65,7 +65,7 @@ if( HAVE_CLOUDSC2_NL_LOKI )
 
     loki_transform_convert(
         MODE scc FRONTEND ${LOKI_FRONTEND} CPP
-        DIRECTIVE none
+        DIRECTIVE openacc
         CONFIG ${CMAKE_CURRENT_SOURCE_DIR}/cloudsc_loki.config
         PATH ${CMAKE_CURRENT_SOURCE_DIR}
         HEADERS ${COMMON_MODULE}/yomphyder.F90 ${COMMON_MODULE}/yoecldp.F90
@@ -107,7 +107,7 @@ if( HAVE_CLOUDSC2_NL_LOKI )
 
     loki_transform_convert(
         MODE scc-hoist FRONTEND ${LOKI_FRONTEND} CPP
-        DIRECTIVE none
+        DIRECTIVE openacc
         CONFIG ${CMAKE_CURRENT_SOURCE_DIR}/cloudsc_loki.config
         PATH ${CMAKE_CURRENT_SOURCE_DIR}
         HEADERS ${COMMON_MODULE}/yomphyder.F90 ${COMMON_MODULE}/yoecldp.F90
@@ -119,7 +119,7 @@ if( HAVE_CLOUDSC2_NL_LOKI )
       	    loki-scc-hoist/satur.scc_hoist.F90
             loki-scc-hoist/cloudsc2.scc_hoist.F90
             loki-scc-hoist/cloudsc_driver_loki_mod.scc_hoist.F90
-	    DEPENDS satur.F90 cloudsc2.F90 cloudsc_driver_loki_mod.F90 
+        DEPENDS satur.F90 cloudsc2.F90 cloudsc_driver_loki_mod.F90 
     )
 
     ecbuild_add_executable( TARGET dwarf-cloudsc2-nl-loki-scc-hoist
