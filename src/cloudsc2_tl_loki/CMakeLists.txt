@@ -79,8 +79,16 @@ if( HAVE_CLOUDSC2_TL_LOKI )
 #         DEFINITIONS CLOUDSC_GPU_TIMING ${CLOUDSC_DEFINE_STMT_FUNC}
 #         DATA_OFFLOAD REMOVE_OPENMP
 #         OUTPATH ${CMAKE_CURRENT_BINARY_DIR}/loki-scc
-#         OUTPUT  loki-scc/satur.scc.F90 loki-scc/cloudsc2.scc.F90 loki-scc/cloudsc2tl.scc.F90 loki-scc/cloudsc_driver_tl_loki_mod.scc.F90
-#         DEPENDS satur.F90 cloudsc2.F90 cloudsc2tl.F90 cloudsc_driver_tl_loki_mod.F90
+#         OUTPUT  loki-scc/satur.scc.F90 
+#                 loki-scc/error.scc.F90 
+#                 loki-scc/cloudsc2.scc.F90 
+#       	  loki-scc/cloudsc2tl.scc.F90 
+#       	  loki-scc/cloudsc_driver_tl_loki_mod.scc.F90
+#         DEPENDS satur.F90 
+#                 error.F90 
+#       	  cloudsc2.F90
+#       	  cloudsc2tl.F90 
+#       	  cloudsc_driver_tl_loki_mod.F90
 #     )
 # 
 #     ecbuild_add_executable( TARGET dwarf-cloudsc2-tl-loki-scc
@@ -90,7 +98,7 @@ if( HAVE_CLOUDSC2_TL_LOKI )
 #             loki-scc/cloudsc2tl.scc.F90
 #             loki-scc/cloudsc2.scc.F90
 #             loki-scc/satur.scc.F90
-# #           loki-scc/error.scc.F90
+#             loki-scc/error.scc.F90
 #         LIBS
 #             cloudsc2-common-lib
 #         DEFINITIONS ${CLOUDSC_DEFINITIONS}
@@ -102,7 +110,7 @@ if( HAVE_CLOUDSC2_TL_LOKI )
 #         ARGS 1 1280 128
 #         WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/../../..
 #         OMP 1
-#         ENVIRONMENT NV_ACC_CUDA_HEAPSIZE=19G
+#         ENVIRONMENT NV_ACC_CUDA_HEAPSIZE=9G
 #     ) 
 # 
 #    ####################################################
