@@ -261,7 +261,7 @@ REAL(KIND=JPRB) :: ZCONDL(KLON,KLEV), ZCONDI(KLON,KLEV)
 REAL(KIND=JPRB) :: ZEVAPR(KLON,KLEV), ZEVAPS(KLON,KLEV)
 REAL(KIND=JPRB) :: ZQSAT(KLON), ZFWAT(KLON)
 
-REAL(KIND=JPRB) :: ZCRH(KLEV),ZSCALM(KLEV)
+REAL(KIND=JPRB) :: ZCRH(KLEV),ZSCALMT(KLEV)
 
 REAL(KIND=JPRB) :: ZOEALFA5, ZCLDL5, ZCLDI5, ZLNEW5, ZINEW5, ZPRR5, ZPRS5, ZD5, ZZ2S5
 REAL(KIND=JPRB) :: ZCONS5, ZSNMLT5, ZZZ5, ZRN5, ZSN5, ZDR5, ZDR25
@@ -304,7 +304,8 @@ REAL(KIND=JPRB) :: ZYYY, ZRAT
 
 INTEGER(KIND=JPIM) :: IK,ICALL
 
-LOGICAL :: LLO1, LLO2, LLO3, LLFLAG(KLON)
+LOGICAL :: LLO1, LLO2, LLO3
+LOGICAL :: LLFLAG(KLON)
 !REAL(KIND=JPRB) :: ZHOOK_HANDLE
 
 TYPE(TNCL)        ,INTENT(IN) :: YNCL
@@ -314,7 +315,6 @@ TYPE(TPHNC)       ,INTENT(IN) :: YHNC
 TYPE(TEPHLI)      ,INTENT(IN) :: YPHLI
 TYPE(TECLD)       ,INTENT(IN) :: YCLD
 TYPE(TECLDP)      ,INTENT(IN) :: YCLDP
-
 #include "fcttre.ycst.h"
 #include "fcttretl.ycst.h"
 !     ------------------------------------------------------------------
@@ -375,7 +375,7 @@ DO JK=1,KLEV
 
 ! Parameter for cloud formation
 
-  ZSCALM(JK)=ZSCAL*MAX((CETA(JK)-0.2_JPRB),ZEPS1)**(0.2_JPRB)
+  ZSCALMT(JK)=ZSCAL*MAX((CETA(JK)-0.2_JPRB),ZEPS1)**(0.2_JPRB)
 
   DO JL=KIDIA,KFDIA
 
@@ -576,35 +576,35 @@ DO JK=KTDIA,KLEV
     ELSEIF (ZQT5 >= ZQSAT5(JL)) THEN
       PCLC (JL,JK) = 0.0_JPRB
       PCLC5(JL,JK) = 1.0_JPRB
-      ZQC (JL,JK) = (1.0_JPRB-ZSCALM(JK))*(ZQSAT (JL)-ZQCRIT (JL))
-      ZQC5(JL,JK) = (1.0_JPRB-ZSCALM(JK))*(ZQSAT5(JL)-ZQCRIT5(JL))
+      ZQC (JL,JK) = (1.0_JPRB-ZSCALMT(JK))*(ZQSAT (JL)-ZQCRIT (JL))
+      ZQC5(JL,JK) = (1.0_JPRB-ZSCALMT(JK))*(ZQSAT5(JL)-ZQCRIT5(JL))
     ELSE
       ZQPD  = ZQSAT (JL)-ZQT
       ZQPD5 = ZQSAT5(JL)-ZQT5
       ZQCD  = ZQSAT (JL)-ZQCRIT (JL)
       ZQCD5 = ZQSAT5(JL)-ZQCRIT5(JL)
 
-      ZSQRT5 = SQRT(ZQPD5/(ZQCD5-ZSCALM(JK)*(ZQT5-ZQCRIT5(JL))))  
+      ZSQRT5 = SQRT(ZQPD5/(ZQCD5-ZSCALMT(JK)*(ZQT5-ZQCRIT5(JL))))  
       PCLC5(JL,JK) = 1.0_JPRB-ZSQRT5
       PCLC (JL,JK) = -(0.5_JPRB/ZSQRT5) &
-       & * (ZQPD *(ZQCD5-ZSCALM(JK)*(ZQT5-ZQCRIT5(JL))) &
-       & -  ZQPD5*(ZQCD -ZSCALM(JK)*(ZQT -ZQCRIT (JL)))) &
-       & / (ZQCD5-ZSCALM(JK)*(ZQT5-ZQCRIT5(JL)))**2  
+       & * (ZQPD *(ZQCD5-ZSCALMT(JK)*(ZQT5-ZQCRIT5(JL))) &
+       & -  ZQPD5*(ZQCD -ZSCALMT(JK)*(ZQT -ZQCRIT (JL)))) &
+       & / (ZQCD5-ZSCALMT(JK)*(ZQT5-ZQCRIT5(JL)))**2  
 
 ! Regularization of cloud fraction perturbation
       IF (LREGCL) THEN
         ZRAT=ZQPD5/ZQCD5
-        ZYYY = MIN(0.3_JPRB,3.5_JPRB*SQRT(ZRAT*(1.0_JPRB-ZSCALM(JK)*(1.0_JPRB-ZRAT))**3) &
-           & /(1.0_JPRB-ZSCALM(JK)))
+        ZYYY = MIN(0.3_JPRB,3.5_JPRB*SQRT(ZRAT*(1.0_JPRB-ZSCALMT(JK)*(1.0_JPRB-ZRAT))**3) &
+           & /(1.0_JPRB-ZSCALMT(JK)))
         PCLC (JL,JK) = ZYYY * PCLC (JL,JK) 
       ENDIF
 ! end of regularization
      
-      ZQC (JL,JK) = (ZSCALM(JK)*ZQPD+(1.0_JPRB-ZSCALM(JK))*ZQCD) &
+      ZQC (JL,JK) = (ZSCALMT(JK)*ZQPD+(1.0_JPRB-ZSCALMT(JK))*ZQCD) &
        & * PCLC5(JL,JK)**2 &
-       & + (ZSCALM(JK)*ZQPD5+(1.0_JPRB-ZSCALM(JK))*ZQCD5) &
+       & + (ZSCALMT(JK)*ZQPD5+(1.0_JPRB-ZSCALMT(JK))*ZQCD5) &
        & * 2.0_JPRB*PCLC5(JL,JK)*PCLC(JL,JK)  
-      ZQC5(JL,JK) = (ZSCALM(JK)*ZQPD5+(1.0_JPRB-ZSCALM(JK))*ZQCD5) &
+      ZQC5(JL,JK) = (ZSCALMT(JK)*ZQPD5+(1.0_JPRB-ZSCALMT(JK))*ZQCD5) &
        & * PCLC5(JL,JK)**2  
     ENDIF
   ENDDO
@@ -1004,15 +1004,15 @@ DO JK=KTDIA,KLEV
 
 ! clipping of final qv
 
-!  -----------------------------------
-!   IK=JK
-!   ICALL=0
-!   CALL CUADJTQSTL ( KIDIA, KFDIA, KLON, KLEV, IK,&
-!  & ZPP5 , ZTP15 , ZQP15,&
-!  & ZPP  , ZTP1  , ZQP1 , LLFLAG, ICALL, YDCST, YDTHF  )  
-!  -----------------------------------
-!Manual inlined cuadjtqstl
-!----------------------------------------------------------------------
+  !-----------------------------------
+  ! IK=JK
+  ! ICALL=0
+  ! CALL CUADJTQSTL ( KIDIA, KFDIA, KLON, KLEV, IK,&
+  !  & ZPP5 , ZTP15 , ZQP15,&
+  !  & ZPP  , ZTP1  , ZQP1 , LLFLAG, ICALL, YDCST, YDTHF  )  
+  ! -----------------------------------
+  ! Manually inlined CUADJTQSTL
+  ! -----------------------------------
 
 !     1.           DEFINE CONSTANTS
 !                  ----------------
@@ -1041,12 +1041,12 @@ ENDDO
 
 
   DO JL=KIDIA,KFDIA
-    ZQP(JL)=-ZPP(JL)/ZPP5(JL)**2
+    ZQP (JL)=-ZPP(JL)/ZPP5(JL)**2
     ZQP5(JL)=1.0_JPRB/ZPP5(JL)
     ZTARG(JL)=ZTP1(JL,JK)
     ZTARG5(JL)=ZTP15(JL,JK)
     ZFOEEW5(JL)=R2ES*EXP(Z3ES(JL)*(ZTARG5(JL)-RTT)/(ZTARG5(JL)-Z4ES(JL)))
-    ZFOEEW(JL)=Z3ES(JL)*(RTT-Z4ES(JL))*ZTARG(JL)*ZFOEEW5(JL)/&
+    ZFOEEW (JL)=Z3ES(JL)*(RTT-Z4ES(JL))*ZTARG(JL)*ZFOEEW5(JL)/&
      & (ZTARG5(JL)-Z4ES(JL))**2  
     ZQSAT (JL)=ZQP5(JL)*ZFOEEW (JL) + ZQP (JL)*ZFOEEW5(JL)
     ZQSAT5(JL)=ZQP5(JL)*ZFOEEW5(JL)
