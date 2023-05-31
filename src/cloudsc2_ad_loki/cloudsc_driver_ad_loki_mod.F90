@@ -70,13 +70,13 @@ CONTAINS
 
     INTEGER(KIND=JPIM) :: TID ! thread id from 0 .. NUMOMP - 1
     LOGICAL            :: LDRAIN1D = .FALSE.
-    REAL(KIND=JPRB)    :: ZQSAT(NPROMA,NLEV) ! local array
+    REAL(KIND=JPRB)    :: ZQSAT(NPROMA,NLEV,NGPBLKS) ! local array
 
     REAL(KIND=JPRB)    :: ZNORMG
     REAL(KIND=JPRB)    :: ZNORM1(NPROMA), ZNORM2(NPROMA), ZNORM3(NPROMA)
     REAL(KIND=JPRB)    :: ZAPH(NPROMA,NLEV+1), ZAP(NPROMA,NLEV), ZQ(NPROMA,NLEV), &
-     & ZZQSAT(NPROMA,NLEV), ZT(NPROMA,NLEV), ZL(NPROMA,NLEV), ZI(NPROMA,NLEV), &
-     & ZLUDE(NPROMA,NLEV), ZLU(NPROMA,NLEV), ZMFU(NPROMA,NLEV), ZMFD(NPROMA,NLEV), &
+     & ZZQSAT(NPROMA,NLEV), ZT(NPROMA,NLEV),  &
+     & ZLU(NPROMA,NLEV), ZMFU(NPROMA,NLEV), ZMFD(NPROMA,NLEV), &
      & ZTENI_T(NPROMA,NLEV), ZTENI_Q(NPROMA,NLEV), ZTENI_L(NPROMA,NLEV), &
      & ZTENI_I(NPROMA,NLEV), ZSUPSAT(NPROMA,NLEV)
     REAL(KIND=JPRB)    :: ZTENO_T(NPROMA,NLEV), ZTENO_Q(NPROMA,NLEV), &
@@ -84,10 +84,16 @@ CONTAINS
      & ZFPLSL(NPROMA,NLEV+1), ZFPLSN(NPROMA,NLEV+1), ZFHPSL(NPROMA,NLEV+1), &
      & ZFHPSN(NPROMA,NLEV+1), ZCOVPTOT(NPROMA,NLEV)
     REAL(KIND=JPRB)    :: ZAPH0(NPROMA,NLEV+1), ZAP0(NPROMA,NLEV), ZQ0(NPROMA,NLEV), &
-     & ZZQSAT0(NPROMA,NLEV), ZT0(NPROMA,NLEV), ZL0(NPROMA,NLEV), ZI0(NPROMA,NLEV), &
-     & ZLUDE0(NPROMA,NLEV), ZLU0(NPROMA,NLEV), ZMFU0(NPROMA,NLEV), ZMFD0(NPROMA,NLEV), &
+     & ZZQSAT0(NPROMA,NLEV), ZT0(NPROMA,NLEV),  &
+     & ZLU0(NPROMA,NLEV), ZMFU0(NPROMA,NLEV), ZMFD0(NPROMA,NLEV), &
      & ZTENI_T0(NPROMA,NLEV), ZTENI_Q0(NPROMA,NLEV), ZTENI_L0(NPROMA,NLEV), &
      & ZTENI_I0(NPROMA,NLEV), ZSUPSAT0(NPROMA,NLEV)
+    REAL(KIND=JPRB)    :: ZL(NPROMA,NLEV,NGPBLKS)
+    REAL(KIND=JPRB)    :: ZL0(NPROMA,NLEV,NGPBLKS)
+    REAL(KIND=JPRB)    :: ZI(NPROMA,NLEV,NGPBLKS)
+    REAL(KIND=JPRB)    :: ZI0(NPROMA,NLEV,NGPBLKS)
+    REAL(KIND=JPRB)    :: ZLUDE(NPROMA,NLEV,NGPBLKS)
+    REAL(KIND=JPRB)    :: ZLUDE0(NPROMA,NLEV,NGPBLKS)
     TYPE(TNCL)      :: YNCL
     TYPE(TOMCST)    :: YDCST
     TYPE(TOETHF)    :: YDTHF
@@ -114,7 +120,7 @@ CONTAINS
 
          ! Fill in ZQSAT
          CALL SATUR (1, ICEND, NPROMA, 1, NLEV, .TRUE., &
-              & PAP(:,:,IBL), PT(:,:,IBL), ZQSAT(:,:), 2, YDCST, YDTHF) 
+              & PAP(:,:,IBL), PT(:,:,IBL), ZQSAT(:,:,IBL), 2, YDCST, YDTHF) 
 
 
          ! Preparation for TL
@@ -123,11 +129,11 @@ CONTAINS
          ZAPH    =PAPH(:,:,IBL)*0.01_JPRB
          ZAP     =PAP(:,:,IBL)*0.01_JPRB
          ZQ      =PQ(:,:,IBL)*0.01_JPRB
-         ZZQSAT  =ZQSAT     *0.01_JPRB
+         ZZQSAT  =ZQSAT(:,:,IBL)     *0.01_JPRB
          ZT      = PT(:,:,IBL)*0.01_JPRB
-         ZL      = PCLV(:,:,NCLDQL,IBL)*0.01_JPRB
-         ZI      = PCLV(:,:,NCLDQI,IBL)*0.01_JPRB
-         ZLUDE   = PLUDE(:,:,IBL)*0.01_JPRB
+         ZL(:,:,IBL)      = PCLV(:,:,NCLDQL,IBL)*0.01_JPRB
+         ZI(:,:,IBL)      = PCLV(:,:,NCLDQI,IBL)*0.01_JPRB
+         ZLUDE(:,:,IBL)   = PLUDE(:,:,IBL)*0.01_JPRB
          ZLU     = PLU(:,:,IBL)*0.01_JPRB
          ZMFU    = PMFU(:,:,IBL)*0.01_JPRB
          ZMFD    = PMFD(:,:,IBL)*0.01_JPRB
@@ -143,9 +149,9 @@ CONTAINS
          ZQ0     = ZQ
          ZZQSAT0 = ZZQSAT
          ZT0     = ZT
-         ZL0     = ZL
-         ZI0     = ZI
-         ZLUDE0  = ZLUDE
+         ZL0(:,:,IBL)     = ZL(:,:,IBL)
+         ZI0(:,:,IBL)     = ZI(:,:,IBL)
+         ZLUDE0(:,:,IBL)  = ZLUDE(:,:,IBL)
          ZLU0    = ZLU
          ZMFU0   = ZMFU
          ZMFD0   = ZMFD
@@ -161,7 +167,7 @@ CONTAINS
             & PTSPHY,LCETA, &
             ! trajectory
             & PAPH(:,:,IBL),  PAP(:,:,IBL), &
-            & PQ(:,:,IBL), ZQSAT(:,:), PT(:,:,IBL), &
+            & PQ(:,:,IBL), ZQSAT(:,:,IBL), PT(:,:,IBL), &
             & PCLV(:,:,NCLDQL,IBL), PCLV(:,:,NCLDQI,IBL), &
             & PLUDE(:,:,IBL), PLU(:,:,IBL), PMFU(:,:,IBL), PMFD(:,:,IBL),&
             & BUFFER_LOC(:,:,1,IBL), BUFFER_CML(:,:,1,IBL), &
@@ -172,8 +178,8 @@ CONTAINS
             & PA(:,:,IBL), PFPLSL(:,:,IBL),   PFPLSN(:,:,IBL), &
             & PFHPSL(:,:,IBL),   PFHPSN(:,:,IBL), PCOVPTOT(:,:,IBL), &
             ! increments
-            & ZAPH, ZAP, ZQ, ZZQSAT, ZT, ZL, ZI, &
-            & ZLUDE, ZLU, ZMFU, ZMFD, &
+            & ZAPH, ZAP, ZQ, ZZQSAT, ZT, ZL(:,:,IBL), ZI(:,:,IBL), &
+            & ZLUDE(:,:,IBL), ZLU, ZMFU, ZMFD, &
             & ZTENO_T, ZTENI_T, ZTENO_Q, ZTENI_Q, &   ! o,i,o,i
             & ZTENO_L, ZTENI_L, ZTENO_I, ZTENI_I, ZSUPSAT, &  ! o,i,o,i
             & ZCLC   , ZFPLSL   , ZFPLSN ,&        ! o
@@ -218,7 +224,7 @@ CONTAINS
             & PTSPHY, LCETA,&
             ! trajectory
             & PAPH(:,:,IBL),  PAP(:,:,IBL), &
-            & PQ(:,:,IBL), ZQSAT(:,:), PT(:,:,IBL), &
+            & PQ(:,:,IBL), ZQSAT(:,:,IBL), PT(:,:,IBL), &
             & PCLV(:,:,NCLDQL,IBL), PCLV(:,:,NCLDQI,IBL), &
             & PLUDE(:,:,IBL), PLU(:,:,IBL), PMFU(:,:,IBL), PMFD(:,:,IBL),&
             & BUFFER_LOC(:,:,1,IBL), BUFFER_CML(:,:,1,IBL), &
@@ -229,8 +235,8 @@ CONTAINS
             & PA(:,:,IBL), PFPLSL(:,:,IBL),   PFPLSN(:,:,IBL), &
             & PFHPSL(:,:,IBL),   PFHPSN(:,:,IBL), PCOVPTOT(:,:,IBL), &
             ! increments
-            & ZAPH, ZAP, ZQ, ZZQSAT, ZT, ZL, ZI, &
-            & ZLUDE, ZLU, ZMFU, ZMFD, &
+            & ZAPH, ZAP, ZQ, ZZQSAT, ZT, ZL(:,:,IBL), ZI(:,:,IBL), &
+            & ZLUDE(:,:,IBL), ZLU, ZMFU, ZMFD, &
             & ZTENO_T, ZTENI_T, ZTENO_Q, ZTENI_Q, &   ! o,i,o,i
             & ZTENO_L, ZTENI_L, ZTENO_I, ZTENI_I, ZSUPSAT, &  ! o,i,o,i
             & ZCLC   , ZFPLSL   , ZFPLSN ,&        ! o
@@ -244,9 +250,9 @@ CONTAINS
            &  + SUM(ZQ0(JROF,1:NLEV)*ZQ(JROF,1:NLEV)) &
            &  + SUM(ZZQSAT0(JROF,1:NLEV)*ZZQSAT(JROF,1:NLEV)) &
            &  + SUM(ZT0(JROF,1:NLEV)*ZT(JROF,1:NLEV)) &
-           &  + SUM(ZL0(JROF,1:NLEV)*ZL(JROF,1:NLEV)) &
-           &  + SUM(ZI0(JROF,1:NLEV)*ZI(JROF,1:NLEV)) &
-           &  + SUM(ZLUDE0(JROF,1:NLEV)*ZLUDE(JROF,1:NLEV)) &
+           &  + SUM(   ZL0(JROF,1:NLEV,IBL)*   ZL(JROF,1:NLEV,IBL)) &
+           &  + SUM(   ZI0(JROF,1:NLEV,IBL)*   ZI(JROF,1:NLEV,IBL)) &
+           &  + SUM(ZLUDE0(JROF,1:NLEV,IBL)*ZLUDE(JROF,1:NLEV,IBL)) &
            &  + SUM(ZLU0(JROF,1:NLEV)*ZLU(JROF,1:NLEV)) &
            &  + SUM(ZMFU0(JROF,1:NLEV)*ZMFU(JROF,1:NLEV)) &
            &  + SUM(ZMFD0(JROF,1:NLEV)*ZMFD(JROF,1:NLEV)) &
