@@ -273,8 +273,10 @@ CONTAINS
 
          ZNORMG=MAX(ZNORMG,MAXVAL(ZNORM3(1:ICEND)))
 
+#ifndef CLOUDSC_GPU_TIMING
          ! Log number of columns processed by this thread
          CALL TIMER%THREAD_LOG(TID, IGPC=ICEND)
+#endif
       ENDDO
 
       !-- The "nowait" is here to get correct local timings (tloc) per thread
@@ -285,6 +287,13 @@ CONTAINS
       !$loki end data 
 
       CALL TIMER%END()
+
+#ifdef CLOUDSC_GPU_TIMING
+      ! On GPUs, adding block-level column totals is cumbersome and
+      ! error prone, and of little value due to the large number of
+      ! processing "thread teams". Instead we register the total here.
+      CALL TIMER % THREAD_LOG(TID=TID, IGPC=NGPTOT)
+#endif
 
       CALL TIMER%PRINT_PERFORMANCE(NPROMA, NGPBLKS, ZHPM, NGPTOT)
 
