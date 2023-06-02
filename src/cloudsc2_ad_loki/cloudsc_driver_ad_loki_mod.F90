@@ -74,26 +74,48 @@ CONTAINS
 
     REAL(KIND=JPRB)    :: ZNORMG
     REAL(KIND=JPRB)    :: ZNORM1(NPROMA), ZNORM2(NPROMA), ZNORM3(NPROMA)
-    REAL(KIND=JPRB)    :: ZAPH(NPROMA,NLEV+1), ZAP(NPROMA,NLEV), ZQ(NPROMA,NLEV), &
-     & ZZQSAT(NPROMA,NLEV), ZT(NPROMA,NLEV),  &
-     & ZLU(NPROMA,NLEV), ZMFU(NPROMA,NLEV), ZMFD(NPROMA,NLEV), &
-     & ZTENI_T(NPROMA,NLEV), ZTENI_Q(NPROMA,NLEV), ZTENI_L(NPROMA,NLEV), &
-     & ZTENI_I(NPROMA,NLEV), ZSUPSAT(NPROMA,NLEV)
-    REAL(KIND=JPRB)    :: ZTENO_T(NPROMA,NLEV), ZTENO_Q(NPROMA,NLEV), &
-     & ZTENO_L(NPROMA,NLEV), ZTENO_I(NPROMA,NLEV), ZCLC(NPROMA,NLEV), &
-     & ZFPLSL(NPROMA,NLEV+1), ZFPLSN(NPROMA,NLEV+1), ZFHPSL(NPROMA,NLEV+1), &
-     & ZFHPSN(NPROMA,NLEV+1), ZCOVPTOT(NPROMA,NLEV)
-    REAL(KIND=JPRB)    :: ZAPH0(NPROMA,NLEV+1), ZAP0(NPROMA,NLEV), ZQ0(NPROMA,NLEV), &
-     & ZZQSAT0(NPROMA,NLEV), ZT0(NPROMA,NLEV),  &
-     & ZLU0(NPROMA,NLEV), ZMFU0(NPROMA,NLEV), ZMFD0(NPROMA,NLEV), &
-     & ZTENI_T0(NPROMA,NLEV), ZTENI_Q0(NPROMA,NLEV), ZTENI_L0(NPROMA,NLEV), &
-     & ZTENI_I0(NPROMA,NLEV), ZSUPSAT0(NPROMA,NLEV)
-    REAL(KIND=JPRB)    :: ZL(NPROMA,NLEV,NGPBLKS)
-    REAL(KIND=JPRB)    :: ZL0(NPROMA,NLEV,NGPBLKS)
-    REAL(KIND=JPRB)    :: ZI(NPROMA,NLEV,NGPBLKS)
-    REAL(KIND=JPRB)    :: ZI0(NPROMA,NLEV,NGPBLKS)
-    REAL(KIND=JPRB)    :: ZLUDE(NPROMA,NLEV,NGPBLKS)
-    REAL(KIND=JPRB)    :: ZLUDE0(NPROMA,NLEV,NGPBLKS)
+    REAL(KIND=JPRB)    ::   ZAPH(NPROMA,NLEV+1,NGPBLKS), &
+     &                       ZAP(NPROMA,NLEV  ,NGPBLKS), &
+     &                        ZQ(NPROMA,NLEV  ,NGPBLKS), &
+     &                    ZZQSAT(NPROMA,NLEV  ,NGPBLKS), &
+     &                        ZT(NPROMA,NLEV  ,NGPBLKS), &
+     &                       ZLU(NPROMA,NLEV  ,NGPBLKS), &
+     &                      ZMFU(NPROMA,NLEV  ,NGPBLKS), &
+     &                      ZMFD(NPROMA,NLEV  ,NGPBLKS), &
+     &                   ZTENI_T(NPROMA,NLEV  ,NGPBLKS), &
+     &                   ZTENI_Q(NPROMA,NLEV  ,NGPBLKS), &
+     &                   ZTENI_L(NPROMA,NLEV  ,NGPBLKS), &
+     &                   ZTENI_I(NPROMA,NLEV  ,NGPBLKS), &
+     &                   ZSUPSAT(NPROMA,NLEV  ,NGPBLKS)
+    REAL(KIND=JPRB)    ::ZTENO_T(NPROMA,NLEV  ,NGPBLKS), &
+     &                   ZTENO_Q(NPROMA,NLEV  ,NGPBLKS), &
+     &                   ZTENO_L(NPROMA,NLEV  ,NGPBLKS), & 
+     &                   ZTENO_I(NPROMA,NLEV  ,NGPBLKS), &
+     &                      ZCLC(NPROMA,NLEV  ,NGPBLKS), &
+     &                    ZFPLSL(NPROMA,NLEV+1,NGPBLKS), &
+     &                    ZFPLSN(NPROMA,NLEV+1,NGPBLKS), &
+     &                    ZFHPSL(NPROMA,NLEV+1,NGPBLKS), &
+     &                    ZFHPSN(NPROMA,NLEV+1,NGPBLKS), &
+     &                  ZCOVPTOT(NPROMA,NLEV  ,NGPBLKS)
+    REAL(KIND=JPRB)    ::  ZAPH0(NPROMA,NLEV+1,NGPBLKS), &
+     &                      ZAP0(NPROMA,NLEV  ,NGPBLKS), &
+     &                       ZQ0(NPROMA,NLEV  ,NGPBLKS), &
+     &                   ZZQSAT0(NPROMA,NLEV  ,NGPBLKS), &
+     &                       ZT0(NPROMA,NLEV  ,NGPBLKS), &
+     &                      ZLU0(NPROMA,NLEV  ,NGPBLKS), &
+     &                     ZMFU0(NPROMA,NLEV  ,NGPBLKS), &
+     &                     ZMFD0(NPROMA,NLEV  ,NGPBLKS), &
+     &                  ZTENI_T0(NPROMA,NLEV  ,NGPBLKS), &
+     &                  ZTENI_Q0(NPROMA,NLEV  ,NGPBLKS), &
+     &                  ZTENI_L0(NPROMA,NLEV  ,NGPBLKS), &
+     &                  ZTENI_I0(NPROMA,NLEV  ,NGPBLKS), &
+     &                  ZSUPSAT0(NPROMA,NLEV  ,NGPBLKS)
+    REAL(KIND=JPRB)    ::     ZL(NPROMA,NLEV  ,NGPBLKS), &
+     &                       ZL0(NPROMA,NLEV  ,NGPBLKS), &
+     &                        ZI(NPROMA,NLEV  ,NGPBLKS), &
+     &                       ZI0(NPROMA,NLEV  ,NGPBLKS), &
+     &                     ZLUDE(NPROMA,NLEV  ,NGPBLKS), &
+     &                    ZLUDE0(NPROMA,NLEV  ,NGPBLKS)
     TYPE(TNCL)      :: YNCL
     TYPE(TOMCST)    :: YDCST
     TYPE(TOETHF)    :: YDTHF
@@ -126,40 +148,40 @@ CONTAINS
          ! Preparation for TL
 
          ! Increments (IN)
-         ZAPH    =PAPH(:,:,IBL)*0.01_JPRB
-         ZAP     =PAP(:,:,IBL)*0.01_JPRB
-         ZQ      =PQ(:,:,IBL)*0.01_JPRB
-         ZZQSAT  =ZQSAT(:,:,IBL)     *0.01_JPRB
-         ZT      = PT(:,:,IBL)*0.01_JPRB
+         ZAPH(:,:,IBL)    =PAPH(:,:,IBL)*0.01_JPRB
+         ZAP(:,:,IBL)     =PAP(:,:,IBL)*0.01_JPRB
+         ZQ(:,:,IBL)      =PQ(:,:,IBL)*0.01_JPRB
+         ZZQSAT(:,:,IBL)  =ZQSAT(:,:,IBL)     *0.01_JPRB
+         ZT(:,:,IBL)      = PT(:,:,IBL)*0.01_JPRB
          ZL(:,:,IBL)      = PCLV(:,:,NCLDQL,IBL)*0.01_JPRB
          ZI(:,:,IBL)      = PCLV(:,:,NCLDQI,IBL)*0.01_JPRB
          ZLUDE(:,:,IBL)   = PLUDE(:,:,IBL)*0.01_JPRB
-         ZLU     = PLU(:,:,IBL)*0.01_JPRB
-         ZMFU    = PMFU(:,:,IBL)*0.01_JPRB
-         ZMFD    = PMFD(:,:,IBL)*0.01_JPRB
-         ZTENI_T = BUFFER_CML(:,:,1,IBL)*0.01_JPRB
-         ZTENI_Q = BUFFER_CML(:,:,3,IBL)*0.01_JPRB
-         ZTENI_L = BUFFER_CML(:,:,3+NCLDQL,IBL)*0.01_JPRB
-         ZTENI_I = BUFFER_CML(:,:,3+NCLDQI,IBL)*0.01_JPRB
-         ZSUPSAT = 0.00_JPRB  ! obsolette, beter not use
+         ZLU(:,:,IBL)     = PLU(:,:,IBL)*0.01_JPRB
+         ZMFU(:,:,IBL)    = PMFU(:,:,IBL)*0.01_JPRB
+         ZMFD(:,:,IBL)    = PMFD(:,:,IBL)*0.01_JPRB
+         ZTENI_T(:,:,IBL) = BUFFER_CML(:,:,1,IBL)*0.01_JPRB
+         ZTENI_Q(:,:,IBL) = BUFFER_CML(:,:,3,IBL)*0.01_JPRB
+         ZTENI_L(:,:,IBL) = BUFFER_CML(:,:,3+NCLDQL,IBL)*0.01_JPRB
+         ZTENI_I(:,:,IBL) = BUFFER_CML(:,:,3+NCLDQI,IBL)*0.01_JPRB
+         ZSUPSAT(:,:,IBL) = 0.00_JPRB  ! obsolette, beter not use
 
          ! Storage of initial increments
-         ZAPH0   = ZAPH
-         ZAP0    = ZAP
-         ZQ0     = ZQ
-         ZZQSAT0 = ZZQSAT
-         ZT0     = ZT
-         ZL0(:,:,IBL)     = ZL(:,:,IBL)
-         ZI0(:,:,IBL)     = ZI(:,:,IBL)
-         ZLUDE0(:,:,IBL)  = ZLUDE(:,:,IBL)
-         ZLU0    = ZLU
-         ZMFU0   = ZMFU
-         ZMFD0   = ZMFD
-         ZTENI_T0= ZTENI_T
-         ZTENI_Q0= ZTENI_Q
-         ZTENI_L0= ZTENI_L
-         ZTENI_I0= ZTENI_I
-         ZSUPSAT0= ZSUPSAT
+            ZAPH0(:,:,IBL) = ZAPH(:,:,IBL)
+             ZAP0(:,:,IBL) = ZAP(:,:,IBL)
+              ZQ0(:,:,IBL) = ZQ(:,:,IBL)
+          ZZQSAT0(:,:,IBL) = ZZQSAT(:,:,IBL)
+              ZT0(:,:,IBL) = ZT(:,:,IBL)
+              ZL0(:,:,IBL) = ZL(:,:,IBL)
+              ZI0(:,:,IBL) = ZI(:,:,IBL)
+           ZLUDE0(:,:,IBL) = ZLUDE(:,:,IBL)
+             ZLU0(:,:,IBL) = ZLU(:,:,IBL)
+            ZMFU0(:,:,IBL) = ZMFU(:,:,IBL)
+            ZMFD0(:,:,IBL) = ZMFD(:,:,IBL)
+         ZTENI_T0(:,:,IBL) = ZTENI_T(:,:,IBL)
+         ZTENI_Q0(:,:,IBL) = ZTENI_Q(:,:,IBL)
+         ZTENI_L0(:,:,IBL) = ZTENI_L(:,:,IBL)
+         ZTENI_I0(:,:,IBL) = ZTENI_I(:,:,IBL)
+         ZSUPSAT0(:,:,IBL) = ZSUPSAT(:,:,IBL)
 
          ! Tangent linear integration
          CALL  CLOUDSC2TL ( &
@@ -178,45 +200,45 @@ CONTAINS
             & PA(:,:,IBL), PFPLSL(:,:,IBL),   PFPLSN(:,:,IBL), &
             & PFHPSL(:,:,IBL),   PFHPSN(:,:,IBL), PCOVPTOT(:,:,IBL), &
             ! increments
-            & ZAPH, ZAP, ZQ, ZZQSAT, ZT, ZL(:,:,IBL), ZI(:,:,IBL), &
-            & ZLUDE(:,:,IBL), ZLU, ZMFU, ZMFD, &
-            & ZTENO_T, ZTENI_T, ZTENO_Q, ZTENI_Q, &   ! o,i,o,i
-            & ZTENO_L, ZTENI_L, ZTENO_I, ZTENI_I, ZSUPSAT, &  ! o,i,o,i
-            & ZCLC   , ZFPLSL   , ZFPLSN ,&        ! o
-            & ZFHPSL , ZFHPSN   , ZCOVPTOT, &
+            & ZAPH(:,:,IBL), ZAP(:,:,IBL), ZQ(:,:,IBL), ZZQSAT(:,:,IBL), ZT(:,:,IBL), ZL(:,:,IBL), ZI(:,:,IBL), &
+            & ZLUDE(:,:,IBL), ZLU(:,:,IBL), ZMFU(:,:,IBL), ZMFD(:,:,IBL), &
+            & ZTENO_T(:,:,IBL), ZTENI_T(:,:,IBL), ZTENO_Q(:,:,IBL), ZTENI_Q(:,:,IBL), &   ! o,i,o,i
+            & ZTENO_L(:,:,IBL), ZTENI_L(:,:,IBL), ZTENO_I(:,:,IBL), ZTENI_I(:,:,IBL), ZSUPSAT(:,:,IBL), &  ! o,i,o,i
+            & ZCLC(:,:,IBL)   , ZFPLSL(:,:,IBL)   , ZFPLSN(:,:,IBL) ,&        ! o
+            & ZFHPSL(:,:,IBL) , ZFHPSN(:,:,IBL)   , ZCOVPTOT(:,:,IBL), &
             & YDCST, YDTHF, YHNC, YPHLI, YCLD, YCLDP, YNCL )       ! o
 
          ! First norm
          DO JROF=1,ICEND
-           ZNORM1(JROF)=SUM(ZTENO_T(JROF,1:NLEV)*ZTENO_T(JROF,1:NLEV)) &
-           &  + SUM(ZTENO_Q(JROF,1:NLEV)*ZTENO_Q(JROF,1:NLEV)) &
-           &  + SUM(ZTENO_L(JROF,1:NLEV)*ZTENO_L(JROF,1:NLEV)) &
-           &  + SUM(ZTENO_I(JROF,1:NLEV)*ZTENO_I(JROF,1:NLEV)) &
-           &  + SUM(ZCLC(JROF,1:NLEV)*ZCLC(JROF,1:NLEV)) &
-           &  + SUM(ZFPLSL(JROF,1:NLEV+1)*ZFPLSL(JROF,1:NLEV+1)) &
-           &  + SUM(ZFPLSN(JROF,1:NLEV+1)*ZFPLSN(JROF,1:NLEV+1)) &
-           &  + SUM(ZFHPSL(JROF,1:NLEV+1)*ZFHPSL(JROF,1:NLEV+1)) &
-           &  + SUM(ZFHPSN(JROF,1:NLEV+1)*ZFHPSN(JROF,1:NLEV+1)) &
-           &  + SUM(ZCOVPTOT(JROF,1:NLEV)*ZCOVPTOT(JROF,1:NLEV))
+           ZNORM1(JROF)=SUM( ZTENO_T(JROF,1:NLEV  ,IBL)* ZTENO_T(JROF,1:NLEV  ,IBL)) &
+           &          + SUM( ZTENO_Q(JROF,1:NLEV  ,IBL)* ZTENO_Q(JROF,1:NLEV  ,IBL)) &
+           &          + SUM( ZTENO_L(JROF,1:NLEV  ,IBL)* ZTENO_L(JROF,1:NLEV  ,IBL)) &
+           &          + SUM( ZTENO_I(JROF,1:NLEV  ,IBL)* ZTENO_I(JROF,1:NLEV  ,IBL)) &
+           &          + SUM(    ZCLC(JROF,1:NLEV  ,IBL)*    ZCLC(JROF,1:NLEV  ,IBL)) &
+           &          + SUM(  ZFPLSL(JROF,1:NLEV+1,IBL)*  ZFPLSL(JROF,1:NLEV+1,IBL)) &
+           &          + SUM(  ZFPLSN(JROF,1:NLEV+1,IBL)*  ZFPLSN(JROF,1:NLEV+1,IBL)) &
+           &          + SUM(  ZFHPSL(JROF,1:NLEV+1,IBL)*  ZFHPSL(JROF,1:NLEV+1,IBL)) &
+           &          + SUM(  ZFHPSN(JROF,1:NLEV+1,IBL)*  ZFHPSN(JROF,1:NLEV+1,IBL)) &
+           &          + SUM(ZCOVPTOT(JROF,1:NLEV  ,IBL)*ZCOVPTOT(JROF,1:NLEV  ,IBL))
          ENDDO
 
          ! Initiaslization of output variables
-         ZAPH    = 0.0_JPRB
-         ZAP     = 0.0_JPRB
-         ZQ      = 0.0_JPRB
-         ZZQSAT  = 0.0_JPRB
-         ZT      = 0.0_JPRB
-         ZL      = 0.0_JPRB
-         ZI      = 0.0_JPRB
-         ZLUDE   = 0.0_JPRB
-         ZLU     = 0.0_JPRB
-         ZMFU    = 0.0_JPRB
-         ZMFD    = 0.0_JPRB
-         ZTENI_T = 0.0_JPRB
-         ZTENI_Q = 0.0_JPRB
-         ZTENI_L = 0.0_JPRB
-         ZTENI_I = 0.0_JPRB
-         ZSUPSAT = 0.0_JPRB
+             ZAPH(:,:,IBL) = 0.0_JPRB
+              ZAP(:,:,IBL) = 0.0_JPRB
+               ZQ(:,:,IBL) = 0.0_JPRB
+           ZZQSAT(:,:,IBL) = 0.0_JPRB
+               ZT(:,:,IBL) = 0.0_JPRB
+               ZL(:,:,IBL) = 0.0_JPRB
+               ZI(:,:,IBL) = 0.0_JPRB
+            ZLUDE(:,:,IBL) = 0.0_JPRB
+              ZLU(:,:,IBL) = 0.0_JPRB
+             ZMFU(:,:,IBL) = 0.0_JPRB
+             ZMFD(:,:,IBL) = 0.0_JPRB
+         ZTENI_T (:,:,IBL) = 0.0_JPRB
+         ZTENI_Q (:,:,IBL) = 0.0_JPRB
+         ZTENI_L (:,:,IBL) = 0.0_JPRB
+         ZTENI_I (:,:,IBL) = 0.0_JPRB
+         ZSUPSAT (:,:,IBL) = 0.0_JPRB
 
          ! Adjoint integration
          CALL  CLOUDSC2AD ( &
@@ -235,32 +257,32 @@ CONTAINS
             & PA(:,:,IBL), PFPLSL(:,:,IBL),   PFPLSN(:,:,IBL), &
             & PFHPSL(:,:,IBL),   PFHPSN(:,:,IBL), PCOVPTOT(:,:,IBL), &
             ! increments
-            & ZAPH, ZAP, ZQ, ZZQSAT, ZT, ZL(:,:,IBL), ZI(:,:,IBL), &
-            & ZLUDE(:,:,IBL), ZLU, ZMFU, ZMFD, &
-            & ZTENO_T, ZTENI_T, ZTENO_Q, ZTENI_Q, &   ! o,i,o,i
-            & ZTENO_L, ZTENI_L, ZTENO_I, ZTENI_I, ZSUPSAT, &  ! o,i,o,i
-            & ZCLC   , ZFPLSL   , ZFPLSN ,&        ! o
-            & ZFHPSL , ZFHPSN   , ZCOVPTOT, &
+            & ZAPH(:,:,IBL), ZAP(:,:,IBL), ZQ(:,:,IBL), ZZQSAT(:,:,IBL), ZT(:,:,IBL), ZL(:,:,IBL), ZI(:,:,IBL), &
+            & ZLUDE(:,:,IBL), ZLU(:,:,IBL), ZMFU(:,:,IBL), ZMFD(:,:,IBL), &
+            & ZTENO_T(:,:,IBL), ZTENI_T(:,:,IBL), ZTENO_Q(:,:,IBL), ZTENI_Q(:,:,IBL), &   ! o,i,o,i
+            & ZTENO_L(:,:,IBL), ZTENI_L(:,:,IBL), ZTENO_I(:,:,IBL), ZTENI_I(:,:,IBL), ZSUPSAT(:,:,IBL), &  ! o,i,o,i
+            & ZCLC(:,:,IBL)   , ZFPLSL(:,:,IBL)   , ZFPLSN(:,:,IBL) ,&        ! o
+            & ZFHPSL(:,:,IBL) , ZFHPSN(:,:,IBL)   , ZCOVPTOT(:,:,IBL), &
             & YDCST, YDTHF, YHNC, YPHLI, YCLD, YCLDP, YNCL)       ! o
 
          ! Second norm
          DO JROF=1,ICEND
-           ZNORM2(JROF)=SUM(ZAPH0(JROF,1:NLEV+1)*ZAPH(JROF,1:NLEV+1)) &
-           &  + SUM(ZAP0(JROF,1:NLEV)*ZAP(JROF,1:NLEV)) &
-           &  + SUM(ZQ0(JROF,1:NLEV)*ZQ(JROF,1:NLEV)) &
-           &  + SUM(ZZQSAT0(JROF,1:NLEV)*ZZQSAT(JROF,1:NLEV)) &
-           &  + SUM(ZT0(JROF,1:NLEV)*ZT(JROF,1:NLEV)) &
-           &  + SUM(   ZL0(JROF,1:NLEV,IBL)*   ZL(JROF,1:NLEV,IBL)) &
-           &  + SUM(   ZI0(JROF,1:NLEV,IBL)*   ZI(JROF,1:NLEV,IBL)) &
-           &  + SUM(ZLUDE0(JROF,1:NLEV,IBL)*ZLUDE(JROF,1:NLEV,IBL)) &
-           &  + SUM(ZLU0(JROF,1:NLEV)*ZLU(JROF,1:NLEV)) &
-           &  + SUM(ZMFU0(JROF,1:NLEV)*ZMFU(JROF,1:NLEV)) &
-           &  + SUM(ZMFD0(JROF,1:NLEV)*ZMFD(JROF,1:NLEV)) &
-           &  + SUM(ZTENI_T0(JROF,1:NLEV)*ZTENI_T(JROF,1:NLEV)) &
-           &  + SUM(ZTENI_Q0(JROF,1:NLEV)*ZTENI_Q(JROF,1:NLEV)) &
-           &  + SUM(ZTENI_L0(JROF,1:NLEV)*ZTENI_L(JROF,1:NLEV)) &
-           &  + SUM(ZTENI_I0(JROF,1:NLEV)*ZTENI_I(JROF,1:NLEV)) &
-           &  + SUM(ZSUPSAT0(JROF,1:NLEV)*ZSUPSAT(JROF,1:NLEV))
+           ZNORM2(JROF)=SUM(   ZAPH0(JROF,1:NLEV+1,IBL) *    ZAPH(JROF,1:NLEV+1,IBL)) &
+           &          + SUM(    ZAP0(JROF,1:NLEV  ,IBL) *     ZAP(JROF,1:NLEV  ,IBL)) &
+           &          + SUM(     ZQ0(JROF,1:NLEV  ,IBL) *      ZQ(JROF,1:NLEV  ,IBL)) &
+           &          + SUM( ZZQSAT0(JROF,1:NLEV  ,IBL) *  ZZQSAT(JROF,1:NLEV  ,IBL)) &
+           &          + SUM(     ZT0(JROF,1:NLEV  ,IBL) *      ZT(JROF,1:NLEV  ,IBL)) &
+           &          + SUM(     ZL0(JROF,1:NLEV  ,IBL) *      ZL(JROF,1:NLEV  ,IBL)) &
+           &          + SUM(     ZI0(JROF,1:NLEV  ,IBL) *      ZI(JROF,1:NLEV  ,IBL)) &
+           &          + SUM(  ZLUDE0(JROF,1:NLEV  ,IBL) *   ZLUDE(JROF,1:NLEV  ,IBL)) &
+           &          + SUM(    ZLU0(JROF,1:NLEV  ,IBL) *     ZLU(JROF,1:NLEV  ,IBL)) &
+           &          + SUM(   ZMFU0(JROF,1:NLEV  ,IBL) *    ZMFU(JROF,1:NLEV  ,IBL)) &
+           &          + SUM(   ZMFD0(JROF,1:NLEV  ,IBL) *    ZMFD(JROF,1:NLEV  ,IBL)) &
+           &          + SUM(ZTENI_T0(JROF,1:NLEV  ,IBL) * ZTENI_T(JROF,1:NLEV  ,IBL)) &
+           &          + SUM(ZTENI_Q0(JROF,1:NLEV  ,IBL) * ZTENI_Q(JROF,1:NLEV  ,IBL)) &
+           &          + SUM(ZTENI_L0(JROF,1:NLEV  ,IBL) * ZTENI_L(JROF,1:NLEV  ,IBL)) &
+           &          + SUM(ZTENI_I0(JROF,1:NLEV  ,IBL) * ZTENI_I(JROF,1:NLEV  ,IBL)) &
+           &          + SUM(ZSUPSAT0(JROF,1:NLEV  ,IBL) * ZSUPSAT(JROF,1:NLEV  ,IBL))
            ! Third norm
            ! Note the machine precision is defined here as strictly 64bits
            ! as we assume at worst 12 digits agreements in norms.
