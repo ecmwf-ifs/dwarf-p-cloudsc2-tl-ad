@@ -3,16 +3,14 @@ from __future__ import annotations
 from functools import cached_property
 from typing import TYPE_CHECKING
 
-from cloudsc2py.framework.components import DiagnosticComponent
-from cloudsc2py.framework.grid import I, J, K
-from cloudsc2py.utils.f2py import ported_method
+from ifs_physics_common.framework.components import DiagnosticComponent
+from ifs_physics_common.framework.grid import I, J, K
+from ifs_physics_common.utils.f2py import ported_method
 
 if TYPE_CHECKING:
-    from sympl._core.typingx import PropertyDict
-
-    from cloudsc2py.framework.config import GT4PyConfig
-    from cloudsc2py.framework.grid import ComputationalGrid
-    from cloudsc2py.utils.typingx import ArrayDict
+    from ifs_physics_common.framework.config import GT4PyConfig
+    from ifs_physics_common.framework.grid import ComputationalGrid
+    from ifs_physics_common.utils.typingx import PropertyDict, StorageDict
 
 
 class StateIncrement(DiagnosticComponent):
@@ -75,7 +73,7 @@ class StateIncrement(DiagnosticComponent):
             "f_supsat_i": {"grid": (I, J, K), "units": "g g^-1"},
         }
 
-    def array_call(self, state: ArrayDict, out: ArrayDict) -> None:
+    def array_call(self, state: StorageDict, out: StorageDict) -> None:
         self.increment(
             in_aph=state["f_aph"],
             in_ap=state["f_ap"],
@@ -190,7 +188,7 @@ class PerturbedState(DiagnosticComponent):
             "f_supsat": {"grid": (I, J, K), "units": "g g^-1"},
         }
 
-    def array_call(self, state: ArrayDict, out: ArrayDict) -> None:
+    def array_call(self, state: StorageDict, out: StorageDict) -> None:
         self.perturbed_state(
             in_aph=state["f_aph"],
             in_aph_i=state["f_aph_i"],

@@ -1,9 +1,9 @@
 # -*- coding: utf-8 -*-
 from gt4py.cartesian import gtscript
 
-from cloudsc2py.framework.stencil import stencil_collection
 from cloudsc2py.physics.tangent_linear.stencils.cuadjtqs import cuadjtqs_tl
-from cloudsc2py.utils.f2py import ported_function
+from ifs_physics_common.framework.stencil import stencil_collection
+from ifs_physics_common.utils.f2py import ported_function
 
 
 @ported_function(from_file="cloudsc2_tl/cloudsc2tl.F90", from_line=321, to_line=1113)

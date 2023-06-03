@@ -3,15 +3,13 @@ from __future__ import annotations
 from functools import cached_property
 from typing import Optional, TYPE_CHECKING
 
-from cloudsc2py.framework.components import DiagnosticComponent
-from cloudsc2py.framework.grid import I, J, K
+from ifs_physics_common.framework.components import DiagnosticComponent
+from ifs_physics_common.framework.grid import I, J, K
 
 if TYPE_CHECKING:
-    from sympl._core.typingx import PropertyDict
-
-    from cloudsc2py.framework.config import GT4PyConfig
-    from cloudsc2py.framework.grid import ComputationalGrid
-    from cloudsc2py.utils.typingx import ArrayDict, ParameterDict
+    from ifs_physics_common.framework.config import GT4PyConfig
+    from ifs_physics_common.framework.grid import ComputationalGrid
+    from ifs_physics_common.utils.typingx import ParameterDict, PropertyDict, StorageDict
 
 
 class Saturation(DiagnosticComponent):
@@ -46,7 +44,7 @@ class Saturation(DiagnosticComponent):
     def _diagnostic_properties(self) -> PropertyDict:
         return {"f_qsat": {"grid": (I, J, K), "units": "g g^-1"}}
 
-    def array_call(self, state: ArrayDict, out: ArrayDict) -> None:
+    def array_call(self, state: StorageDict, out: StorageDict) -> None:
         self.saturation(
             in_ap=state["f_ap"],
             in_t=state["f_t"],

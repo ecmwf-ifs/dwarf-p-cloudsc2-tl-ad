@@ -4,21 +4,20 @@ from functools import cached_property
 from itertools import repeat
 from typing import TYPE_CHECKING
 
-from cloudsc2py.framework.components import ImplicitTendencyComponent
-from cloudsc2py.framework.grid import I, J, K
-from cloudsc2py.framework.storage import managed_temporary_storage
-from cloudsc2py.utils.f2py import ported_method
+from ifs_physics_common.framework.components import ImplicitTendencyComponent
+from ifs_physics_common.framework.grid import I, J, K
+from ifs_physics_common.framework.storage import managed_temporary_storage
+from ifs_physics_common.utils.f2py import ported_method
 
 if TYPE_CHECKING:
     from datetime import timedelta
     from typing import Optional
 
     from gt4py.cartesian import StencilObject
-    from sympl._core.typingx import PropertyDict
 
-    from cloudsc2py.framework.config import GT4PyConfig
-    from cloudsc2py.framework.grid import ComputationalGrid
-    from cloudsc2py.utils.typingx import ArrayDict, ParameterDict
+    from ifs_physics_common.framework.config import GT4PyConfig
+    from ifs_physics_common.framework.grid import ComputationalGrid
+    from ifs_physics_common.utils.typingx import ParameterDict, PropertyDict, StorageDict
 
 
 class Cloudsc2NL(ImplicitTendencyComponent):
@@ -109,14 +108,14 @@ class Cloudsc2NL(ImplicitTendencyComponent):
 
     def array_call(
         self,
-        state: ArrayDict,
+        state: StorageDict,
         timestep: timedelta,
-        out_tendencies: ArrayDict,
-        out_diagnostics: ArrayDict,
+        out_tendencies: StorageDict,
+        out_diagnostics: StorageDict,
         overwrite_tendencies: dict[str, bool],
     ) -> None:
         with managed_temporary_storage(
-            self.computational_grid, *repeat((I, J), 5), gt4py_config=self.gt4py_config
+            self.computational_grid, *repeat(((I, J), "float"), 5), gt4py_config=self.gt4py_config
         ) as (aph_s, rfl, sfl, covptot, trpaus):
             aph_s[...] = state["f_aph"][..., -1]
             self.cloudsc2(

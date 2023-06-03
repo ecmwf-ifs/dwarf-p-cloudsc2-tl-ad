@@ -42,7 +42,10 @@ def core(config: FortranConfig, io_config: IOConfig) -> None:
             capture_output=True,
         )
 
-        x = out.stderr.decode("utf-8").split("\n")[-2]
+        if config.variant in ("nl-loki-scc-hoist",):
+            x = out.stderr.decode("utf-8").split("\n")[1]
+        else:
+            x = out.stderr.decode("utf-8").split("\n")[-2]
         y = x.split(" ")
         z = [c for c in y if c != ""]
         runtime_l.append(float(z[-4]))

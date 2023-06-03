@@ -1,9 +1,9 @@
 # -*- coding: utf-8 -*-
 from gt4py.cartesian import gtscript
 
-from cloudsc2py.framework.stencil import stencil_collection
 from cloudsc2py.physics.common.stencils.fcttre import foealfa, foeewm, foeewmcu
-from cloudsc2py.utils.f2py import ported_function
+from ifs_physics_common.framework.stencil import stencil_collection
+from ifs_physics_common.utils.f2py import ported_function
 
 
 @ported_function(from_file="clouds2_nl/satur.F90", from_line=106, to_line=140)

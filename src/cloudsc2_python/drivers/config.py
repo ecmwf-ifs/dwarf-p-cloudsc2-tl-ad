@@ -7,7 +7,7 @@ from pydantic import BaseModel, validator
 import socket
 from typing import Literal, Optional
 
-from cloudsc2py.framework.config import DataTypes, GT4PyConfig
+from ifs_physics_common.framework.config import DataTypes, GT4PyConfig
 
 
 class IOConfig(BaseModel):

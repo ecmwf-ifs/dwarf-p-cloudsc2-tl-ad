@@ -1,10 +1,10 @@
 # -*- coding: utf-8 -*-
 from gt4py.cartesian import gtscript
 
-from cloudsc2py.framework.stencil import stencil_collection
 from cloudsc2py.physics.common.stencils.fcttre import foealfa, foeewm
 from cloudsc2py.physics.nonlinear.stencils.cuadjtqs import cuadjtqs_nl
-from cloudsc2py.utils.f2py import ported_function
+from ifs_physics_common.framework.stencil import stencil_collection
+from ifs_physics_common.utils.f2py import ported_function
 
 
 @ported_function(from_file="cloudsc2_nl/cloudsc2.F90", from_line=235, to_line=735)

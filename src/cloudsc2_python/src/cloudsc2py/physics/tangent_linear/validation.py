@@ -8,18 +8,16 @@ from cloudsc2py.physics.common.increment import PerturbedState, StateIncrement
 from cloudsc2py.physics.common.saturation import Saturation
 from cloudsc2py.physics.nonlinear.microphysics import Cloudsc2NL
 from cloudsc2py.physics.tangent_linear.microphysics import Cloudsc2TL
-from cloudsc2py.utils.f2py import ported_method
-from cloudsc2py.utils.timing import timing
+from ifs_physics_common.utils.f2py import ported_method
+from ifs_physics_common.utils.timing import timing
 
 if TYPE_CHECKING:
     from datetime import timedelta
     from typing import Optional
 
-    from sympl._core.typingx import DataArrayDict
-
-    from cloudsc2py.framework.config import GT4PyConfig
-    from cloudsc2py.framework.grid import ComputationalGrid
-    from cloudsc2py.utils.typingx import ParameterDict
+    from ifs_physics_common.framework.config import GT4PyConfig
+    from ifs_physics_common.framework.grid import ComputationalGrid
+    from ifs_physics_common.utils.typingx import DataArrayDict, ParameterDict
 
 
 class TaylorTest:

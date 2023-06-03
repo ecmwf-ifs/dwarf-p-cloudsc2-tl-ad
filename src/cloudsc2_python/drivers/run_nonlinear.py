@@ -6,14 +6,14 @@ import datetime
 import os
 from typing import Optional
 
-from cloudsc2py.framework.grid import ComputationalGrid
 from cloudsc2py.physics.common.diagnostics import EtaLevels
 from cloudsc2py.physics.common.saturation import Saturation
 from cloudsc2py.physics.nonlinear.microphysics import Cloudsc2NL
 from cloudsc2py.physics.nonlinear.validation import Validator
 from cloudsc2py.state import get_initial_state
 from cloudsc2py.utils.iox import HDF5Reader
-from cloudsc2py.utils.timing import timing
+from ifs_physics_common.framework.grid import ComputationalGrid
+from ifs_physics_common.utils.timing import timing
 
 from config import PythonConfig, IOConfig, default_python_config, default_io_config
 from utils import print_performance, to_csv, to_csv_stencils

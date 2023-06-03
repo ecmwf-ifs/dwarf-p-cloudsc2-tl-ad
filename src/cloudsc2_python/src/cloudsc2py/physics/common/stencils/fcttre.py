@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*-
 from gt4py.cartesian import gtscript
 
-from cloudsc2py.framework.stencil import function_collection
-from cloudsc2py.utils.f2py import ported_function
+from ifs_physics_common.framework.stencil import function_collection
+from ifs_physics_common.utils.f2py import ported_function
 
 
 @ported_function(from_file="common/include/fcttre.func.h", from_line=73, to_line=75)

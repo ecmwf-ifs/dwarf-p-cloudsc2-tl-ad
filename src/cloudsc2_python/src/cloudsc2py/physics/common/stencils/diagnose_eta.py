@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*-
 from gt4py.cartesian import gtscript
 
-from cloudsc2py.framework.stencil import stencil_collection
-from cloudsc2py.utils.f2py import ported_function
+from ifs_physics_common.framework.stencil import stencil_collection
+from ifs_physics_common.utils.f2py import ported_function
 
 
 @ported_function(from_file="cloudsc2_nl/dwarf_cloudsc.F90", from_line=100, to_line=102)

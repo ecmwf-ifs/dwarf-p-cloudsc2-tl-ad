@@ -3,12 +3,12 @@ from __future__ import annotations
 import click
 from typing import Optional
 
-from cloudsc2py.framework.grid import ComputationalGrid
 from cloudsc2py.physics.common.diagnostics import EtaLevels
 from cloudsc2py.physics.tangent_linear.validation import TaylorTest
 from cloudsc2py.state import get_initial_state
 from cloudsc2py.utils.iox import HDF5Reader
-from cloudsc2py.utils.timing import Timer
+from ifs_physics_common.framework.grid import ComputationalGrid
+from ifs_physics_common.utils.timing import Timer
 
 from config import IOConfig, PythonConfig, default_io_config, default_python_config
 from utils import to_csv, to_csv_stencils

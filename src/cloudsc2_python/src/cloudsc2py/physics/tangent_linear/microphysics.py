@@ -5,27 +5,26 @@ from functools import cached_property
 import numpy as np
 from typing import TYPE_CHECKING
 
-from cloudsc2py.framework.components import ImplicitTendencyComponent
-from cloudsc2py.framework.grid import I, J, K
-from cloudsc2py.framework.storage import managed_temporary_storage, zeros
-from cloudsc2py.utils.f2py import ported_method
-from cloudsc2py.utils.numpyx import assign
+from ifs_physics_common.framework.components import ImplicitTendencyComponent
+from ifs_physics_common.framework.grid import I, J, K
+from ifs_physics_common.framework.storage import managed_temporary_storage, zeros
+from ifs_physics_common.utils.f2py import ported_method
+from ifs_physics_common.utils.numpyx import assign
 
 if TYPE_CHECKING:
     from datetime import timedelta
     from typing import Optional
 
     from gt4py.cartesian import StencilObject
-    from sympl._core.typingx import PropertyDict
 
-    from cloudsc2py.framework.config import GT4PyConfig
-    from cloudsc2py.framework.grid import ComputationalGrid
-    from cloudsc2py.utils.typingx import Array, ArrayDict, ParameterDict
+    from ifs_physics_common.framework.config import GT4PyConfig
+    from ifs_physics_common.framework.grid import ComputationalGrid
+    from ifs_physics_common.utils.typingx import ParameterDict, PropertyDict, Storage, StorageDict
 
 
 class Cloudsc2TL(ImplicitTendencyComponent):
     cloudsc2: StencilObject
-    klevel: Array
+    klevel: Storage
 
     def __init__(
         self,
@@ -146,14 +145,14 @@ class Cloudsc2TL(ImplicitTendencyComponent):
 
     def array_call(
         self,
-        state: ArrayDict,
+        state: StorageDict,
         timestep: timedelta,
-        out_tendencies: ArrayDict,
-        out_diagnostics: ArrayDict,
+        out_tendencies: StorageDict,
+        out_diagnostics: StorageDict,
         overwrite_tendencies: dict[str, bool],
     ) -> None:
         with managed_temporary_storage(
-            self.computational_grid, *repeat((I, J), 9), gt4py_config=self.gt4py_config
+            self.computational_grid, *repeat(((I, J), "float"), 9), gt4py_config=self.gt4py_config
         ) as (aph_s, aph_s_i, rfl, rfl_i, sfl, sfl_i, covptot, covptot_i, trpaus):
             aph_s[...] = state["f_aph"][..., -1]
             aph_s_i[...] = state["f_aph_i"][..., -1]

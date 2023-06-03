@@ -3,15 +3,13 @@ from __future__ import annotations
 from functools import cached_property
 from typing import TYPE_CHECKING
 
-from cloudsc2py.framework.components import DiagnosticComponent
-from cloudsc2py.framework.grid import I, J, K
+from ifs_physics_common.framework.components import DiagnosticComponent
+from ifs_physics_common.framework.grid import I, J, K
 
 if TYPE_CHECKING:
-    from sympl._core.typingx import ArrayDict, PropertyDict
-
-    from cloudsc2py.framework.config import GT4PyConfig
-    from cloudsc2py.framework.grid import ComputationalGrid
-    from cloudsc2py.utils.typingx import ArrayDict
+    from ifs_physics_common.framework.config import GT4PyConfig
+    from ifs_physics_common.framework.grid import ComputationalGrid
+    from ifs_physics_common.utils.typingx import PropertyDict, StorageDict
 
 
 class EtaLevels(DiagnosticComponent):
@@ -34,7 +32,7 @@ class EtaLevels(DiagnosticComponent):
     def _diagnostic_properties(self) -> PropertyDict:
         return {"f_eta": {"grid": (K,), "units": ""}}
 
-    def array_call(self, state: ArrayDict, out: ArrayDict) -> None:
+    def array_call(self, state: StorageDict, out: StorageDict) -> None:
         # self.diagnose_eta(
         #     in_ap=state["f_ap"],
         #     out_eta=out["f_eta"],

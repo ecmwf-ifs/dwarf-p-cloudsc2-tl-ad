@@ -6,12 +6,12 @@ import h5py
 import numpy as np
 from typing import TYPE_CHECKING
 
-from cloudsc2py.utils.f2py import ported_method
+from ifs_physics_common.utils.f2py import ported_method
 
 if TYPE_CHECKING:
     from typing import Union
 
-    from cloudsc2py.framework.config import DataTypes
+    from ifs_physics_common.framework.config import DataTypes
 
 
 class HDF5Reader:

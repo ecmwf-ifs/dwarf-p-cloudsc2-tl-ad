@@ -4,18 +4,16 @@ from datetime import datetime
 import numpy as np
 from typing import TYPE_CHECKING
 
-from cloudsc2py.framework.grid import I, J, K
-from cloudsc2py.framework.storage import allocate_data_array
-from cloudsc2py.utils.f2py import ported_function
-from cloudsc2py.utils.numpyx import assign
+from ifs_physics_common.framework.grid import I, J, K
+from ifs_physics_common.framework.storage import allocate_data_array
+from ifs_physics_common.utils.f2py import ported_function
+from ifs_physics_common.utils.numpyx import assign
 
 if TYPE_CHECKING:
-    from sympl._core.data_array import DataArray
-    from sympl._core.typingx import DataArrayDict
-
-    from cloudsc2py.framework.config import GT4PyConfig
-    from cloudsc2py.framework.grid import ComputationalGrid
     from cloudsc2py.utils.iox import HDF5Reader
+    from ifs_physics_common.framework.config import GT4PyConfig
+    from ifs_physics_common.framework.grid import ComputationalGrid
+    from ifs_physics_common.utils.typingx import DataArray, DataArrayDict
 
 
 @ported_function(
