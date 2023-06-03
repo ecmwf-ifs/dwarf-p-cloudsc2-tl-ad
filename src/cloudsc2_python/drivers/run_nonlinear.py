@@ -1,9 +1,6 @@
 # -*- coding: utf-8 -*-
 from __future__ import annotations
 import click
-import csv
-import datetime
-import os
 from typing import Optional
 
 from cloudsc2py.physics.common.diagnostics import EtaLevels
