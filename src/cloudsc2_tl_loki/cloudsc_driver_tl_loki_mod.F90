@@ -126,8 +126,7 @@ CONTAINS
 
          !-- These were uninitialized : meaningful only when we compare error differences
          PCOVPTOT(:,:,IBL) = 0.0_JPRB
-         BUFFER_LOC(:,:,2,IBL) = 0.0_JPRB
-         BUFFER_LOC(:,:,4:3+NCLV,IBL) = 0.0_JPRB
+         BUFFER_LOC(:,:,:,IBL) = 0.0_JPRB
 
          ! Fill in ZQSAT
          CALL SATUR (1, ICEND, NPROMA, 1, NLEV, .TRUE., &
@@ -149,6 +148,16 @@ CONTAINS
               &  PFHPSL(:,:,IBL),   PFHPSN(:,:,IBL), PCOVPTOT(:,:,IBL), & 
               &  YDCST, YDTHF, YHNC, YPHLI, YCLD, YCLDP)
 
+           print *,'BL1',BUFFER_LOC(:,:,1,IBL)
+           print *,'BL3',BUFFER_LOC(:,:,3,IBL)
+           print *,'BLL',BUFFER_LOC(:,:,3+NCLDQL,IBL)
+           print *,'BLI',BUFFER_LOC(:,:,3+NCLDQI,IBL)
+           print *,'PA',PA(:,:,IBL)
+           print *,'PFPLSL ',PFPLSL(:,:,IBL)
+           print *,'PFPLSN ',PFPLSN(:,:,IBL)
+           print *,'PFHPSL ',PFHPSL(:,:,IBL)
+           print *,'PFHPSN ',PFHPSN(:,:,IBL)
+           print *,'PCOVPTOT ',PCOVPTOT(:,:,IBL)
          ! Preparation for TL
 
          ! Increments (IN)
@@ -192,6 +201,26 @@ CONTAINS
             & ZCLC(:,:,IBL)   , ZFPLSL(:,:,IBL)   , ZFPLSN(:,:,IBL) ,&        ! o
             & ZFHPSL(:,:,IBL) , ZFHPSN(:,:,IBL)   , ZCOVPTOT(:,:,IBL),&
             & YDCST, YDTHF, YHNC, YPHLI, YCLD, YCLDP, YNCL )       ! o
+           print *,'BL1',BUFFER_LOC(:,:,1,IBL)
+           print *,'BL3',BUFFER_LOC(:,:,3,IBL)
+           print *,'BLL',BUFFER_LOC(:,:,3+NCLDQL,IBL)
+           print *,'BLI',BUFFER_LOC(:,:,3+NCLDQI,IBL)
+           print *,'ZTENOT',ZTENO_T(:,:,IBL)
+           print *,'ZTENOQ',ZTENO_Q(:,:,IBL)
+           print *,'ZTENOL',ZTENO_L(:,:,IBL)
+           print *,'ZTENOI',ZTENO_I(:,:,IBL)
+           print *,'PA',PA(:,:,IBL)
+           print *,'PFPLSL ',PFPLSL(:,:,IBL)
+           print *,'PFPLSN ',PFPLSN(:,:,IBL)
+           print *,'PFHPSL ',PFHPSL(:,:,IBL)
+           print *,'PFHPSN ',PFHPSN(:,:,IBL)
+           print *,'PCOVPTOT ',PCOVPTOT(:,:,IBL)
+           print *,'ZCLC',ZCLC(:,:,IBL)
+           print *,'ZFPLSL ',ZFPLSL(:,:,IBL)
+           print *,'ZFPLSN ',ZFPLSN(:,:,IBL)
+           print *,'ZFHPSL ',ZFHPSL(:,:,IBL)
+           print *,'ZFHPSN ',ZFHPSN(:,:,IBL)
+           print *,'ZCOVPTOT ',ZCOVPTOT(:,:,IBL)
 
          ! Loop over incrementing states
          DO ILAM=1,10
@@ -233,6 +262,7 @@ CONTAINS
               &  PFHPSN5(:,:,ILAM,IBL), &
               &PCOVPTOT5(:,:,ILAM,IBL), &
               & YDCST, YDTHF, YHNC, YPHLI, YCLD, YCLDP)
+           !rint *,'PA5',ILAM,PA5(1,:,ILAM,IBL)
 
 
          ENDDO  ! end of lambda loops
@@ -260,15 +290,27 @@ CONTAINS
            ZNORM= 0._JPRB 
          
            CALL ERROR_NORM(1,ICEND,ICEND, BUFFER_LOC(:,:,1,IBLT)       ,  ZTENO_T5(:,:,ILAM,IBLT),  ZTENO_T(:,:,IBLT), ZNORM, ZCOUNT, ZLAMBDA)
+!          print *,'After ZTENO_T5',ILAM,ZNORM, ZCOUNT, ZLAMBDA 
            CALL ERROR_NORM(1,ICEND,ICEND, BUFFER_LOC(:,:,3,IBLT)       ,  ZTENO_Q5(:,:,ILAM,IBLT),  ZTENO_Q(:,:,IBLT), ZNORM, ZCOUNT, ZLAMBDA)
+!          print *,'After ZTENO_Q5',ILAM,ZNORM, ZCOUNT, ZLAMBDA 
            CALL ERROR_NORM(1,ICEND,ICEND, BUFFER_LOC(:,:,3+NCLDQL,IBLT),  ZTENO_L5(:,:,ILAM,IBLT),  ZTENO_L(:,:,IBLT), ZNORM, ZCOUNT, ZLAMBDA)
+!          print *,'After ZTENO_L5',ILAM,ZNORM, ZCOUNT, ZLAMBDA 
            CALL ERROR_NORM(1,ICEND,ICEND, BUFFER_LOC(:,:,3+NCLDQI,IBLT),  ZTENO_I5(:,:,ILAM,IBLT),  ZTENO_I(:,:,IBLT), ZNORM, ZCOUNT, ZLAMBDA)
+!          print *,'After ZTENO_I5',ILAM,ZNORM, ZCOUNT, ZLAMBDA 
            CALL ERROR_NORM(1,ICEND,ICEND, PA(:,:,IBLT)                 ,       PA5(:,:,ILAM,IBLT),     ZCLC(:,:,IBLT), ZNORM, ZCOUNT, ZLAMBDA)
+!          print *,'After PA5',ILAM,ZNORM, ZCOUNT, ZLAMBDA 
+!          print *,'ZCLC',ILAM,ZCLC(1,NLEV-25:NLEV-15,IBLT)
+!          print *,'PA5',ILAM,PA5(1,NLEV-25:NLEV-15,ILAM,IBLT)
            CALL ERROR_NORM(1,ICEND,ICEND, PFPLSL(:,:,IBLT)             ,   PFPLSL5(:,:,ILAM,IBLT),   ZFPLSL(:,:,IBLT), ZNORM, ZCOUNT, ZLAMBDA)
+!          print *,'After PFPLSL5',ILAM,ZNORM, ZCOUNT, ZLAMBDA 
            CALL ERROR_NORM(1,ICEND,ICEND, PFPLSN(:,:,IBLT)             ,   PFPLSN5(:,:,ILAM,IBLT),   ZFPLSN(:,:,IBLT), ZNORM, ZCOUNT, ZLAMBDA)
+!          print *,'After PFPLSN5',ILAM,ZNORM, ZCOUNT, ZLAMBDA 
            CALL ERROR_NORM(1,ICEND,ICEND, PFHPSL(:,:,IBLT)             ,   PFHPSL5(:,:,ILAM,IBLT),   ZFHPSL(:,:,IBLT), ZNORM, ZCOUNT, ZLAMBDA)
+!          print *,'After PFHPSL5',ILAM,ZNORM, ZCOUNT, ZLAMBDA 
            CALL ERROR_NORM(1,ICEND,ICEND, PFHPSN(:,:,IBLT)             ,   PFHPSN5(:,:,ILAM,IBLT),   ZFHPSN(:,:,IBLT), ZNORM, ZCOUNT, ZLAMBDA)
+!          print *,'After PFHPSN5',ILAM,ZNORM, ZCOUNT, ZLAMBDA 
            CALL ERROR_NORM(1,ICEND,ICEND, PCOVPTOT(:,:,IBLT)           , PCOVPTOT5(:,:,ILAM,IBLT), ZCOVPTOT(:,:,IBLT), ZNORM, ZCOUNT, ZLAMBDA)
+!          print *,'After PCOVPTOT5',ILAM,ZNORM, ZCOUNT, ZLAMBDA 
 
            ! Global norm (normalize by number of active statistics)
            IF (ZNORM == 0._JPRB .OR. ZCOUNT == 0._JPRB) THEN
