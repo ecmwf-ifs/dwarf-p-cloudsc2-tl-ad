@@ -99,9 +99,9 @@ CONTAINS
      &                    PFHPSL5(NPROMA,NLEV+1,NLAM,NGPBLKS), &
      &                    PFHPSN5(NPROMA,NLEV+1,NLAM,NGPBLKS), &
      &                    PCOVPTOT5(NPROMA,NLEV,NLAM,NGPBLKS)
-    REAL(KIND=JPRB)    :: ZL(NPROMA,NLEV,NGPBLKS)
-    REAL(KIND=JPRB)    :: ZI(NPROMA,NLEV,NGPBLKS)
-    REAL(KIND=JPRB)    :: ZLUDE(NPROMA,NLEV,NGPBLKS)
+    REAL(KIND=JPRB)    :: ZDRVL(NPROMA,NLEV,NGPBLKS)
+    REAL(KIND=JPRB)    :: ZDRVI(NPROMA,NLEV,NGPBLKS)
+    REAL(KIND=JPRB)    :: ZDRVLUDE(NPROMA,NLEV,NGPBLKS)
     TYPE(TNCL)      :: YNCL
     TYPE(TOMCST)    :: YDCST
     TYPE(TOETHF)    :: YDTHF
@@ -157,9 +157,9 @@ CONTAINS
          ZQ(:,:,IBL)      =PQ(:,:,IBL)*0.01_JPRB
          ZZQSAT(:,:,IBL)  =ZQSAT(:,:,IBL)     *0.01_JPRB
          ZT(:,:,IBL)      = PT(:,:,IBL)*0.01_JPRB
-         ZL(:,:,IBL)      = PCLV(:,:,NCLDQL,IBL)*0.01_JPRB
-         ZI(:,:,IBL)      = PCLV(:,:,NCLDQI,IBL)*0.01_JPRB
-         ZLUDE(:,:,IBL)   = PLUDE(:,:,IBL)*0.01_JPRB
+         ZDRVL(:,:,IBL)   = PCLV(:,:,NCLDQL,IBL)*0.01_JPRB
+         ZDRVI(:,:,IBL)   = PCLV(:,:,NCLDQI,IBL)*0.01_JPRB
+         ZDRVLUDE(:,:,IBL)= PLUDE(:,:,IBL)*0.01_JPRB
          ZLU(:,:,IBL)     = PLU(:,:,IBL)*0.01_JPRB
          ZMFU(:,:,IBL)    = PMFU(:,:,IBL)*0.01_JPRB
          ZMFD(:,:,IBL)    = PMFD(:,:,IBL)*0.01_JPRB
@@ -185,8 +185,8 @@ CONTAINS
             & PA(:,:,IBL), PFPLSL(:,:,IBL),   PFPLSN(:,:,IBL), &
             & PFHPSL(:,:,IBL),   PFHPSN(:,:,IBL), PCOVPTOT(:,:,IBL), &
             ! increments
-            & ZAPH(:,:,IBL), ZAP(:,:,IBL), ZQ(:,:,IBL), ZZQSAT(:,:,IBL), ZT(:,:,IBL), ZL(:,:,IBL), ZI(:,:,IBL), &
-            & ZLUDE(:,:,IBL), ZLU(:,:,IBL), ZMFU(:,:,IBL), ZMFD(:,:,IBL), &
+            & ZAPH(:,:,IBL), ZAP(:,:,IBL), ZQ(:,:,IBL), ZZQSAT(:,:,IBL), ZT(:,:,IBL), ZDRVL(:,:,IBL), ZDRVI(:,:,IBL), &
+            & ZDRVLUDE(:,:,IBL), ZLU(:,:,IBL), ZMFU(:,:,IBL), ZMFD(:,:,IBL), &
             & ZTENO_T(:,:,IBL), ZTENI_T(:,:,IBL), ZTENO_Q(:,:,IBL), ZTENI_Q(:,:,IBL), &   ! o,i,o,i
             & ZTENO_L(:,:,IBL), ZTENI_L(:,:,IBL), ZTENO_I(:,:,IBL), ZTENI_I(:,:,IBL), ZSUPSAT(:,:,IBL), &  ! o,i,o,i
             & ZCLC(:,:,IBL)   , ZFPLSL(:,:,IBL)   , ZFPLSN(:,:,IBL) ,&        ! o
@@ -202,9 +202,9 @@ CONTAINS
            PQ5(:,:,IBL)   = PQ(:,:,IBL)   + ZLAMBDA*ZQ(:,:,IBL)
            ZQSAT5(:,:,IBL)= ZQSAT(:,:,IBL)    + ZLAMBDA*ZZQSAT(:,:,IBL)
            PT5(:,:,IBL)   = PT(:,:,IBL)   + ZLAMBDA*ZT(:,:,IBL)
-           PCLVL5(:,:,IBL)= PCLV(:,:,NCLDQL,IBL) + ZLAMBDA*ZL(:,:,IBL)
-           PCLVI5(:,:,IBL)= PCLV(:,:,NCLDQI,IBL) + ZLAMBDA*ZI(:,:,IBL)
-           PLUDE5(:,:,IBL)= PLUDE(:,:,IBL)+ ZLAMBDA*ZLUDE(:,:,IBL)
+           PCLVL5(:,:,IBL)= PCLV(:,:,NCLDQL,IBL) + ZLAMBDA*ZDRVL(:,:,IBL)
+           PCLVI5(:,:,IBL)= PCLV(:,:,NCLDQI,IBL) + ZLAMBDA*ZDRVI(:,:,IBL)
+           PLUDE5(:,:,IBL)= PLUDE(:,:,IBL)+ ZLAMBDA*ZDRVLUDE(:,:,IBL)
            PLU5(:,:,IBL)  = PLU(:,:,IBL)  + ZLAMBDA*ZLU(:,:,IBL)
            PMFU5(:,:,IBL) = PMFU(:,:,IBL) + ZLAMBDA*ZMFU(:,:,IBL)
            PMFD5(:,:,IBL) = PMFD(:,:,IBL) + ZLAMBDA*ZMFD(:,:,IBL)

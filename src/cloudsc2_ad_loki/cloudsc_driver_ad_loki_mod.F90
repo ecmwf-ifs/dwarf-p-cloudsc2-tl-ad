@@ -110,11 +110,11 @@ CONTAINS
      &                  ZTENI_L0(NPROMA,NLEV  ,NGPBLKS), &
      &                  ZTENI_I0(NPROMA,NLEV  ,NGPBLKS), &
      &                  ZSUPSAT0(NPROMA,NLEV  ,NGPBLKS)
-    REAL(KIND=JPRB)    ::     ZL(NPROMA,NLEV  ,NGPBLKS), &
+    REAL(KIND=JPRB)    ::     ZDRVL(NPROMA,NLEV  ,NGPBLKS), &
      &                       ZL0(NPROMA,NLEV  ,NGPBLKS), &
-     &                        ZI(NPROMA,NLEV  ,NGPBLKS), &
+     &                        ZDRVI(NPROMA,NLEV  ,NGPBLKS), &
      &                       ZI0(NPROMA,NLEV  ,NGPBLKS), &
-     &                     ZLUDE(NPROMA,NLEV  ,NGPBLKS), &
+     &                     ZDRVLUDE(NPROMA,NLEV  ,NGPBLKS), &
      &                    ZLUDE0(NPROMA,NLEV  ,NGPBLKS)
     TYPE(TNCL)      :: YNCL
     TYPE(TOMCST)    :: YDCST
@@ -153,9 +153,9 @@ CONTAINS
          ZQ(:,:,IBL)      =PQ(:,:,IBL)*0.01_JPRB
          ZZQSAT(:,:,IBL)  =ZQSAT(:,:,IBL)     *0.01_JPRB
          ZT(:,:,IBL)      = PT(:,:,IBL)*0.01_JPRB
-         ZL(:,:,IBL)      = PCLV(:,:,NCLDQL,IBL)*0.01_JPRB
-         ZI(:,:,IBL)      = PCLV(:,:,NCLDQI,IBL)*0.01_JPRB
-         ZLUDE(:,:,IBL)   = PLUDE(:,:,IBL)*0.01_JPRB
+         ZDRVL(:,:,IBL)      = PCLV(:,:,NCLDQL,IBL)*0.01_JPRB
+         ZDRVI(:,:,IBL)      = PCLV(:,:,NCLDQI,IBL)*0.01_JPRB
+         ZDRVLUDE(:,:,IBL)   = PLUDE(:,:,IBL)*0.01_JPRB
          ZLU(:,:,IBL)     = PLU(:,:,IBL)*0.01_JPRB
          ZMFU(:,:,IBL)    = PMFU(:,:,IBL)*0.01_JPRB
          ZMFD(:,:,IBL)    = PMFD(:,:,IBL)*0.01_JPRB
@@ -171,9 +171,9 @@ CONTAINS
               ZQ0(:,:,IBL) = ZQ(:,:,IBL)
           ZZQSAT0(:,:,IBL) = ZZQSAT(:,:,IBL)
               ZT0(:,:,IBL) = ZT(:,:,IBL)
-              ZL0(:,:,IBL) = ZL(:,:,IBL)
-              ZI0(:,:,IBL) = ZI(:,:,IBL)
-           ZLUDE0(:,:,IBL) = ZLUDE(:,:,IBL)
+              ZL0(:,:,IBL) = ZDRVL(:,:,IBL)
+              ZI0(:,:,IBL) = ZDRVI(:,:,IBL)
+           ZLUDE0(:,:,IBL) = ZDRVLUDE(:,:,IBL)
              ZLU0(:,:,IBL) = ZLU(:,:,IBL)
             ZMFU0(:,:,IBL) = ZMFU(:,:,IBL)
             ZMFD0(:,:,IBL) = ZMFD(:,:,IBL)
@@ -200,8 +200,8 @@ CONTAINS
             & PA(:,:,IBL), PFPLSL(:,:,IBL),   PFPLSN(:,:,IBL), &
             & PFHPSL(:,:,IBL),   PFHPSN(:,:,IBL), PCOVPTOT(:,:,IBL), &
             ! increments
-            & ZAPH(:,:,IBL), ZAP(:,:,IBL), ZQ(:,:,IBL), ZZQSAT(:,:,IBL), ZT(:,:,IBL), ZL(:,:,IBL), ZI(:,:,IBL), &
-            & ZLUDE(:,:,IBL), ZLU(:,:,IBL), ZMFU(:,:,IBL), ZMFD(:,:,IBL), &
+            & ZAPH(:,:,IBL), ZAP(:,:,IBL), ZQ(:,:,IBL), ZZQSAT(:,:,IBL), ZT(:,:,IBL), ZDRVL(:,:,IBL), ZDRVI(:,:,IBL), &
+            & ZDRVLUDE(:,:,IBL), ZLU(:,:,IBL), ZMFU(:,:,IBL), ZMFD(:,:,IBL), &
             & ZTENO_T(:,:,IBL), ZTENI_T(:,:,IBL), ZTENO_Q(:,:,IBL), ZTENI_Q(:,:,IBL), &   ! o,i,o,i
             & ZTENO_L(:,:,IBL), ZTENI_L(:,:,IBL), ZTENO_I(:,:,IBL), ZTENI_I(:,:,IBL), ZSUPSAT(:,:,IBL), &  ! o,i,o,i
             & ZCLC(:,:,IBL)   , ZFPLSL(:,:,IBL)   , ZFPLSN(:,:,IBL) ,&        ! o
@@ -228,9 +228,9 @@ CONTAINS
                ZQ(:,:,IBL) = 0.0_JPRB
            ZZQSAT(:,:,IBL) = 0.0_JPRB
                ZT(:,:,IBL) = 0.0_JPRB
-               ZL(:,:,IBL) = 0.0_JPRB
-               ZI(:,:,IBL) = 0.0_JPRB
-            ZLUDE(:,:,IBL) = 0.0_JPRB
+               ZDRVL(:,:,IBL) = 0.0_JPRB
+               ZDRVI(:,:,IBL) = 0.0_JPRB
+            ZDRVLUDE(:,:,IBL) = 0.0_JPRB
               ZLU(:,:,IBL) = 0.0_JPRB
              ZMFU(:,:,IBL) = 0.0_JPRB
              ZMFD(:,:,IBL) = 0.0_JPRB
@@ -257,8 +257,8 @@ CONTAINS
             & PA(:,:,IBL), PFPLSL(:,:,IBL),   PFPLSN(:,:,IBL), &
             & PFHPSL(:,:,IBL),   PFHPSN(:,:,IBL), PCOVPTOT(:,:,IBL), &
             ! increments
-            & ZAPH(:,:,IBL), ZAP(:,:,IBL), ZQ(:,:,IBL), ZZQSAT(:,:,IBL), ZT(:,:,IBL), ZL(:,:,IBL), ZI(:,:,IBL), &
-            & ZLUDE(:,:,IBL), ZLU(:,:,IBL), ZMFU(:,:,IBL), ZMFD(:,:,IBL), &
+            & ZAPH(:,:,IBL), ZAP(:,:,IBL), ZQ(:,:,IBL), ZZQSAT(:,:,IBL), ZT(:,:,IBL), ZDRVL(:,:,IBL), ZDRVI(:,:,IBL), &
+            & ZDRVLUDE(:,:,IBL), ZLU(:,:,IBL), ZMFU(:,:,IBL), ZMFD(:,:,IBL), &
             & ZTENO_T(:,:,IBL), ZTENI_T(:,:,IBL), ZTENO_Q(:,:,IBL), ZTENI_Q(:,:,IBL), &   ! o,i,o,i
             & ZTENO_L(:,:,IBL), ZTENI_L(:,:,IBL), ZTENO_I(:,:,IBL), ZTENI_I(:,:,IBL), ZSUPSAT(:,:,IBL), &  ! o,i,o,i
             & ZCLC(:,:,IBL)   , ZFPLSL(:,:,IBL)   , ZFPLSN(:,:,IBL) ,&        ! o
@@ -272,9 +272,9 @@ CONTAINS
            &          + SUM(     ZQ0(JROF,1:NLEV  ,IBL) *      ZQ(JROF,1:NLEV  ,IBL)) &
            &          + SUM( ZZQSAT0(JROF,1:NLEV  ,IBL) *  ZZQSAT(JROF,1:NLEV  ,IBL)) &
            &          + SUM(     ZT0(JROF,1:NLEV  ,IBL) *      ZT(JROF,1:NLEV  ,IBL)) &
-           &          + SUM(     ZL0(JROF,1:NLEV  ,IBL) *      ZL(JROF,1:NLEV  ,IBL)) &
-           &          + SUM(     ZI0(JROF,1:NLEV  ,IBL) *      ZI(JROF,1:NLEV  ,IBL)) &
-           &          + SUM(  ZLUDE0(JROF,1:NLEV  ,IBL) *   ZLUDE(JROF,1:NLEV  ,IBL)) &
+           &          + SUM(     ZL0(JROF,1:NLEV  ,IBL) *   ZDRVL(JROF,1:NLEV  ,IBL)) &
+           &          + SUM(     ZI0(JROF,1:NLEV  ,IBL) *   ZDRVI(JROF,1:NLEV  ,IBL)) &
+           &          + SUM(  ZLUDE0(JROF,1:NLEV  ,IBL) *ZDRVLUDE(JROF,1:NLEV  ,IBL)) &
            &          + SUM(    ZLU0(JROF,1:NLEV  ,IBL) *     ZLU(JROF,1:NLEV  ,IBL)) &
            &          + SUM(   ZMFU0(JROF,1:NLEV  ,IBL) *    ZMFU(JROF,1:NLEV  ,IBL)) &
            &          + SUM(   ZMFD0(JROF,1:NLEV  ,IBL) *    ZMFD(JROF,1:NLEV  ,IBL)) &
