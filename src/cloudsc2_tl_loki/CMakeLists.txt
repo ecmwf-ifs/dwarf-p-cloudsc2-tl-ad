@@ -125,7 +125,6 @@ if( HAVE_CLOUDSC2_TL_LOKI )
  
      loki_transform_convert(
          MODE scc-hoist FRONTEND ${LOKI_FRONTEND} 
-         DIRECTIVE none
          CONFIG ${CMAKE_CURRENT_SOURCE_DIR}/cloudsc_loki.config
          PATH ${CMAKE_CURRENT_SOURCE_DIR}
          HEADERS ${COMMON_MODULE}/yomphyder.F90 ${COMMON_MODULE}/yoecldp.F90
