@@ -1011,8 +1011,8 @@ DO JK=KTDIA,KLEV
 !  & ZPP5 , ZTP15 , ZQP15,&
 !  & ZPP  , ZTP1  , ZQP1 , LLFLAG, ICALL, YDCST, YDTHF  )  
 !  -----------------------------------
-!Manual inlined cuadjtqstl
-!----------------------------------------------------------------------
+  ! Manually inlined CUADJTQSTL
+  ! -----------------------------------
 
 !     1.           DEFINE CONSTANTS
 !                  ----------------

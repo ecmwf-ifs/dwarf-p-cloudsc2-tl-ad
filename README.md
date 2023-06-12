@@ -73,7 +73,7 @@ are restricted to the non-linear variant only, via the Loki
 source-to-source transformation package. The respective variants can
 be enabled, using the Nvidia compiler toolchain, via
 ```
-./cloudsc-bundle build --with-loki --arch=./arch/ecmwf/hpc2020/nvhpc/22.1
+./cloudsc-bundle build --with-loki --cloudsc2-nl-loki=ON --cloudsc2-tl-loki=ON --cloudsc2-ad-loki=ON --arch=./arch/ecmwf/hpc2020/nvhpc/22.1
 ```
 
 When the Loki variant is enabled, two different transformations are run and built:
@@ -100,12 +100,12 @@ NV_ACC_CUDA_HEAPSIZE=9G ./bin/dwarf-cloudsc2-nl-loki-scc 1 256000 128
 To debug the Loki-generated code, one may also suppress OpenACC during the build via:
 ```
 # Using NVHPC-22.11
-./cloudsc-bundle build --clean --with-loki --cmake=ENABLE_ACC=off --arch=./arch/ecmwf/hpc2020/nvhpc/22.1/
+./cloudsc-bundle build --clean --with-loki  --cloudsc2-nl-loki=ON --cloudsc2-tl-loki=ON --cloudsc2-ad-loki=ON --cmake=ENABLE_ACC=off --arch=./arch/ecmwf/hpc2020/nvhpc/22.1/
 
 # Using GNU-11
-./cloudsc-bundle build --clean --with-loki --cmake=ENABLE_ACC=off --arch=./arch/ecmwf/hpc2020/gnu/11.2.0/
+./cloudsc-bundle build --clean --with-loki  --cloudsc2-nl-loki=ON --cloudsc2-tl-loki=ON --cloudsc2-ad-loki=ON --cmake=ENABLE_ACC=off --arch=./arch/ecmwf/hpc2020/gnu/11.2.0/
 ```
 
-## Performance
+# Performance
 
 _Note that this is not yet ready for performance evaluation._

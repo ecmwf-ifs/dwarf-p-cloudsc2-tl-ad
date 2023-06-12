@@ -815,8 +815,6 @@ DO JK=KTDIA,KLEV
 
 ! clipping of final qv
 
-  IK=JK
-  ICALL=0
 ! CALL CUADJTQS  ( KIDIA, KFDIA, KLON, KLEV, IK,&
 !  & ZPP5 , ZTP35 , ZQP15, LLFLAG, ICALL,  YDCST, YDTHF  )  
 

@@ -226,8 +226,7 @@ LOGICAL :: LLO1, LLO2, LLFLAG(KLON)
 !     ------------------------------------------------------------------
 #include "fcttre.ycst.h"
 !     ------------------------------------------------------------------
-ASSOCIATE(& !CETA=>YCLD%CETA ,&
-                RCLCRIT=>YCLDP%RCLCRIT,RKCONV=>YCLDP%RKCONV, &
+ASSOCIATE(RCLCRIT=>YCLDP%RCLCRIT,RKCONV=>YCLDP%RKCONV, &
 & RLMIN=>YCLDP%RLMIN,RPECONS=>YCLDP%RPECONS,LPHYLIN=>YPHLI%LPHYLIN, &
 & RLPTRC=>YPHLI%RLPTRC,LEVAPLS2=>YHNC%LEVAPLS2, RETV=>YDCST%RETV  , &
 & RG=>YDCST%RG, RCPD=>YDCST%RCPD, RLVTT=>YDCST%RLVTT, RLSTT=>YDCST%RLSTT, &
@@ -270,6 +269,7 @@ DO JK=1,KLEV
     ZI  (JL,JK)=PI  (JL,JK) + PTSPHY*PGTENI(JL,JK)
   ENDDO
 ENDDO
+
 DO JK=1,KLEV
 
 ! Parameter for cloud formation
