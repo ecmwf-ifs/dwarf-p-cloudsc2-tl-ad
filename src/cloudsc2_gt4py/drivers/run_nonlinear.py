@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 from __future__ import annotations
 import click
-from typing import Optional
+from typing import TYPE_CHECKING
 
 from cloudsc2py.physics.common.diagnostics import EtaLevels
 from cloudsc2py.physics.common.saturation import Saturation
@@ -12,8 +12,14 @@ from cloudsc2py.utils.iox import HDF5Reader
 from ifs_physics_common.framework.grid import ComputationalGrid
 from ifs_physics_common.utils.timing import timing
 
-from config import PythonConfig, IOConfig, default_python_config, default_io_config
-from utils import print_performance, to_csv, to_csv_stencils
+if TYPE_CHECKING:
+    from typing import Literal, Optional
+
+    from .config import PythonConfig, IOConfig, default_python_config, default_io_config
+    from .utils import print_performance, to_csv, to_csv_stencils
+else:
+    from config import PythonConfig, IOConfig, default_python_config, default_io_config
+    from utils import print_performance, to_csv, to_csv_stencils
 
 
 def core(config: PythonConfig, io_config: IOConfig) -> PythonConfig:
@@ -93,6 +99,7 @@ def core(config: PythonConfig, io_config: IOConfig) -> PythonConfig:
         to_csv(
             io_config.output_csv_file,
             io_config.host_name,
+            config.precision,
             "nl-" + config.gt4py_config.backend,
             nx,
             config.num_threads,
@@ -119,39 +126,32 @@ def core(config: PythonConfig, io_config: IOConfig) -> PythonConfig:
 @click.option(
     "--backend",
     type=str,
-    default=None,
-    help="GT4Py backend."
-    "\n\nOptions: numpy, gt:cpu_kfirst, gt:cpu_ifirst, gt:gpu, cuda, dace:cpu, dace:gpu."
-    "\n\nDefault: numpy.",
+    default="numpy",
+    help="GT4Py backend (options: cuda, dace:cpu, dace:gpu, gt:cpu_ifirst, gt:cpu_kfirst, gt:gpu, "
+    "numpy; default: numpy).",
 )
 @click.option(
     "--enable-checks/--disable-checks",
     is_flag=True,
     type=bool,
     default=False,
-    help="Enable/disable sanity checks performed by Sympl and GT4Py.\n\nDefault: enabled.",
+    help="Enable/disable sanity checks performed by Sympl and GT4Py (default: enabled).",
 )
 @click.option(
     "--enable-validation/--disable-validation",
     is_flag=True,
     type=bool,
     default=True,
-    help="Enable/disable data validation.\n\nDefault: enabled.",
+    help="Enable/disable data validation (default: enabled).",
 )
-@click.option("--num-cols", type=int, default=None, help="Number of domain columns.\n\nDefault: 1.")
-@click.option(
-    "--num-runs",
-    type=int,
-    default=1,
-    help="Number of executions.\n\nDefault: 1.",
-)
+@click.option("--num-cols", type=int, default=1, help="Number of domain columns (default: 1).")
+@click.option("--num-runs", type=int, default=1, help="Number of executions (default: 1).")
 @click.option(
     "--num-threads",
     type=int,
     default=1,
-    help="Number of threads."
-    "\n\nRecommended values: 24 on Piz Daint's CPUs, 128 on MLux's CPUs, 1 on GPUs."
-    "\n\nDefault: 1.",
+    help="Number of threads (recommended: 24 on Piz Daint's CPUs, 128 on MLux's CPUs, 1 on GPUs; "
+    "default: 1.",
 )
 @click.option(
     "--precision",
@@ -176,10 +176,10 @@ def main(
     backend: Optional[str],
     enable_checks: bool,
     enable_validation: bool,
-    num_cols: Optional[int],
-    num_runs: Optional[int],
-    num_threads: Optional[int],
-    precision: str,
+    num_cols: int,
+    num_runs: int,
+    num_threads: int,
+    precision: Literal["double", "single"],
     host_alias: Optional[str],
     output_csv_file: Optional[str],
     output_csv_file_stencils: Optional[str],
@@ -204,6 +204,7 @@ def main(
         to_csv_stencils(
             output_csv_file_stencils,
             io_config.host_name,
+            config.precision,
             "nl-" + config.gt4py_config.backend,
             config.num_cols,
             config.num_threads,

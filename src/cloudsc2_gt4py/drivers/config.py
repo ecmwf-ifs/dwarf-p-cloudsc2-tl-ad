@@ -5,7 +5,7 @@ import os
 from os.path import dirname, join, normpath, splitext
 from pydantic import BaseModel, validator
 import socket
-from typing import Literal, Optional
+from typing import Any, Dict, Literal, Optional
 
 from ifs_physics_common.framework.config import DataTypes, GT4PyConfig
 
@@ -14,7 +14,7 @@ class IOConfig(BaseModel):
     """Gathers options for I/O."""
 
     output_csv_file: Optional[str]
-    host_name: Optional[str]
+    host_name: str
 
     @validator("output_csv_file")
     @classmethod
@@ -30,30 +30,30 @@ class IOConfig(BaseModel):
         else:
             return basename + ".csv"
 
-    @validator("host_name")
+    @validator("host_name", pre=True)
     @classmethod
     def set_host_name(cls, v: Optional[str]) -> str:
         return v or socket.gethostname()
 
-    def with_host_name(self, host_name: str) -> IOConfig:
+    def with_host_name(self, host_name: Optional[str]) -> IOConfig:
         args = self.dict()
         args["host_name"] = host_name
         return IOConfig(**args)
 
-    def with_output_csv_file(self, output_csv_file: str) -> IOConfig:
+    def with_output_csv_file(self, output_csv_file: Optional[str]) -> IOConfig:
         args = self.dict()
         args["output_csv_file"] = output_csv_file
         return IOConfig(**args)
 
 
-default_io_config = IOConfig(output_file=None, host_name=None)
+default_io_config = IOConfig(output_csv_file=None, host_name="")
 
 
 class PythonConfig(BaseModel):
     """Gathers options controlling execution of Python/GT4Py code."""
 
     # domain
-    num_cols: Optional[int]
+    num_cols: int
 
     # validation
     enable_validation: bool
@@ -65,13 +65,14 @@ class PythonConfig(BaseModel):
     num_threads: int
 
     # low-level and/or backend-related
+    precision: Literal["double", "single"]
     data_types: DataTypes
     gt4py_config: GT4PyConfig
     sympl_enable_checks: bool
 
     @validator("gt4py_config")
     @classmethod
-    def add_dtypes(cls, v, values) -> GT4PyConfig:
+    def add_dtypes(cls, v: GT4PyConfig, values: Dict[str, Any]) -> GT4PyConfig:
         return v.with_dtypes(values["data_types"])
 
     def with_backend(self, backend: Optional[str]) -> PythonConfig:
@@ -106,6 +107,7 @@ class PythonConfig(BaseModel):
 
     def with_precision(self, precision: Literal["double", "single"]) -> PythonConfig:
         args = self.dict()
+        args["precision"] = precision
         args["data_types"] = self.data_types.with_precision(precision)
         return PythonConfig(**args)
 
@@ -123,6 +125,7 @@ default_python_config = PythonConfig(
     reference_file=join(config_files_dir, "reference.h5"),
     num_runs=15,
     num_threads=1,
+    precision="double",
     data_types=DataTypes(bool=bool, float=np.float64, int=np.int64),
     gt4py_config=GT4PyConfig(backend="numpy", rebuild=False, validate_args=True, verbose=True),
     sympl_enable_checks=True,
@@ -133,6 +136,7 @@ class FortranConfig(BaseModel):
     """Gathers options controlling execution of FORTRAN code."""
 
     build_dir: str
+    precision: Literal["double", "single"]
     variant: str
     nproma: int
     num_cols: int
@@ -164,6 +168,11 @@ class FortranConfig(BaseModel):
         args["num_threads"] = num_threads
         return FortranConfig(**args)
 
+    def with_precision(self, precision: str) -> FortranConfig:
+        args = self.dict()
+        args["precision"] = precision
+        return FortranConfig(**args)
+
     def with_variant(self, variant: str) -> FortranConfig:
         args = self.dict()
         args["variant"] = variant
@@ -171,5 +180,11 @@ class FortranConfig(BaseModel):
 
 
 default_fortran_config = FortranConfig(
-    build_dir=".", variant="fortran", nproma=32, num_cols=1, num_runs=1, num_threads=1
+    build_dir=".",
+    precision="double",
+    variant="fortran",
+    nproma=32,
+    num_cols=1,
+    num_runs=1,
+    num_threads=1,
 )

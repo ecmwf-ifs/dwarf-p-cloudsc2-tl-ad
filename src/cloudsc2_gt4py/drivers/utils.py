@@ -12,6 +12,7 @@ if TYPE_CHECKING:
 def to_csv(
     output_file: str,
     host_name: str,
+    precision: Literal["double", "single"],
     variant: str,
     num_cols: int,
     num_threads: int,
@@ -30,6 +31,7 @@ def to_csv(
                 (
                     "date",
                     "host",
+                    "precision",
                     "variant",
                     "num_cols",
                     "num_threads",
@@ -47,6 +49,7 @@ def to_csv(
             (
                 datetime.date.today().strftime("%Y%m%d"),
                 host_name,
+                precision,
                 variant,
                 num_cols,
                 num_threads,
@@ -63,6 +66,7 @@ def to_csv(
 def to_csv_stencils(
     output_file: str,
     host_name: str,
+    precision: Literal["double", "single"],
     variant: str,
     num_cols: int,
     num_threads: int,
@@ -79,7 +83,16 @@ def to_csv_stencils(
         with open(output_file, "w") as f:
             writer = csv.writer(f, delimiter=",")
             writer.writerow(
-                ("date", "host", "variant", "num_cols", "num_runs", "num_threads", "stencils")
+                (
+                    "date",
+                    "host",
+                    "precision",
+                    "variant",
+                    "num_cols",
+                    "num_runs",
+                    "num_threads",
+                    "stencils",
+                )
             )
     with open(output_file, "a") as f:
         writer = csv.writer(f, delimiter=",")
@@ -87,6 +100,7 @@ def to_csv_stencils(
             (
                 datetime.date.today().strftime("%Y%m%d"),
                 host_name,
+                precision,
                 variant,
                 num_cols,
                 num_runs,
