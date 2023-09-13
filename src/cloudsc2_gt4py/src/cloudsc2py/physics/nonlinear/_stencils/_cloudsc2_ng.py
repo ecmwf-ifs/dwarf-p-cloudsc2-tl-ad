@@ -2,7 +2,7 @@
 from gt4py.cartesian import gtscript
 
 from cloudsc2py.framework.stencil import stencil_collection
-from cloudsc2py.physics.nonlinear.stencils.cloudsc2_ng_0 import cloudsc2_nl_0
+from cloudsc2py.physics.nonlinear._stencils.cloudsc2_ng_0 import cloudsc2_nl_0
 from cloudsc2py.utils.f2py import ported_function
 
 

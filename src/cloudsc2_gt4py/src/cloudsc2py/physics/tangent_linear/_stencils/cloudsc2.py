@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 from gt4py.cartesian import gtscript
 
-from cloudsc2py.physics.tangent_linear.stencils.cuadjtqs import cuadjtqs_tl
+from cloudsc2py.physics.tangent_linear._stencils.cuadjtqs import cuadjtqs_tl
 from ifs_physics_common.framework.stencil import stencil_collection
 from ifs_physics_common.utils.f2py import ported_function
 

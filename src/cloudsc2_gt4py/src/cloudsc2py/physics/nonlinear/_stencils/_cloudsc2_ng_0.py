@@ -2,8 +2,8 @@
 from gt4py.cartesian import gtscript
 
 from cloudsc2py.framework.stencil import function_collection
-from cloudsc2py.physics.common.stencils.fcttre import foealfa, foeewm
-from cloudsc2py.physics.nonlinear.stencils.cuadjtqs import cuadjtqs_nl
+from cloudsc2py.physics.common._stencils.fcttre import foealfa, foeewm
+from cloudsc2py.physics.nonlinear._stencils.cuadjtqs import cuadjtqs_nl
 
 
 @function_collection("cloudsc2_nl_0")

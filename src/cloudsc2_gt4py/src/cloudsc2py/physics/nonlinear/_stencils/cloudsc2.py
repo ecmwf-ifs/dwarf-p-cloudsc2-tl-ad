@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*-
 from gt4py.cartesian import gtscript
 
-from cloudsc2py.physics.common.stencils.fcttre import foealfa, foeewm
-from cloudsc2py.physics.nonlinear.stencils.cuadjtqs import cuadjtqs_nl
+from cloudsc2py.physics.common._stencils.fcttre import foealfa, foeewm
+from cloudsc2py.physics.nonlinear._stencils.cuadjtqs import cuadjtqs_nl
 from ifs_physics_common.framework.stencil import stencil_collection
 from ifs_physics_common.utils.f2py import ported_function
 

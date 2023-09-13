@@ -2,8 +2,8 @@
 from gt4py.cartesian import gtscript
 
 from cloudsc2py.framework.stencil import stencil_collection
-from cloudsc2py.physics.adjoint.stencils.cloudsc2_0 import cloudsc2_ad_0
-from cloudsc2py.physics.adjoint.stencils.cuadjtqs import cuadjtqs_ad
+from cloudsc2py.physics.adjoint._stencils.cloudsc2_0 import cloudsc2_ad_0
+from cloudsc2py.physics.adjoint._stencils.cuadjtqs import cuadjtqs_ad
 from cloudsc2py.utils.f2py import ported_function
 
 

@@ -1,2 +1,2 @@
 # -*- coding: utf-8 -*-
-import cloudsc2py.physics.common.stencils
+import cloudsc2py.physics.common._stencils
