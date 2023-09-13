@@ -81,6 +81,7 @@ disallow_incomplete_defs = true
 disallow_untyped_defs = true
 exclude = [
     'src/cloudsc2py/physics/adjoint/_stencils/',
+    'src/cloudsc2py/physics/common/_stencils/',
     'src/cloudsc2py/physics/nonlinear/_stencils/',
     'src/cloudsc2py/physics/tangent_linear/_stencils/',
 ]

@@ -7,13 +7,17 @@ from ifs_physics_common.framework.components import DiagnosticComponent
 from ifs_physics_common.framework.grid import I, J, K
 
 if TYPE_CHECKING:
+    from gt4py.cartesian import StencilObject
+
     from ifs_physics_common.framework.config import GT4PyConfig
     from ifs_physics_common.framework.grid import ComputationalGrid
-    from ifs_physics_common.utils.typingx import ParameterDict, PropertyDict, StorageDict
+    from ifs_physics_common.utils.typingx import ArrayLikeDict, ParameterDict, PropertyDict
 
 
 class Saturation(DiagnosticComponent):
     """Perform the moist saturation adjustment."""
+
+    saturation: StencilObject
 
     def __init__(
         self,
@@ -44,7 +48,7 @@ class Saturation(DiagnosticComponent):
     def _diagnostic_properties(self) -> PropertyDict:
         return {"f_qsat": {"grid": (I, J, K), "units": "g g^-1"}}
 
-    def array_call(self, state: StorageDict, out: StorageDict) -> None:
+    def array_call(self, state: ArrayLikeDict, out: ArrayLikeDict) -> None:
         self.saturation(
             in_ap=state["f_ap"],
             in_t=state["f_t"],

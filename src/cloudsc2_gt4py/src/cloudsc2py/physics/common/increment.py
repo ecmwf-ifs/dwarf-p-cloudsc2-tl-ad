@@ -8,12 +8,17 @@ from ifs_physics_common.framework.grid import I, J, K
 from ifs_physics_common.utils.f2py import ported_method
 
 if TYPE_CHECKING:
+    from gt4py.cartesian import StencilObject
+
     from ifs_physics_common.framework.config import GT4PyConfig
     from ifs_physics_common.framework.grid import ComputationalGrid
-    from ifs_physics_common.utils.typingx import PropertyDict, StorageDict
+    from ifs_physics_common.utils.typingx import ArrayLikeDict, PropertyDict
 
 
 class StateIncrement(DiagnosticComponent):
+    f: float
+    increment: StencilObject
+
     def __init__(
         self,
         computational_grid: ComputationalGrid,
@@ -73,7 +78,7 @@ class StateIncrement(DiagnosticComponent):
             "f_supsat_i": {"grid": (I, J, K), "units": "g g^-1"},
         }
 
-    def array_call(self, state: StorageDict, out: StorageDict) -> None:
+    def array_call(self, state: ArrayLikeDict, out: ArrayLikeDict) -> None:
         self.increment(
             in_aph=state["f_aph"],
             in_ap=state["f_ap"],
@@ -188,7 +193,7 @@ class PerturbedState(DiagnosticComponent):
             "f_supsat": {"grid": (I, J, K), "units": "g g^-1"},
         }
 
-    def array_call(self, state: StorageDict, out: StorageDict) -> None:
+    def array_call(self, state: ArrayLikeDict, out: ArrayLikeDict) -> None:
         self.perturbed_state(
             in_aph=state["f_aph"],
             in_aph_i=state["f_aph_i"],

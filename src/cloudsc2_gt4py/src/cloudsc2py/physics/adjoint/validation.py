@@ -13,14 +13,29 @@ from ifs_physics_common.utils.numpyx import to_numpy
 
 if TYPE_CHECKING:
     from datetime import timedelta
+    from numpy.typing import NDArray
     from typing import Optional
+
+    from sympl._core.typingx import DataArrayDict
 
     from ifs_physics_common.framework.config import GT4PyConfig
     from ifs_physics_common.framework.grid import ComputationalGrid
-    from ifs_physics_common.utils.typingx import DataArrayDict, ParameterDict
+    from ifs_physics_common.utils.typingx import ParameterDict
 
 
 class SymmetryTest:
+    cloudsc2_ad: Cloudsc2AD
+    cloudsc2_tl: Cloudsc2TL
+    diags_ad: DataArrayDict
+    diags_sat: DataArrayDict
+    diags_tl: DataArrayDict
+    f: float
+    saturation: Saturation
+    state_i: DataArrayDict
+    state_increment: StateIncrement
+    tends_ad: DataArrayDict
+    tends_tl: DataArrayDict
+
     def __init__(
         self,
         computational_grid: ComputationalGrid,
@@ -92,14 +107,16 @@ class SymmetryTest:
         )
 
         # auxiliary dictionaries
-        self.diags_sat = None
-        self.state_i = None
-        self.tends_tl = None
-        self.diags_tl = None
-        self.tends_ad = None
-        self.diags_ad = None
+        self.diags_sat: DataArrayDict = {}
+        self.state_i: DataArrayDict = {}
+        self.tends_tl: DataArrayDict = {}
+        self.diags_tl: DataArrayDict = {}
+        self.tends_ad: DataArrayDict = {}
+        self.diags_ad: DataArrayDict = {}
 
-    def __call__(self, state: DataArrayDict, timestep: timedelta, enable_validation: bool = True) -> None:
+    def __call__(
+        self, state: DataArrayDict, timestep: timedelta, enable_validation: bool = True
+    ) -> None:
         self.diags_sat = self.saturation(state, out=self.diags_sat)
         state.update(self.diags_sat)
 
@@ -126,7 +143,7 @@ class SymmetryTest:
                 norm2 == 0,
                 abs(norm1 - norm2) / sys.float_info.epsilon,
                 abs(norm1 - norm2) / (sys.float_info.epsilon * norm2),
-                )
+            )
             if norm3.max() < 1e4:
                 print("The symmetry test passed. HOORAY!")
             else:
@@ -134,8 +151,8 @@ class SymmetryTest:
             print(f"The maximum error is {norm3.max()} times the zero of the machine.")
 
     @ported_method(from_file="cloudsc2_ad/cloudsc_driver_ad_mod.F90", from_line=183, to_line=195)
-    def get_norm1(self, tends_tl: DataArrayDict, diags_tl: DataArrayDict) -> np.ndarray:
-        out = None
+    def get_norm1(self, tends_tl: DataArrayDict, diags_tl: DataArrayDict) -> NDArray:
+        out: NDArray = None  # type: ignore[assignment]
 
         tend_names = ("f_t_i", "f_q_i", "f_ql_i", "f_qi_i")
         for name in tend_names:
@@ -153,8 +170,8 @@ class SymmetryTest:
     @ported_method(from_file="cloudsc2_ad/cloudsc_driver_ad_mod.F90", from_line=239, to_line=256)
     def get_norm2(
         self, state_i: DataArrayDict, tends_ad: DataArrayDict, diags_ad: DataArrayDict
-    ) -> np.ndarray:
-        out = None
+    ) -> NDArray:
+        out: NDArray = None  # type: ignore[assignment]
 
         tend_names = ("f_cml_t_i", "f_cml_q_i", "f_cml_ql_i", "f_cml_qi_i")
         for name in tend_names:

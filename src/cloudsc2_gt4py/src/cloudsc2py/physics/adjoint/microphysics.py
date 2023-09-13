@@ -19,12 +19,17 @@ if TYPE_CHECKING:
 
     from ifs_physics_common.framework.config import GT4PyConfig
     from ifs_physics_common.framework.grid import ComputationalGrid
-    from ifs_physics_common.utils.typingx import ParameterDict, PropertyDict, Storage, StorageDict
+    from ifs_physics_common.utils.typingx import (
+        ArrayLike,
+        ArrayLikeDict,
+        ParameterDict,
+        PropertyDict,
+    )
 
 
 class Cloudsc2AD(ImplicitTendencyComponent):
     cloudsc2: StencilObject
-    klevel: Storage
+    klevel: ArrayLike
 
     def __init__(
         self,
@@ -142,10 +147,10 @@ class Cloudsc2AD(ImplicitTendencyComponent):
 
     def array_call(
         self,
-        state: StorageDict,
+        state: ArrayLikeDict,
         timestep: timedelta,
-        out_tendencies: StorageDict,
-        out_diagnostics: StorageDict,
+        out_tendencies: ArrayLikeDict,
+        out_diagnostics: ArrayLikeDict,
         overwrite_tendencies: dict[str, bool],
     ) -> None:
         with managed_temporary_storage(

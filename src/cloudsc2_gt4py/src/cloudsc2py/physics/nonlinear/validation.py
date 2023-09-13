@@ -7,10 +7,13 @@ from cloudsc2py.utils.iox import HDF5Reader
 from ifs_physics_common.utils.numpyx import to_numpy
 
 if TYPE_CHECKING:
+    from numpy.typing import NDArray
     from typing import Optional
 
+    from sympl._core.typingx import DataArrayDict
+
     from ifs_physics_common.framework.config import DataTypes
-    from ifs_physics_common.utils.typingx import Storage
+    from ifs_physics_common.utils.typingx import ArrayLike
 
 
 class Validator:
@@ -71,7 +74,7 @@ class Validator:
             trg = trg[..., trg_data_index]
         return self.compare_field(src, trg)
 
-    def compare_field(self, src: Storage, trg: np.ndarray) -> bool:
+    def compare_field(self, src: ArrayLike, trg: NDArray) -> bool:
         src = to_numpy(src)[:, 0, :]
         mi = min(src.shape[0], trg.shape[0])
         mk = min(src.shape[1], trg.shape[1])

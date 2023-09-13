@@ -13,19 +13,39 @@ from ifs_physics_common.utils.timing import timing
 
 if TYPE_CHECKING:
     from datetime import timedelta
-    from typing import Optional
+    from numpy.typing import NDArray
+    from typing import List, Optional, Tuple
+
+    from sympl._core.typingx import DataArrayDict
 
     from ifs_physics_common.framework.config import GT4PyConfig
     from ifs_physics_common.framework.grid import ComputationalGrid
-    from ifs_physics_common.utils.typingx import DataArrayDict, ParameterDict
+    from ifs_physics_common.utils.typingx import ParameterDict
 
 
 class TaylorTest:
+    cloudsc2_nl: Cloudsc2NL
+    cloudsc2_tl: Cloudsc2TL
+    diags_nl: DataArrayDict
+    diags_nl_p: DataArrayDict
+    diags_sat: DataArrayDict
+    diags_tl: DataArrayDict
+    f1: float
+    f2s: Tuple[float, ...]
+    perturbed_states: List[PerturbedState]
+    saturation: Saturation
+    state_i: DataArrayDict
+    state_increment: StateIncrement
+    state_p: DataArrayDict
+    tends_nl: DataArrayDict
+    tends_nl_p: DataArrayDict
+    tends_tl: DataArrayDict
+
     def __init__(
         self,
         computational_grid: ComputationalGrid,
         factor1: float,
-        factor2s: tuple[float, ...],
+        factor2s: Tuple[float, ...],
         kflag: int,
         lphylin: bool,
         ldrain1d: bool,
@@ -44,6 +64,7 @@ class TaylorTest:
         self.f2s = factor2s
 
         # no regularization in Taylor test
+        yrncl_parameters = yrncl_parameters or {}
         yrncl_parameters["LREGCL"] = False
 
         # saturation
@@ -98,15 +119,15 @@ class TaylorTest:
         ]
 
         # auxiliary dicts
-        self.diags_nl = None
-        self.diags_nl_p = None
-        self.diags_sat = None
-        self.diags_tl = None
-        self.state_i = None
-        self.state_p = None
-        self.tends_nl = None
-        self.tends_nl_p = None
-        self.tends_tl = None
+        self.diags_nl: DataArrayDict = {}
+        self.diags_nl_p: DataArrayDict = {}
+        self.diags_sat: DataArrayDict = {}
+        self.diags_tl: DataArrayDict = {}
+        self.state_i: DataArrayDict = {}
+        self.state_p: DataArrayDict = {}
+        self.tends_nl: DataArrayDict = {}
+        self.tends_nl_p: DataArrayDict = {}
+        self.tends_tl: DataArrayDict = {}
 
     def __call__(self, state: DataArrayDict, timestep: timedelta) -> None:
         self.validate(self.run(state, timestep))
@@ -209,7 +230,7 @@ class TaylorTest:
 
         return total_norm / total_count if total_count > 0 else 0
 
-    def get_fields(self, name: str, dct_name: str) -> tuple[np.ndarray, np.ndarray, np.ndarray]:
+    def get_fields(self, name: str, dct_name: str) -> Tuple[NDArray, NDArray, NDArray]:
         dct_nl = getattr(self, dct_name + "_nl")
         field_nl = dct_nl[name].data[:, 0, :]
 
@@ -223,11 +244,11 @@ class TaylorTest:
 
     @ported_method(from_file="cloudsc2_tl/cloudsc_driver_tl_mod.F90", from_line=21, to_line=31)
     def get_field_norm(
-        self, i: int, field_nl: np.ndarray, field_nl_p: np.ndarray, field_tl: np.ndarray
+        self, i: int, field_nl: NDArray, field_nl_p: NDArray, field_tl: NDArray
     ) -> float:
         den = np.abs(self.f2s[i] * np.sum(field_tl))
         if den > sys.float_info.epsilon:
             norm = np.abs(np.sum(field_nl_p - field_nl)) / den
         else:
             norm = 0
-        return norm
+        return norm  # type: ignore[no-any-return]

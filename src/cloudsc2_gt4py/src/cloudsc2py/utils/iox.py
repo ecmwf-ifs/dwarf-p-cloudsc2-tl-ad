@@ -9,6 +9,7 @@ from typing import TYPE_CHECKING
 from ifs_physics_common.utils.f2py import ported_method
 
 if TYPE_CHECKING:
+    from numpy.typing import NDArray
     from typing import Union
 
     from ifs_physics_common.framework.config import DataTypes
@@ -29,7 +30,7 @@ class HDF5Reader:
     def __del__(self) -> None:
         self.f.close()
 
-    def get_field(self, name: str):
+    def get_field(self, name: str) -> NDArray:
         ds = self.f.get(name, None)
         if ds is None:
             raise RuntimeError(f"Unknown field `{name}`.")
@@ -45,14 +46,14 @@ class HDF5Reader:
 
     @lru_cache
     def get_nlev(self) -> int:
-        return self.f["KLEV"][0]
+        return self.f["KLEV"][0]  # type: ignore[no-any-return]
 
     @lru_cache
     def get_nlon(self) -> int:
-        return self.f["KLON"][0]
+        return self.f["KLON"][0]  # type: ignore[no-any-return]
 
     def get_timestep(self) -> timedelta:
-        return timedelta(seconds=self._get_parameter_f("PTSPHY"))
+        return timedelta(seconds=float(self._get_parameter_f("PTSPHY")))
 
     @ported_method(from_file="common/module/yoethf.F90", from_line=79, to_line=99)
     def get_yoethf_parameters(self) -> dict[str, float]:
@@ -97,7 +98,7 @@ class HDF5Reader:
 
     @ported_method(from_file="common/module/yoecld.F90", from_line=242, to_line=370)
     def get_yrecld_parameters(self) -> dict[str, Union[bool]]:
-        pass
+        return {}
 
     @ported_method(from_file="common/module/yoecldp.F90", from_line=242, to_line=370)
     def get_yrecldp_parameters(self) -> dict[str, Union[bool, float, int]]:
@@ -258,22 +259,22 @@ class HDF5Reader:
     def get_yrphnc_parameters(self) -> dict[str, bool]:
         return {"LEVAPLS2": False}
 
-    def _get_field_1d(self, ds: h5py.Dataset, name: str) -> np.ndarray:
+    def _get_field_1d(self, ds: h5py.Dataset, name: str) -> NDArray:
         nlon = self.get_nlon()
         nlev = self.get_nlev()
         if nlon <= ds.shape[0] <= nlon + 1 or nlev <= ds.shape[0] <= nlev + 1:
-            return ds[:]
+            return ds[:]  # type: ignore[no-any-return]
         else:
             raise RuntimeError(
                 f"The field `{name}` is expected to have shape ({nlon}(+1),) or "
                 f"({nlev}(+1),), but has shape {ds.shape}."
             )
 
-    def _get_field_2d(self, ds, name):
+    def _get_field_2d(self, ds: h5py.Dataset, name: str) -> NDArray:
         nlon = self.get_nlon()
         nlev = self.get_nlev()
         if nlon <= ds.shape[0] <= nlon + 1 and nlev <= ds.shape[1] <= nlev + 1:
-            return ds[...]
+            return ds[...]  # type: ignore[no-any-return]
         elif nlon <= ds.shape[1] <= nlon + 1 and nlev <= ds.shape[0] <= nlev + 1:
             return np.transpose(ds[...])
         else:
@@ -283,7 +284,7 @@ class HDF5Reader:
                 f"but has shape {ds.shape}."
             )
 
-    def _get_field_3d(self, ds, name):
+    def _get_field_3d(self, ds: h5py.Dataset, name: str) -> NDArray:
         nlon = self.get_nlon()
         nlev = self.get_nlev()
 
@@ -306,10 +307,10 @@ class HDF5Reader:
         return np.transpose(ds[...], axes=axes)
 
     def _get_parameter_b(self, name: str) -> bool:
-        return self.data_types.bool(self.f.get(name, [True])[0])
+        return self.data_types.bool(self.f.get(name, [True])[0])  # type: ignore[no-any-return]
 
     def _get_parameter_f(self, name: str) -> float:
-        return self.data_types.float(self.f.get(name, [0.0])[0])
+        return self.data_types.float(self.f.get(name, [0.0])[0])  # type: ignore[no-any-return]
 
     def _get_parameter_i(self, name: str) -> int:
-        return self.data_types.int(self.f.get(name, [0])[0])
+        return self.data_types.int(self.f.get(name, [0])[0])  # type: ignore[no-any-return]
