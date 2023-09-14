@@ -10,10 +10,8 @@ if TYPE_CHECKING:
     from numpy.typing import NDArray
     from typing import Optional
 
-    from sympl._core.typingx import DataArrayDict
-
     from ifs_physics_common.framework.config import DataTypes
-    from ifs_physics_common.utils.typingx import ArrayLike
+    from ifs_physics_common.utils.typingx import ArrayLike, DataArrayDict
 
 
 class Validator:

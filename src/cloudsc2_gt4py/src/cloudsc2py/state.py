@@ -10,11 +10,10 @@ from ifs_physics_common.utils.f2py import ported_function
 from ifs_physics_common.utils.numpyx import assign
 
 if TYPE_CHECKING:
-    from sympl._core.typingx import DataArray, DataArrayDict
-
     from cloudsc2py.utils.iox import HDF5Reader
     from ifs_physics_common.framework.config import GT4PyConfig
     from ifs_physics_common.framework.grid import ComputationalGrid
+    from ifs_physics_common.utils.typingx import DataArray, DataArrayDict
 
 
 @ported_function(

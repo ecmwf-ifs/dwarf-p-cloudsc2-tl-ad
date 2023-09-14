@@ -16,11 +16,9 @@ if TYPE_CHECKING:
     from numpy.typing import NDArray
     from typing import Optional
 
-    from sympl._core.typingx import DataArrayDict
-
     from ifs_physics_common.framework.config import GT4PyConfig
     from ifs_physics_common.framework.grid import ComputationalGrid
-    from ifs_physics_common.utils.typingx import ParameterDict
+    from ifs_physics_common.utils.typingx import DataArrayDict, ParameterDict
 
 
 class SymmetryTest:
