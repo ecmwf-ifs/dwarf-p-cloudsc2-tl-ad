@@ -19,7 +19,6 @@ class EtaLevels(DiagnosticComponent):
         self, grid: ComputationalGrid, *, enable_checks: bool = True, gt4py_config: GT4PyConfig
     ) -> None:
         super().__init__(grid, enable_checks=enable_checks, gt4py_config=gt4py_config)
-        # self.diagnose_eta = self.compile_stencil("diagnose_eta")
 
     @cached_property
     def _input_properties(self) -> PropertyDict:
@@ -33,15 +32,6 @@ class EtaLevels(DiagnosticComponent):
         return {"f_eta": {"grid": (K,), "units": ""}}
 
     def array_call(self, state: NDArrayLikeDict, out: NDArrayLikeDict) -> None:
-        # self.diagnose_eta(
-        #     in_ap=state["f_ap"],
-        #     out_eta=out["f_eta"],
-        #     ap_top=state["f_aph"][0, 0, -1],
-        #     origin=(0),
-        #     domain=(self.grid.nz),
-        #     validate_args=self.bo.validate_args,
-        #     exec_info=self.bo.exec_info,
-        # )
         nz = self.computational_grid.grids[I, J, K].shape[2]
         for k in range(nz):
             out["f_eta"][k] = state["f_ap"][0, 0, k] / state["f_aph"][0, 0, nz]
