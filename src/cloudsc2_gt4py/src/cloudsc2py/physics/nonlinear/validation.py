@@ -11,7 +11,7 @@ if TYPE_CHECKING:
     from typing import Optional
 
     from ifs_physics_common.framework.config import DataTypes
-    from ifs_physics_common.utils.typingx import ArrayLike, DataArrayDict
+    from ifs_physics_common.utils.typingx import DataArrayDict, NDArrayLike
 
 
 class Validator:
@@ -72,7 +72,7 @@ class Validator:
             trg = trg[..., trg_data_index]
         return self.compare_field(src, trg)
 
-    def compare_field(self, src: ArrayLike, trg: NDArray) -> bool:
+    def compare_field(self, src: NDArrayLike, trg: NDArray) -> bool:
         src = to_numpy(src)[:, 0, :]
         mi = min(src.shape[0], trg.shape[0])
         mk = min(src.shape[1], trg.shape[1])

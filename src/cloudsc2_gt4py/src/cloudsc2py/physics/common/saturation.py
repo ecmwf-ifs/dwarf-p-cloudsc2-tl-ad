@@ -11,7 +11,7 @@ if TYPE_CHECKING:
 
     from ifs_physics_common.framework.config import GT4PyConfig
     from ifs_physics_common.framework.grid import ComputationalGrid
-    from ifs_physics_common.utils.typingx import ArrayLikeDict, ParameterDict, PropertyDict
+    from ifs_physics_common.utils.typingx import NDArrayLikeDict, ParameterDict, PropertyDict
 
 
 class Saturation(DiagnosticComponent):
@@ -48,7 +48,7 @@ class Saturation(DiagnosticComponent):
     def _diagnostic_properties(self) -> PropertyDict:
         return {"f_qsat": {"grid": (I, J, K), "units": "g g^-1"}}
 
-    def array_call(self, state: ArrayLikeDict, out: ArrayLikeDict) -> None:
+    def array_call(self, state: NDArrayLikeDict, out: NDArrayLikeDict) -> None:
         self.saturation(
             in_ap=state["f_ap"],
             in_t=state["f_t"],

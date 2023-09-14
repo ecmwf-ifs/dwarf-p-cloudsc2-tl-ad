@@ -12,7 +12,7 @@ if TYPE_CHECKING:
 
     from ifs_physics_common.framework.config import GT4PyConfig
     from ifs_physics_common.framework.grid import ComputationalGrid
-    from ifs_physics_common.utils.typingx import ArrayLikeDict, PropertyDict
+    from ifs_physics_common.utils.typingx import NDArrayLikeDict, PropertyDict
 
 
 class StateIncrement(DiagnosticComponent):
@@ -78,7 +78,7 @@ class StateIncrement(DiagnosticComponent):
             "f_supsat_i": {"grid": (I, J, K), "units": "g g^-1"},
         }
 
-    def array_call(self, state: ArrayLikeDict, out: ArrayLikeDict) -> None:
+    def array_call(self, state: NDArrayLikeDict, out: NDArrayLikeDict) -> None:
         self.increment(
             in_aph=state["f_aph"],
             in_ap=state["f_ap"],
@@ -193,7 +193,7 @@ class PerturbedState(DiagnosticComponent):
             "f_supsat": {"grid": (I, J, K), "units": "g g^-1"},
         }
 
-    def array_call(self, state: ArrayLikeDict, out: ArrayLikeDict) -> None:
+    def array_call(self, state: NDArrayLikeDict, out: NDArrayLikeDict) -> None:
         self.perturbed_state(
             in_aph=state["f_aph"],
             in_aph_i=state["f_aph_i"],
