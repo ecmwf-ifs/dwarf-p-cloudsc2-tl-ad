@@ -8,16 +8,21 @@ from cloudsc2py.physics.tangent_linear.validation import TaylorTest
 from cloudsc2py.state import get_initial_state
 from cloudsc2py.utils.iox import HDF5Reader
 from ifs_physics_common.framework.grid import ComputationalGrid
+from ifs_physics_common.utils.output import (
+    print_performance,
+    write_performance_to_csv,
+    write_stencils_performance_to_csv,
+)
 from ifs_physics_common.utils.timing import Timer
 
 if TYPE_CHECKING:
     from typing import Literal, Optional
 
-    from .config import IOConfig, PythonConfig, default_io_config, default_python_config
-    from .utils import to_csv, to_csv_stencils
+    from ifs_physics_common.framework.config import IOConfig, PythonConfig
+
+    from .config import default_io_config, default_python_config
 else:
-    from config import IOConfig, PythonConfig, default_io_config, default_python_config
-    from utils import to_csv, to_csv_stencils
+    from config import default_io_config, default_python_config
 
 
 def core(config: PythonConfig, io_config: IOConfig) -> PythonConfig:
@@ -91,7 +96,7 @@ def core(config: PythonConfig, io_config: IOConfig) -> PythonConfig:
     print(f"\nThe test completed in {runtime_mean:.3f} \u00B1 {runtime_stddev:.3f} ms.")
 
     if io_config.output_csv_file is not None:
-        to_csv(
+        write_performance_to_csv(
             io_config.output_csv_file,
             io_config.host_name,
             config.precision,
@@ -127,13 +132,6 @@ def core(config: PythonConfig, io_config: IOConfig) -> PythonConfig:
 @click.option("--num-cols", type=int, default=1, help="Number of domain columns (default: 1).")
 @click.option("--num-runs", type=int, default=1, help="Number of executions (default: 1).")
 @click.option(
-    "--num-threads",
-    type=int,
-    default=1,
-    help="Number of threads (recommended: 24 on Piz Daint's CPUs, 128 on MLux's CPUs, 1 on GPUs; "
-    "default: 1.",
-)
-@click.option(
     "--precision",
     type=str,
     default="double",
@@ -157,7 +155,6 @@ def main(
     enable_checks: bool,
     num_cols: int,
     num_runs: int,
-    num_threads: int,
     precision: Literal["double", "single"],
     host_alias: Optional[str],
     output_csv_file: Optional[str],
@@ -168,13 +165,13 @@ def main(
         .with_checks(enable_checks)
         .with_num_cols(num_cols)
         .with_num_runs(num_runs)
-        .with_num_threads(num_threads)
         .with_precision(precision)
     )
     io_config = default_io_config.with_host_name(host_alias).with_output_csv_file(output_csv_file)
     config = core(config, io_config)
+
     if output_csv_file_stencils is not None:
-        to_csv_stencils(
+        write_stencils_performance_to_csv(
             output_csv_file_stencils,
             io_config.host_name,
             config.precision,
