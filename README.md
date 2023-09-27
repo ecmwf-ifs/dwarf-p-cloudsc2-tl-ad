@@ -25,8 +25,11 @@ See [LICENSE](LICENSE) file for details.
 - **dwarf-cloudsc2-tl**: Tangent linear version of CLOUDSC2 that performs a Taylor
   test to validate the TL code.
 - **dwarf-cloudsc2-ad**: Adjoint test of CLOUDSC2 that validates adjoint symmetry.
+- **dwarf-cloudsc2-tl-loki**: Experimental version of Loki port of CLOUDSC2 TL
+- **dwarf-cloudsc2-ad-loki**: Experimental version of Loki port of CLOUDSC2 AD 
 - **dwarf-cloudsc2-nl-loki-scc**: Experimental version of Loki port of CLOUDSC2 NL with Loki-SCC transformation
 - **dwarf-cloudsc2-nl-loki-scc-hoist**: Experimental version of Loki port of CLOUDSC2 NL with Loki-SCC-H transformation
+
 
 ## Download and Installation
 
@@ -97,12 +100,12 @@ NV_ACC_CUDA_HEAPSIZE=9G ./bin/dwarf-cloudsc2-nl-loki-scc 1 256000 128
 To debug the Loki-generated code, one may also suppress OpenACC during the build via:
 ```
 # Using NVHPC-22.11
-./cloudsc-bundle build --clean --with-loki --cmake=ENABLE_ACC=off --arch=./arch/ecmwf/hpc2020/nvhpc/22.1/
+./cloudsc-bundle build --clean --with-loki  --cloudsc2-nl-loki=ON --cloudsc2-tl-loki=ON --cloudsc2-ad-loki=ON --cmake=ENABLE_ACC=off --arch=./arch/ecmwf/hpc2020/nvhpc/22.1/
 
 # Using GNU-11
-./cloudsc-bundle build --clean --with-loki --cmake=ENABLE_ACC=off --arch=./arch/ecmwf/hpc2020/gnu/11.2.0/
+./cloudsc-bundle build --clean --with-loki  --cloudsc2-nl-loki=ON --cloudsc2-tl-loki=ON --cloudsc2-ad-loki=ON --cmake=ENABLE_ACC=off --arch=./arch/ecmwf/hpc2020/gnu/11.2.0/
 ```
 
-## Performance
+# Performance
 
 _Note that this is not yet ready for performance evaluation._
