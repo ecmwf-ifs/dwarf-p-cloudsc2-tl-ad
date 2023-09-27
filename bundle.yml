@@ -39,6 +39,8 @@ options :
         help  : Enable Loki/CLAW source-to-source transformations
         cmake : >
             ENABLE_CLOUDSC2_NL_LOKI=ON
+            ENABLE_CLOUDSC2_TL_LOKI=ON
+            ENABLE_CLOUDSC2_AD_LOKI=ON
             LOKI_ENABLE_NO_INSTALL=OFF
 
     - without-loki-install :

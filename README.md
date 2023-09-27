@@ -73,7 +73,7 @@ are restricted to the non-linear variant only, via the Loki
 source-to-source transformation package. The respective variants can
 be enabled, using the Nvidia compiler toolchain, via
 ```
-./cloudsc-bundle build --with-loki --cloudsc2-nl-loki=ON --cloudsc2-tl-loki=ON --cloudsc2-ad-loki=ON --arch=./arch/ecmwf/hpc2020/nvhpc/22.1
+./cloudsc-bundle build --with-loki --arch=./arch/ecmwf/hpc2020/nvhpc/22.1
 ```
 
 When the Loki variant is enabled, two different transformations are run and built:
