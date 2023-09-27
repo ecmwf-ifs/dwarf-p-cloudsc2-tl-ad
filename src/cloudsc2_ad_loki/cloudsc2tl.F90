@@ -315,6 +315,7 @@ TYPE(TPHNC)       ,INTENT(IN) :: YHNC
 TYPE(TEPHLI)      ,INTENT(IN) :: YPHLI
 TYPE(TECLD)       ,INTENT(IN) :: YCLD
 TYPE(TECLDP)      ,INTENT(IN) :: YCLDP
+
 #include "fcttre.ycst.h"
 #include "fcttretl.ycst.h"
 !     ------------------------------------------------------------------
@@ -1004,13 +1005,13 @@ DO JK=KTDIA,KLEV
 
 ! clipping of final qv
 
-  !-----------------------------------
-  ! IK=JK
-  ! ICALL=0
-  ! CALL CUADJTQSTL ( KIDIA, KFDIA, KLON, KLEV, IK,&
-  !  & ZPP5 , ZTP15 , ZQP15,&
-  !  & ZPP  , ZTP1  , ZQP1 , LLFLAG, ICALL, YDCST, YDTHF  )  
-  ! -----------------------------------
+!  -----------------------------------
+!   IK=JK
+!   ICALL=0
+!   CALL CUADJTQSTL ( KIDIA, KFDIA, KLON, KLEV, IK,&
+!  & ZPP5 , ZTP15 , ZQP15,&
+!  & ZPP  , ZTP1  , ZQP1 , LLFLAG, ICALL, YDCST, YDTHF  )  
+!  -----------------------------------
   ! Manually inlined CUADJTQSTL
   ! -----------------------------------
 
@@ -1041,12 +1042,12 @@ ENDDO
 
 
   DO JL=KIDIA,KFDIA
-    ZQP (JL)=-ZPP(JL)/ZPP5(JL)**2
+    ZQP(JL)=-ZPP(JL)/ZPP5(JL)**2
     ZQP5(JL)=1.0_JPRB/ZPP5(JL)
     ZTARG(JL)=ZTP1(JL,JK)
     ZTARG5(JL)=ZTP15(JL,JK)
     ZFOEEW5(JL)=R2ES*EXP(Z3ES(JL)*(ZTARG5(JL)-RTT)/(ZTARG5(JL)-Z4ES(JL)))
-    ZFOEEW (JL)=Z3ES(JL)*(RTT-Z4ES(JL))*ZTARG(JL)*ZFOEEW5(JL)/&
+    ZFOEEW(JL)=Z3ES(JL)*(RTT-Z4ES(JL))*ZTARG(JL)*ZFOEEW5(JL)/&
      & (ZTARG5(JL)-Z4ES(JL))**2  
     ZQSAT (JL)=ZQP5(JL)*ZFOEEW (JL) + ZQP (JL)*ZFOEEW5(JL)
     ZQSAT5(JL)=ZQP5(JL)*ZFOEEW5(JL)

@@ -8,12 +8,7 @@ if( HAVE_CLOUDSC2_TL_LOKI )
     set( COMMON_MODULE "${CMAKE_CURRENT_SOURCE_DIR}/../common/module" )
     set( COMMON_INCLUDE "${CMAKE_CURRENT_SOURCE_DIR}/../common/include" )
 
-#   # Define the binary build target for this variant
-
     set( LOKI_FRONTEND "fp" CACHE STRING "Frontend parser for Loki transforms" )
-
-    # OFP frontend cannot deal with statement functions, so we toggle them here
-    set( CLOUDSC_DEFINE_STMT_FUNC "" )
 
     execute_process(COMMAND ${CMAKE_COMMAND} -E create_symlink
       ${CMAKE_CURRENT_SOURCE_DIR}/../../config-files/input.h5 ${CMAKE_CURRENT_BINARY_DIR}/../../../input.h5 )
@@ -62,6 +57,7 @@ if( HAVE_CLOUDSC2_TL_LOKI )
         WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/../../..
         OMP 1
     )
+
 
       ####################################################
       ##  "Single Column Coalesced" (SCC) mode          ##

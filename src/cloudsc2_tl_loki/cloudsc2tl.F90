@@ -1004,15 +1004,16 @@ DO JK=KTDIA,KLEV
 
 ! clipping of final qv
 
-  !-----------------------------------
-  ! IK=JK
-  ! ICALL=0
-  ! CALL CUADJTQSTL ( KIDIA, KFDIA, KLON, KLEV, IK,&
-  !  & ZPP5 , ZTP15 , ZQP15,&
-  !  & ZPP  , ZTP1  , ZQP1 , LLFLAG, ICALL, YDCST, YDTHF  )  
-  ! -----------------------------------
-  ! Manually inlined CUADJTQSTL
-  ! -----------------------------------
+!  -----------------------------------
+!   IK=JK
+!   ICALL=0
+!   CALL CUADJTQSTL ( KIDIA, KFDIA, KLON, KLEV, IK,&
+!  & ZPP5 , ZTP15 , ZQP15,&
+!  & ZPP  , ZTP1  , ZQP1 , LLFLAG, ICALL, YDCST, YDTHF  )  
+!  -----------------------------------
+
+! Manually inlined CUADJTQSTL
+! -----------------------------------
 
 !     1.           DEFINE CONSTANTS
 !                  ----------------
