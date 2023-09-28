@@ -29,12 +29,12 @@ if( HAVE_CLOUDSC2_TL_LOKI )
         INCLUDES ${COMMON_INCLUDE}
         OUTPATH ${CMAKE_CURRENT_BINARY_DIR}/loki-idem
 	OUTPUT 
-	       loki-idem/error.idem.F90 
-	       loki-idem/satur.idem.F90 
-	       loki-idem/cloudsc2.idem.F90 
-	       loki-idem/cloudsc2tl.idem.F90 
-	       loki-idem/cloudsc_driver_tl_loki_mod.idem.F90
-	       DEPENDS error.F90 satur.F90 cloudsc2.F90 cloudsc2tl.F90 cloudsc_driver_tl_loki_mod.F90 
+	    loki-idem/satur.idem.F90 
+	    loki-idem/cloudsc2.idem.F90 
+	    loki-idem/cloudsc2tl.idem.F90 
+	    loki-idem/cloudsc_driver_tl_loki_mod.idem.F90
+	DEPENDS
+	    satur.F90 cloudsc2.F90 cloudsc2tl.F90 cloudsc_driver_tl_loki_mod.F90 
     )
 
     ecbuild_add_executable( TARGET dwarf-cloudsc2-tl-loki-idem
@@ -44,7 +44,7 @@ if( HAVE_CLOUDSC2_TL_LOKI )
             loki-idem/cloudsc2tl.idem.F90 
             loki-idem/cloudsc2.idem.F90
             loki-idem/satur.idem.F90
-            loki-idem/error.idem.F90
+            error.F90
         LIBS
             cloudsc2-common-lib
         DEFINITIONS ${CLOUDSC_DEFINITIONS}
@@ -72,21 +72,19 @@ if( HAVE_CLOUDSC2_TL_LOKI )
           PATH ${CMAKE_CURRENT_SOURCE_DIR}
           HEADERS ${COMMON_MODULE}/yomphyder.F90 ${COMMON_MODULE}/yoecldp.F90
           INCLUDES ${COMMON_INCLUDE}
-          DEFINITIONS CLOUDSC_GPU_TIMING ${CLOUDSC_DEFINE_STMT_FUNC}
+          DEFINITIONS CLOUDSC_GPU_TIMING
           DATA_OFFLOAD REMOVE_OPENMP
           OUTPATH ${CMAKE_CURRENT_BINARY_DIR}/loki-scc
           OUTPUT  
-                  loki-scc/error.scc.F90 
-                  loki-scc/satur.scc.F90 
-                  loki-scc/cloudsc2.scc.F90 
-        	  loki-scc/cloudsc2tl.scc.F90 
-        	  loki-scc/cloudsc_driver_tl_loki_mod.scc.F90
+              loki-scc/satur.scc.F90 
+              loki-scc/cloudsc2.scc.F90 
+              loki-scc/cloudsc2tl.scc.F90 
+              loki-scc/cloudsc_driver_tl_loki_mod.scc.F90
           DEPENDS 
-                  error.F90
-                  satur.F90 
-        	  cloudsc2.F90
-        	  cloudsc2tl.F90 
-        	  cloudsc_driver_tl_loki_mod.F90
+              satur.F90 
+              cloudsc2.F90
+              cloudsc2tl.F90 
+              cloudsc_driver_tl_loki_mod.F90
       )
   
       ecbuild_add_executable( TARGET dwarf-cloudsc2-tl-loki-scc
@@ -96,7 +94,7 @@ if( HAVE_CLOUDSC2_TL_LOKI )
               loki-scc/cloudsc2tl.scc.F90
               loki-scc/cloudsc2.scc.F90
               loki-scc/satur.scc.F90
-              loki-scc/error.scc.F90
+              error.F90
           LIBS
               cloudsc2-common-lib
           DEFINITIONS ${CLOUDSC_DEFINITIONS}
@@ -125,16 +123,16 @@ if( HAVE_CLOUDSC2_TL_LOKI )
          PATH ${CMAKE_CURRENT_SOURCE_DIR}
          HEADERS ${COMMON_MODULE}/yomphyder.F90 ${COMMON_MODULE}/yoecldp.F90
          INCLUDES ${COMMON_INCLUDE}
-         DEFINITIONS CLOUDSC_GPU_TIMING ${CLOUDSC_DEFINE_STMT_FUNC}
+         DEFINITIONS CLOUDSC_GPU_TIMING
          DATA_OFFLOAD REMOVE_OPENMP
          OUTPATH ${CMAKE_CURRENT_BINARY_DIR}/loki-scc-hoist
          OUTPUT 
-                 loki-scc-hoist/error.scc_hoist.F90 
-                 loki-scc-hoist/satur.scc_hoist.F90 
-                 loki-scc-hoist/cloudsc2.scc_hoist.F90
-                 loki-scc-hoist/cloudsc2tl.scc_hoist.F90
-                 loki-scc-hoist/cloudsc_driver_tl_loki_mod.scc_hoist.F90
-         DEPENDS error.F90 satur.F90 cloudsc2.F90 cloudsc2tl.F90 cloudsc_driver_tl_loki_mod.F90
+             loki-scc-hoist/satur.scc_hoist.F90 
+             loki-scc-hoist/cloudsc2.scc_hoist.F90
+             loki-scc-hoist/cloudsc2tl.scc_hoist.F90
+             loki-scc-hoist/cloudsc_driver_tl_loki_mod.scc_hoist.F90
+         DEPENDS
+	     satur.F90 cloudsc2.F90 cloudsc2tl.F90 cloudsc_driver_tl_loki_mod.F90
      )
  
  
@@ -145,7 +143,7 @@ if( HAVE_CLOUDSC2_TL_LOKI )
              loki-scc-hoist/cloudsc2tl.scc_hoist.F90
              loki-scc-hoist/cloudsc2.scc_hoist.F90
              loki-scc-hoist/satur.scc_hoist.F90
-             loki-scc-hoist/error.scc_hoist.F90
+             error.F90
          LIBS
              cloudsc2-common-lib
          DEFINITIONS ${CLOUDSC_DEFINITIONS}

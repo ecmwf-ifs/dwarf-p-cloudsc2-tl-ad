@@ -32,7 +32,7 @@ CONTAINS
     USE CLOUDSC2_MOD, ONLY: CLOUDSC2
     USE CLOUDSC2TL_MOD, ONLY: CLOUDSC2TL
     USE SATUR_MOD, ONLY: SATUR 
-    USE ERROR_MOD, ONLY: ERROR_NORM 
+    USE ERROR_MOD, ONLY: VALIDATE_TAYLOR_TEST
     USE YOMCST   , ONLY : TOMCST
     USE YOETHF   , ONLY : TOETHF
     USE YOPHNC   , ONLY : TPHNC
@@ -88,7 +88,7 @@ CONTAINS
      & PLU5(NPROMA,NLEV,NGPBLKS), PMFU5(NPROMA,NLEV,NGPBLKS), PMFD5(NPROMA,NLEV,NGPBLKS), &
      & ZTENI_T5(NPROMA,NLEV,NGPBLKS), ZTENI_Q5(NPROMA,NLEV,NGPBLKS), ZTENI_L5(NPROMA,NLEV,NGPBLKS), &
      & ZTENI_I5(NPROMA,NLEV,NGPBLKS), PSUPSAT5(NPROMA,NLEV,NGPBLKS)
-    INTEGER(KIND=JPIB), PARAMETER :: NLAM=10
+    INTEGER(KIND=JPIM), PARAMETER :: NLAM=10
     REAL(KIND=JPRB)    :: ZTENO_T5(NPROMA,NLEV,NLAM,NGPBLKS), &
      &                    ZTENO_Q5(NPROMA,NLEV,NLAM,NGPBLKS), &
      &                    ZTENO_L5(NPROMA,NLEV,NLAM,NGPBLKS), &
@@ -112,7 +112,8 @@ CONTAINS
 
     ! Global timer for the parallel region
     CALL TIMER%START(NUMOMP)
-  !$loki data
+
+    !$loki data
     
     ZNORMG(:)=0.
 
@@ -242,6 +243,7 @@ CONTAINS
       ENDDO
 
       CALL TIMER%THREAD_END(TID)
+
       !$loki end data
 
       CALL TIMER%END()
@@ -249,77 +251,18 @@ CONTAINS
       CALL TIMER%THREAD_LOG(TID, IGPC=NGPTOT)
       CALL TIMER%PRINT_PERFORMANCE(NPROMA, NGPBLKS, ZHPM, NGPTOT)
 
-    DO JKGLO=1,NGPTOT,NPROMA
-       IBLT=(JKGLO-1)/NPROMA+1
-       ICEND=MIN(NPROMA,NGPTOT-JKGLO+1)
-         ! Loop over incrementing states
-         DO ILAM=1,10
-           ZLAMBDA=10._JPRB**(-REAL(ILAM,JPRB))
-           ! Compute final test norm
-           ZCOUNT=0._JPRB
-           ZNORM= 0._JPRB 
-           CALL ERROR_NORM(1,ICEND,ICEND, BUFFER_LOC(:,:,1,IBLT)       ,  ZTENO_T5(:,:,ILAM,IBLT),  ZTENO_T(:,:,IBLT), ZNORM, ZCOUNT, ZLAMBDA)
-           CALL ERROR_NORM(1,ICEND,ICEND, BUFFER_LOC(:,:,3,IBLT)       ,  ZTENO_Q5(:,:,ILAM,IBLT),  ZTENO_Q(:,:,IBLT), ZNORM, ZCOUNT, ZLAMBDA)
-           CALL ERROR_NORM(1,ICEND,ICEND, BUFFER_LOC(:,:,3+NCLDQL,IBLT),  ZTENO_L5(:,:,ILAM,IBLT),  ZTENO_L(:,:,IBLT), ZNORM, ZCOUNT, ZLAMBDA)
-           CALL ERROR_NORM(1,ICEND,ICEND, BUFFER_LOC(:,:,3+NCLDQI,IBLT),  ZTENO_I5(:,:,ILAM,IBLT),  ZTENO_I(:,:,IBLT), ZNORM, ZCOUNT, ZLAMBDA)
-           CALL ERROR_NORM(1,ICEND,ICEND, PA(:,:,IBLT)                 ,       PA5(:,:,ILAM,IBLT),     ZCLC(:,:,IBLT), ZNORM, ZCOUNT, ZLAMBDA)
-           CALL ERROR_NORM(1,ICEND,ICEND, PFPLSL(:,:,IBLT)             ,   PFPLSL5(:,:,ILAM,IBLT),   ZFPLSL(:,:,IBLT), ZNORM, ZCOUNT, ZLAMBDA)
-           CALL ERROR_NORM(1,ICEND,ICEND, PFPLSN(:,:,IBLT)             ,   PFPLSN5(:,:,ILAM,IBLT),   ZFPLSN(:,:,IBLT), ZNORM, ZCOUNT, ZLAMBDA)
-           CALL ERROR_NORM(1,ICEND,ICEND, PFHPSL(:,:,IBLT)             ,   PFHPSL5(:,:,ILAM,IBLT),   ZFHPSL(:,:,IBLT), ZNORM, ZCOUNT, ZLAMBDA)
-           CALL ERROR_NORM(1,ICEND,ICEND, PFHPSN(:,:,IBLT)             ,   PFHPSN5(:,:,ILAM,IBLT),   ZFHPSN(:,:,IBLT), ZNORM, ZCOUNT, ZLAMBDA)
-           CALL ERROR_NORM(1,ICEND,ICEND, PCOVPTOT(:,:,IBLT)           , PCOVPTOT5(:,:,ILAM,IBLT), ZCOVPTOT(:,:,IBLT), ZNORM, ZCOUNT, ZLAMBDA)
-
-           ! Global norm (normalize by number of active statistics)
-           IF (ZNORM == 0._JPRB .OR. ZCOUNT == 0._JPRB) THEN
-             print *, ' TL is totally wrong !!! ',ZNORM,ZCOUNT
-             stop
-           ELSE
-             ZNORMG(ILAM)=MAX(ZNORMG(ILAM),ZNORM/ZCOUNT)
-           ENDIF
-         ENDDO  ! end of lambda loops
-      ENDDO
-        
-      ! Evaluate the test and print the otput
-      print *, ' TL Taylor test '
-      print *, '                Lambda   Result'
-      istart=0
-      DO ILAM=1,10
-         print *, ILAM, ZNORMG(ILAM)
-         ! Redefine ZNORMG
-         ZNORMG(ILAM)=ABS(1._JPRB - ZNORMG(ILAM))
-         ! filter out first members with strong NL departures
-         if (istart == 0 .AND.  ZNORMG(ILAM) < 0.5_JPRB ) istart=ILAM 
-      ENDDO
-
-      print *, '   ==============================================   '
-      IF (ISTART == 0 .OR. ISTART > 4 ) THEN
-        print *, '       TEST FAILLED, err 13 '
-      ELSE
-        ! V-shape test
-        ITEST=-10
-        INEGAT=1
-        DO ILAM=ISTART,10-1
-          IF (ZNORMG(ILAM+1)/ZNORMG(ILAM) < 1._JPRB ) THEN
-            ITEMPNEGAT = 1
-          ELSE
-            ITEMPNEGAT = 0
-          ENDIF
-          IF (INEGAT > ITEMPNEGAT) ITEST=ITEST+10
-          INEGAT=ITEMPNEGAT
-        ENDDO
-        IF (ITEST == -10) ITEST = 11 ! no change of sign at all
-        ! Accuracy test
-        IF (MINVAL(ZNORMG(ISTART:10)) > 0.00001_JPRB) ITEST=ITEST+7  ! Hard limit
-        IF (MINVAL(ZNORMG(ISTART:10)) > 0.000001_JPRB) ITEST=ITEST+5  ! Soft limit
-        ! Final prints
-        IF (ITEST > 5) THEN
-          print *, '       TEST FAILLED, err ',ITEST
-        ELSE
-          print *, '       TEST PASSED, penalty ',ITEST
-        ENDIF 
-      ENDIF
-
-      print *, '   ==============================================   '
+      CALL VALIDATE_TAYLOR_TEST(NPROMA, NLEV, NLAM, NGPTOT, &
+       & BUFFER_LOC(:,:,1,:)       ,  ZTENO_T5(:,:,:,:),  ZTENO_T(:,:,:), &
+       & BUFFER_LOC(:,:,3,:)       ,  ZTENO_Q5(:,:,:,:),  ZTENO_Q(:,:,:), &
+       & BUFFER_LOC(:,:,3+NCLDQL,:),  ZTENO_L5(:,:,:,:),  ZTENO_L(:,:,:), &
+       & BUFFER_LOC(:,:,3+NCLDQI,:),  ZTENO_I5(:,:,:,:),  ZTENO_I(:,:,:), &
+       & PA(:,:,:)                 ,       PA5(:,:,:,:),     ZCLC(:,:,:), &
+       & PFPLSL(:,:,:)             ,   PFPLSL5(:,:,:,:),   ZFPLSL(:,:,:), &
+       & PFPLSN(:,:,:)             ,   PFPLSN5(:,:,:,:),   ZFPLSN(:,:,:), &
+       & PFHPSL(:,:,:)             ,   PFHPSL5(:,:,:,:),   ZFHPSL(:,:,:), &
+       & PFHPSN(:,:,:)             ,   PFHPSN5(:,:,:,:),   ZFHPSN(:,:,:), &
+       & PCOVPTOT(:,:,:)           , PCOVPTOT5(:,:,:,:), ZCOVPTOT(:,:,:)  &
+       & )
     
   END SUBROUTINE CLOUDSC_DRIVER_TL
 
