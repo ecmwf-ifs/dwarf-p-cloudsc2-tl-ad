@@ -238,8 +238,10 @@ CONTAINS
 
          ENDDO  ! end of lambda loops
 
+#ifndef CLOUDSC_GPU_TIMING
          ! Log number of columns processed by this thread
- !       CALL TIMER%THREAD_LOG(TID, IGPC=ICEND)
+         CALL TIMER%THREAD_LOG(TID, IGPC=ICEND)
+#endif
       ENDDO
 
       CALL TIMER%THREAD_END(TID)
@@ -248,7 +250,13 @@ CONTAINS
 
       CALL TIMER%END()
 
-      CALL TIMER%THREAD_LOG(TID, IGPC=NGPTOT)
+#ifdef CLOUDSC_GPU_TIMING
+      ! On GPUs, adding block-level column totals is cumbersome and
+      ! error prone, and of little value due to the large number of
+      ! processing "thread teams". Instead we register the total here.
+      CALL TIMER % THREAD_LOG(TID=TID, IGPC=NGPTOT)
+#endif
+
       CALL TIMER%PRINT_PERFORMANCE(NPROMA, NGPBLKS, ZHPM, NGPTOT)
 
       CALL VALIDATE_TAYLOR_TEST(NPROMA, NLEV, NLAM, NGPTOT, &

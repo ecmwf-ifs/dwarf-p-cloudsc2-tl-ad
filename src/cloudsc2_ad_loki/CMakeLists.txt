@@ -65,22 +65,21 @@ if( HAVE_CLOUDSC2_AD_LOKI )
 
 
      loki_transform_convert(
-         MODE scc FRONTEND ${LOKI_FRONTEND} 
+         MODE scc FRONTEND ${LOKI_FRONTEND} CPP
          CONFIG ${CMAKE_CURRENT_SOURCE_DIR}/cloudsc_loki.config
          PATH ${CMAKE_CURRENT_SOURCE_DIR}
          HEADERS ${COMMON_MODULE}/yomphyder.F90 ${COMMON_MODULE}/yoecldp.F90
          INCLUDES ${COMMON_INCLUDE}
-         DEFINITIONS CLOUDSC_GPU_TIMING ${CLOUDSC_DEFINE_STMT_FUNC}
+         DEFINITIONS CLOUDSC_GPU_TIMING
          DATA_OFFLOAD REMOVE_OPENMP
          OUTPATH ${CMAKE_CURRENT_BINARY_DIR}/loki-scc
-         OUTPUT  loki-scc/satur.scc.F90
-                 loki-scc/cloudsc2ad.scc.F90
-                 loki-scc/cloudsc2tl.scc.F90
-                 loki-scc/cloudsc_driver_ad_loki_mod.scc.F90
-         DEPENDS satur.F90
-                 cloudsc2ad.F90
-                 cloudsc2tl.F90
-                 cloudsc_driver_ad_loki_mod.F90
+         OUTPUT
+             loki-scc/satur.scc.F90
+             loki-scc/cloudsc2ad.scc.F90
+             loki-scc/cloudsc2tl.scc.F90
+             loki-scc/cloudsc_driver_ad_loki_mod.scc.F90
+         DEPENDS
+             satur.F90 cloudsc2ad.F90 cloudsc2tl.F90 cloudsc_driver_ad_loki_mod.F90
      )
      ecbuild_add_executable( TARGET dwarf-cloudsc2-ad-loki-scc
          SOURCES
@@ -109,24 +108,22 @@ if( HAVE_CLOUDSC2_AD_LOKI )
     ##   * Temporary arrays hoisted to driver         ##
     ####################################################
 
-   loki_transform_convert(
-        MODE scc-hoist FRONTEND ${LOKI_FRONTEND}
-        DIRECTIVE openacc
+    loki_transform_convert(
+        MODE scc-hoist FRONTEND ${LOKI_FRONTEND} CPP
         CONFIG ${CMAKE_CURRENT_SOURCE_DIR}/cloudsc_loki.config
         PATH ${CMAKE_CURRENT_SOURCE_DIR}
         HEADERS ${COMMON_MODULE}/yomphyder.F90 ${COMMON_MODULE}/yoecldp.F90
         INCLUDES ${COMMON_INCLUDE}
-        DEFINITIONS CLOUDSC_GPU_TIMING ${CLOUDSC_DEFINE_STMT_FUNC}
+        DEFINITIONS CLOUDSC_GPU_TIMING
         DATA_OFFLOAD REMOVE_OPENMP
         OUTPATH ${CMAKE_CURRENT_BINARY_DIR}/loki-scc-hoist
-         OUTPUT  loki-scc-hoist/satur.scc_hoist.F90
-                 loki-scc-hoist/cloudsc2ad.scc_hoist.F90
-                 loki-scc-hoist/cloudsc2tl.scc_hoist.F90
-                 loki-scc-hoist/cloudsc_driver_ad_loki_mod.scc_hoist.F90
-         DEPENDS satur.F90
-                 cloudsc2ad.F90
-                 cloudsc2tl.F90
-                 cloudsc_driver_ad_loki_mod.F90
+        OUTPUT
+            loki-scc-hoist/satur.scc_hoist.F90
+            loki-scc-hoist/cloudsc2ad.scc_hoist.F90
+            loki-scc-hoist/cloudsc2tl.scc_hoist.F90
+            loki-scc-hoist/cloudsc_driver_ad_loki_mod.scc_hoist.F90
+        DEPENDS
+            satur.F90 cloudsc2ad.F90 cloudsc2tl.F90 cloudsc_driver_ad_loki_mod.F90
      )
      ecbuild_add_executable( TARGET dwarf-cloudsc2-ad-loki-scc-hoist
          SOURCES
