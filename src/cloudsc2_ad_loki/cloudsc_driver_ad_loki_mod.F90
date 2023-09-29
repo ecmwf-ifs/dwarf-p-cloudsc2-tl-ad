@@ -73,7 +73,7 @@ CONTAINS
     REAL(KIND=JPRB)    :: ZQSAT(NPROMA,NLEV,NGPBLKS) ! local array
 
     REAL(KIND=JPRB)    :: ZNORMG
-    REAL(KIND=JPRB)    :: ZNORM1(NPROMA), ZNORM2(NPROMA), ZNORM3(NPROMA)
+    REAL(KIND=JPRB)    :: ZNORM1(NPROMA,NGPBLKS), ZNORM2(NPROMA,NGPBLKS), ZNORM3(NPROMA,NGPBLKS)
     REAL(KIND=JPRB)    ::   ZAPH(NPROMA,NLEV+1,NGPBLKS), &
      &                       ZAP(NPROMA,NLEV  ,NGPBLKS), &
      &                        ZQ(NPROMA,NLEV  ,NGPBLKS), &
@@ -210,7 +210,7 @@ CONTAINS
 
          ! First norm
          DO JROF=1,ICEND
-           ZNORM1(JROF)=SUM( ZTENO_T(JROF,1:NLEV  ,IBL)* ZTENO_T(JROF,1:NLEV  ,IBL)) &
+           ZNORM1(JROF,IBL)=SUM( ZTENO_T(JROF,1:NLEV  ,IBL)* ZTENO_T(JROF,1:NLEV  ,IBL)) &
            &          + SUM( ZTENO_Q(JROF,1:NLEV  ,IBL)* ZTENO_Q(JROF,1:NLEV  ,IBL)) &
            &          + SUM( ZTENO_L(JROF,1:NLEV  ,IBL)* ZTENO_L(JROF,1:NLEV  ,IBL)) &
            &          + SUM( ZTENO_I(JROF,1:NLEV  ,IBL)* ZTENO_I(JROF,1:NLEV  ,IBL)) &
@@ -267,7 +267,7 @@ CONTAINS
 
          ! Second norm
          DO JROF=1,ICEND
-           ZNORM2(JROF)=SUM(   ZAPH0(JROF,1:NLEV+1,IBL) *    ZAPH(JROF,1:NLEV+1,IBL)) &
+           ZNORM2(JROF,IBL)=SUM(   ZAPH0(JROF,1:NLEV+1,IBL) *    ZAPH(JROF,1:NLEV+1,IBL)) &
            &          + SUM(    ZAP0(JROF,1:NLEV  ,IBL) *     ZAP(JROF,1:NLEV  ,IBL)) &
            &          + SUM(     ZQ0(JROF,1:NLEV  ,IBL) *      ZQ(JROF,1:NLEV  ,IBL)) &
            &          + SUM( ZZQSAT0(JROF,1:NLEV  ,IBL) *  ZZQSAT(JROF,1:NLEV  ,IBL)) &
@@ -286,14 +286,14 @@ CONTAINS
            ! Third norm
            ! Note the machine precision is defined here as strictly 64bits
            ! as we assume at worst 12 digits agreements in norms.
-           IF (ZNORM2(JROF) == 0._JPRB ) THEN
-             ZNORM3(JROF)=ABS(ZNORM1(JROF)-ZNORM2(JROF))/EPSILON(1._8)
+           IF (ZNORM2(JROF,IBL) == 0._JPRB ) THEN
+             ZNORM3(JROF,IBL)=ABS(ZNORM1(JROF,IBL)-ZNORM2(JROF,IBL))/EPSILON(1._8)
            ELSE
-             ZNORM3(JROF)=ABS(ZNORM1(JROF)-ZNORM2(JROF))/EPSILON(1._8)/ZNORM2(JROF)
+             ZNORM3(JROF,IBL)=ABS(ZNORM1(JROF,IBL)-ZNORM2(JROF,IBL))/EPSILON(1._8)/ZNORM2(JROF,IBL)
            ENDIF
          ENDDO
 
-         ZNORMG=MAX(ZNORMG,MAXVAL(ZNORM3(1:ICEND)))
+         ZNORMG=MAX(ZNORMG,MAXVAL(ZNORM3(1:ICEND,IBL)))
 
 #ifndef CLOUDSC_GPU_TIMING
          ! Log number of columns processed by this thread
