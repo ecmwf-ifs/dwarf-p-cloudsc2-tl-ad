@@ -304,7 +304,8 @@ REAL(KIND=JPRB) :: ZYYY, ZRAT
 
 INTEGER(KIND=JPIM) :: IK,ICALL
 
-LOGICAL :: LLO1, LLO2, LLO3, LLFLAG(KLON)
+LOGICAL :: LLO1, LLO2, LLO3
+LOGICAL :: LLFLAG(KLON)
 !REAL(KIND=JPRB) :: ZHOOK_HANDLE
 
 TYPE(TNCL)        ,INTENT(IN) :: YNCL
@@ -314,7 +315,6 @@ TYPE(TPHNC)       ,INTENT(IN) :: YHNC
 TYPE(TEPHLI)      ,INTENT(IN) :: YPHLI
 TYPE(TECLD)       ,INTENT(IN) :: YCLD
 TYPE(TECLDP)      ,INTENT(IN) :: YCLDP
-
 #include "fcttre.ycst.h"
 #include "fcttretl.ycst.h"
 !     ------------------------------------------------------------------
@@ -584,12 +584,12 @@ DO JK=KTDIA,KLEV
       ZQCD  = ZQSAT (JL)-ZQCRIT (JL)
       ZQCD5 = ZQSAT5(JL)-ZQCRIT5(JL)
 
-      ZSQRT5 = SQRT(ZQPD5/(ZQCD5-ZSCALM(JK)*(ZQT5-ZQCRIT5(JL))))  
+      ZSQRT5 = SQRT(ZQPD5/(ZQCD5-ZSCALM(JK)*(ZQT5-ZQCRIT5(JL))))
       PCLC5(JL,JK) = 1.0_JPRB-ZSQRT5
       PCLC (JL,JK) = -(0.5_JPRB/ZSQRT5) &
        & * (ZQPD *(ZQCD5-ZSCALM(JK)*(ZQT5-ZQCRIT5(JL))) &
        & -  ZQPD5*(ZQCD -ZSCALM(JK)*(ZQT -ZQCRIT (JL)))) &
-       & / (ZQCD5-ZSCALM(JK)*(ZQT5-ZQCRIT5(JL)))**2  
+       & / (ZQCD5-ZSCALM(JK)*(ZQT5-ZQCRIT5(JL)))**2
 
 ! Regularization of cloud fraction perturbation
       IF (LREGCL) THEN
@@ -1011,8 +1011,9 @@ DO JK=KTDIA,KLEV
 !  & ZPP5 , ZTP15 , ZQP15,&
 !  & ZPP  , ZTP1  , ZQP1 , LLFLAG, ICALL, YDCST, YDTHF  )  
 !  -----------------------------------
-  ! Manually inlined CUADJTQSTL
-  ! -----------------------------------
+
+! Manually inlined CUADJTQSTL
+! -----------------------------------
 
 !     1.           DEFINE CONSTANTS
 !                  ----------------
@@ -1041,12 +1042,12 @@ ENDDO
 
 
   DO JL=KIDIA,KFDIA
-    ZQP(JL)=-ZPP(JL)/ZPP5(JL)**2
+    ZQP (JL)=-ZPP(JL)/ZPP5(JL)**2
     ZQP5(JL)=1.0_JPRB/ZPP5(JL)
     ZTARG(JL)=ZTP1(JL,JK)
     ZTARG5(JL)=ZTP15(JL,JK)
     ZFOEEW5(JL)=R2ES*EXP(Z3ES(JL)*(ZTARG5(JL)-RTT)/(ZTARG5(JL)-Z4ES(JL)))
-    ZFOEEW(JL)=Z3ES(JL)*(RTT-Z4ES(JL))*ZTARG(JL)*ZFOEEW5(JL)/&
+    ZFOEEW (JL)=Z3ES(JL)*(RTT-Z4ES(JL))*ZTARG(JL)*ZFOEEW5(JL)/&
      & (ZTARG5(JL)-Z4ES(JL))**2  
     ZQSAT (JL)=ZQP5(JL)*ZFOEEW (JL) + ZQP (JL)*ZFOEEW5(JL)
     ZQSAT5(JL)=ZQP5(JL)*ZFOEEW5(JL)

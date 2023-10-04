@@ -32,7 +32,7 @@ CONTAINS
     USE CLOUDSC2_MOD, ONLY: CLOUDSC2
     USE CLOUDSC2TL_MOD, ONLY: CLOUDSC2TL
     USE SATUR_MOD, ONLY: SATUR 
-    USE ERROR_MOD, ONLY: ERROR_NORM 
+    USE ERROR_MOD, ONLY: VALIDATE_TAYLOR_TEST
     USE YOMCST   , ONLY : TOMCST
     USE YOETHF   , ONLY : TOETHF
     USE YOPHNC   , ONLY : TPHNC
@@ -62,48 +62,58 @@ CONTAINS
     REAL(KIND=JPRB),    INTENT(OUT)   :: PFPLSN(NPROMA,NLEV+1,NGPBLKS) ! ice+snow sedim flux
     REAL(KIND=JPRB),    INTENT(OUT)   :: PFHPSL(NPROMA,NLEV+1,NGPBLKS) ! Enthalpy flux for liq
     REAL(KIND=JPRB),    INTENT(OUT)   :: PFHPSN(NPROMA,NLEV+1,NGPBLKS) ! Enthalp flux for ice
-    INTEGER(KIND=JPIM) :: JKGLO,IBL,ICEND,ISTART,ITEST,INEGAT,ITEMPNEGAT
+    INTEGER(KIND=JPIM) :: JKGLO,IBL,IBLT,ICEND,ISTART,ITEST,INEGAT,ITEMPNEGAT
 
     TYPE(PERFORMANCE_TIMER) :: TIMER
     REAL(KIND=JPRD), PARAMETER :: ZHPM = 3996006.0_JPRD  ! The nominal number of flops per 100 columns
 
     INTEGER(KIND=JPIM) :: TID ! thread id from 0 .. NUMOMP - 1
     LOGICAL            :: LDRAIN1D = .FALSE.
-    REAL(KIND=JPRB)    :: ZQSAT(NPROMA,NLEV) ! local array
+    REAL(KIND=JPRB)    :: ZQSAT(NPROMA,NLEV,NGPBLKS) ! local array
 
     INTEGER(KIND=JPIB) :: ILAM
     REAL(KIND=JPRB)    :: ZLAMBDA, ZCOUNT, ZNORM, ZNORMG(10)
-    REAL(KIND=JPRB)    :: ZAPH(NPROMA,NLEV+1), ZAP(NPROMA,NLEV), ZQ(NPROMA,NLEV), &
-     & ZZQSAT(NPROMA,NLEV), ZT(NPROMA,NLEV), ZL(NPROMA,NLEV), ZI(NPROMA,NLEV), &
-     & ZLUDE(NPROMA,NLEV), ZLU(NPROMA,NLEV), ZMFU(NPROMA,NLEV), ZMFD(NPROMA,NLEV), &
-     & ZTENI_T(NPROMA,NLEV), ZTENI_Q(NPROMA,NLEV), ZTENI_L(NPROMA,NLEV), &
-     & ZTENI_I(NPROMA,NLEV), ZSUPSAT(NPROMA,NLEV)
-    REAL(KIND=JPRB)    :: ZTENO_T(NPROMA,NLEV), ZTENO_Q(NPROMA,NLEV), &
-     & ZTENO_L(NPROMA,NLEV), ZTENO_I(NPROMA,NLEV), ZCLC(NPROMA,NLEV), &
-     & ZFPLSL(NPROMA,NLEV+1), ZFPLSN(NPROMA,NLEV+1), ZFHPSL(NPROMA,NLEV+1), &
-     & ZFHPSN(NPROMA,NLEV+1), ZCOVPTOT(NPROMA,NLEV)
-    REAL(KIND=JPRB)    :: PAPH5(NPROMA,NLEV+1), PAP5(NPROMA,NLEV), &
-     & PQ5(NPROMA,NLEV), ZQSAT5(NPROMA,NLEV), PT5(NPROMA,NLEV), &
-     & PCLVL5(NPROMA,NLEV), PCLVI5(NPROMA,NLEV), PLUDE5(NPROMA,NLEV), &
-     & PLU5(NPROMA,NLEV), PMFU5(NPROMA,NLEV), PMFD5(NPROMA,NLEV), &
-     & ZTENI_T5(NPROMA,NLEV), ZTENI_Q5(NPROMA,NLEV), ZTENI_L5(NPROMA,NLEV), &
-     & ZTENI_I5(NPROMA,NLEV), PSUPSAT5(NPROMA,NLEV)
-    REAL(KIND=JPRB)    :: ZTENO_T5(NPROMA,NLEV), ZTENO_Q5(NPROMA,NLEV), &
-     & ZTENO_L5(NPROMA,NLEV), ZTENO_I5(NPROMA,NLEV), PA5(NPROMA,NLEV), &
-     & PFPLSL5(NPROMA,NLEV+1), PFPLSN5(NPROMA,NLEV+1), PFHPSL5(NPROMA,NLEV+1), &
-     & PFHPSN5(NPROMA,NLEV+1), PCOVPTOT5(NPROMA,NLEV)
-
+    REAL(KIND=JPRB)    :: ZAPH(NPROMA,NLEV+1,NGPBLKS), ZAP(NPROMA,NLEV,NGPBLKS), ZQ(NPROMA,NLEV,NGPBLKS), &
+     & ZZQSAT(NPROMA,NLEV,NGPBLKS), ZT(NPROMA,NLEV,NGPBLKS), &
+     & ZLU(NPROMA,NLEV,NGPBLKS), ZMFU(NPROMA,NLEV,NGPBLKS), ZMFD(NPROMA,NLEV,NGPBLKS), &
+     & ZTENI_T(NPROMA,NLEV,NGPBLKS), ZTENI_Q(NPROMA,NLEV,NGPBLKS), ZTENI_L(NPROMA,NLEV,NGPBLKS), &
+     & ZTENI_I(NPROMA,NLEV,NGPBLKS), ZSUPSAT(NPROMA,NLEV,NGPBLKS)
+    REAL(KIND=JPRB)    :: ZTENO_T(NPROMA,NLEV,NGPBLKS), ZTENO_Q(NPROMA,NLEV,NGPBLKS), &
+     & ZTENO_L(NPROMA,NLEV,NGPBLKS), ZTENO_I(NPROMA,NLEV,NGPBLKS), ZCLC(NPROMA,NLEV,NGPBLKS), &
+     & ZFPLSL(NPROMA,NLEV+1,NGPBLKS), ZFPLSN(NPROMA,NLEV+1,NGPBLKS), ZFHPSL(NPROMA,NLEV+1,NGPBLKS), &
+     & ZFHPSN(NPROMA,NLEV+1,NGPBLKS), ZCOVPTOT(NPROMA,NLEV,NGPBLKS)
+    REAL(KIND=JPRB)    :: PAPH5(NPROMA,NLEV+1,NGPBLKS), PAP5(NPROMA,NLEV,NGPBLKS), &
+     & PQ5(NPROMA,NLEV,NGPBLKS), ZQSAT5(NPROMA,NLEV,NGPBLKS), PT5(NPROMA,NLEV,NGPBLKS), &
+     & PCLVL5(NPROMA,NLEV,NGPBLKS), PCLVI5(NPROMA,NLEV,NGPBLKS), PLUDE5(NPROMA,NLEV,NGPBLKS), &
+     & PLU5(NPROMA,NLEV,NGPBLKS), PMFU5(NPROMA,NLEV,NGPBLKS), PMFD5(NPROMA,NLEV,NGPBLKS), &
+     & ZTENI_T5(NPROMA,NLEV,NGPBLKS), ZTENI_Q5(NPROMA,NLEV,NGPBLKS), ZTENI_L5(NPROMA,NLEV,NGPBLKS), &
+     & ZTENI_I5(NPROMA,NLEV,NGPBLKS), PSUPSAT5(NPROMA,NLEV,NGPBLKS)
+    INTEGER(KIND=JPIM), PARAMETER :: NLAM=10
+    REAL(KIND=JPRB)    :: ZTENO_T5(NPROMA,NLEV,NLAM,NGPBLKS), &
+     &                    ZTENO_Q5(NPROMA,NLEV,NLAM,NGPBLKS), &
+     &                    ZTENO_L5(NPROMA,NLEV,NLAM,NGPBLKS), &
+     &                    ZTENO_I5(NPROMA,NLEV,NLAM,NGPBLKS), &
+     &                         PA5(NPROMA,NLEV,NLAM,NGPBLKS), &
+     &                    PFPLSL5(NPROMA,NLEV+1,NLAM,NGPBLKS), &
+     &                    PFPLSN5(NPROMA,NLEV+1,NLAM,NGPBLKS), &
+     &                    PFHPSL5(NPROMA,NLEV+1,NLAM,NGPBLKS), &
+     &                    PFHPSN5(NPROMA,NLEV+1,NLAM,NGPBLKS), &
+     &                    PCOVPTOT5(NPROMA,NLEV,NLAM,NGPBLKS)
+    REAL(KIND=JPRB)    :: ZDRVL(NPROMA,NLEV,NGPBLKS)
+    REAL(KIND=JPRB)    :: ZDRVI(NPROMA,NLEV,NGPBLKS)
+    REAL(KIND=JPRB)    :: ZDRVLUDE(NPROMA,NLEV,NGPBLKS)
+    TYPE(TNCL)      :: YNCL
     TYPE(TOMCST)    :: YDCST
     TYPE(TOETHF)    :: YDTHF
     TYPE(TPHNC)     :: YHNC
     TYPE(TEPHLI)    :: YPHLI
     TYPE(TECLD)     :: YCLD
     TYPE(TECLDP)    :: YCLDP
-    TYPE(TNCL)      :: YNCL
 
     ! Global timer for the parallel region
     CALL TIMER%START(NUMOMP)
-  !$loki data
+
+    !$loki data
     
     ZNORMG(:)=0.
 
@@ -122,13 +132,13 @@ CONTAINS
 
          ! Fill in ZQSAT
          CALL SATUR (1, ICEND, NPROMA, 1, NLEV, .TRUE., &
-              & PAP(:,:,IBL), PT(:,:,IBL), ZQSAT(:,:), 2, YDCST, YDTHF) 
+              & PAP(:,:,IBL), PT(:,:,IBL), ZQSAT(:,:,IBL), 2, YDCST, YDTHF) 
 
          CALL CLOUDSC2 ( &
               &  1, ICEND, NPROMA, 1, NLEV, LDRAIN1D, &
               & PTSPHY, LCETA, &
               & PAPH(:,:,IBL),  PAP(:,:,IBL), &
-              & PQ(:,:,IBL), ZQSAT(:,:), PT(:,:,IBL), &
+              & PQ(:,:,IBL), ZQSAT(:,:,IBL), PT(:,:,IBL), &
               & PCLV(:,:,NCLDQL,IBL), PCLV(:,:,NCLDQI,IBL), &
               & PLUDE(:,:,IBL), PLU(:,:,IBL), PMFU(:,:,IBL), PMFD(:,:,IBL),&
               & BUFFER_LOC(:,:,1,IBL), BUFFER_CML(:,:,1,IBL), &
@@ -143,29 +153,29 @@ CONTAINS
          ! Preparation for TL
 
          ! Increments (IN)
-         ZAPH    =PAPH(:,:,IBL)*0.01_JPRB
-         ZAP     =PAP(:,:,IBL)*0.01_JPRB
-         ZQ      =PQ(:,:,IBL)*0.01_JPRB
-         ZZQSAT  =ZQSAT     *0.01_JPRB
-         ZT      = PT(:,:,IBL)*0.01_JPRB
-         ZL      = PCLV(:,:,NCLDQL,IBL)*0.01_JPRB
-         ZI      = PCLV(:,:,NCLDQI,IBL)*0.01_JPRB
-         ZLUDE   = PLUDE(:,:,IBL)*0.01_JPRB
-         ZLU     = PLU(:,:,IBL)*0.01_JPRB
-         ZMFU    = PMFU(:,:,IBL)*0.01_JPRB
-         ZMFD    = PMFD(:,:,IBL)*0.01_JPRB
-         ZTENI_T = BUFFER_CML(:,:,1,IBL)*0.01_JPRB
-         ZTENI_Q = BUFFER_CML(:,:,3,IBL)*0.01_JPRB
-         ZTENI_L = BUFFER_CML(:,:,3+NCLDQL,IBL)*0.01_JPRB
-         ZTENI_I = BUFFER_CML(:,:,3+NCLDQI,IBL)*0.01_JPRB
-         ZSUPSAT = PSUPSAT(:,:,IBL)*0.01_JPRB
+         ZAPH(:,:,IBL)    =PAPH(:,:,IBL)*0.01_JPRB
+         ZAP(:,:,IBL)     =PAP(:,:,IBL)*0.01_JPRB
+         ZQ(:,:,IBL)      =PQ(:,:,IBL)*0.01_JPRB
+         ZZQSAT(:,:,IBL)  =ZQSAT(:,:,IBL)     *0.01_JPRB
+         ZT(:,:,IBL)      = PT(:,:,IBL)*0.01_JPRB
+         ZDRVL(:,:,IBL)   = PCLV(:,:,NCLDQL,IBL)*0.01_JPRB
+         ZDRVI(:,:,IBL)   = PCLV(:,:,NCLDQI,IBL)*0.01_JPRB
+         ZDRVLUDE(:,:,IBL)= PLUDE(:,:,IBL)*0.01_JPRB
+         ZLU(:,:,IBL)     = PLU(:,:,IBL)*0.01_JPRB
+         ZMFU(:,:,IBL)    = PMFU(:,:,IBL)*0.01_JPRB
+         ZMFD(:,:,IBL)    = PMFD(:,:,IBL)*0.01_JPRB
+         ZTENI_T(:,:,IBL) = BUFFER_CML(:,:,1,IBL)*0.01_JPRB
+         ZTENI_Q(:,:,IBL) = BUFFER_CML(:,:,3,IBL)*0.01_JPRB
+         ZTENI_L(:,:,IBL) = BUFFER_CML(:,:,3+NCLDQL,IBL)*0.01_JPRB
+         ZTENI_I(:,:,IBL) = BUFFER_CML(:,:,3+NCLDQI,IBL)*0.01_JPRB
+         ZSUPSAT(:,:,IBL) = PSUPSAT(:,:,IBL)*0.01_JPRB
          ! Call TL
          CALL  CLOUDSC2TL ( &
             &  1, ICEND, NPROMA, 1, NLEV, LDRAIN1D, &
             & PTSPHY,LCETA,&
             ! trajectory
             & PAPH(:,:,IBL),  PAP(:,:,IBL), &
-            & PQ(:,:,IBL), ZQSAT(:,:), PT(:,:,IBL), &
+            & PQ(:,:,IBL), ZQSAT(:,:,IBL), PT(:,:,IBL), &
             & PCLV(:,:,NCLDQL,IBL), PCLV(:,:,NCLDQI,IBL), &
             & PLUDE(:,:,IBL), PLU(:,:,IBL), PMFU(:,:,IBL), PMFD(:,:,IBL),&
             & BUFFER_LOC(:,:,1,IBL), BUFFER_CML(:,:,1,IBL), &
@@ -176,125 +186,91 @@ CONTAINS
             & PA(:,:,IBL), PFPLSL(:,:,IBL),   PFPLSN(:,:,IBL), &
             & PFHPSL(:,:,IBL),   PFHPSN(:,:,IBL), PCOVPTOT(:,:,IBL), &
             ! increments
-            & ZAPH, ZAP, ZQ, ZZQSAT, ZT, ZL, ZI, &
-            & ZLUDE, ZLU, ZMFU, ZMFD, &
-            & ZTENO_T, ZTENI_T, ZTENO_Q, ZTENI_Q, &   ! o,i,o,i
-            & ZTENO_L, ZTENI_L, ZTENO_I, ZTENI_I, ZSUPSAT, &  ! o,i,o,i
-            & ZCLC   , ZFPLSL   , ZFPLSN ,&        ! o
-            & ZFHPSL , ZFHPSN   , ZCOVPTOT,&
+            & ZAPH(:,:,IBL), ZAP(:,:,IBL), ZQ(:,:,IBL), ZZQSAT(:,:,IBL), ZT(:,:,IBL), ZDRVL(:,:,IBL), ZDRVI(:,:,IBL), &
+            & ZDRVLUDE(:,:,IBL), ZLU(:,:,IBL), ZMFU(:,:,IBL), ZMFD(:,:,IBL), &
+            & ZTENO_T(:,:,IBL), ZTENI_T(:,:,IBL), ZTENO_Q(:,:,IBL), ZTENI_Q(:,:,IBL), &   ! o,i,o,i
+            & ZTENO_L(:,:,IBL), ZTENI_L(:,:,IBL), ZTENO_I(:,:,IBL), ZTENI_I(:,:,IBL), ZSUPSAT(:,:,IBL), &  ! o,i,o,i
+            & ZCLC(:,:,IBL)   , ZFPLSL(:,:,IBL)   , ZFPLSN(:,:,IBL) ,&        ! o
+            & ZFHPSL(:,:,IBL) , ZFHPSN(:,:,IBL)   , ZCOVPTOT(:,:,IBL),&
             & YDCST, YDTHF, YHNC, YPHLI, YCLD, YCLDP, YNCL )       ! o
 
          ! Loop over incrementing states
          DO ILAM=1,10
            ZLAMBDA=10._JPRB**(-REAL(ILAM,JPRB))
            ! Define perturbed NL state
-           PAPH5(:,:) = PAPH(:,:,IBL) + ZLAMBDA*ZAPH(:,:)
-           PAP5(:,:)  = PAP(:,:,IBL)  + ZLAMBDA*ZAP(:,:)
-           PQ5(:,:)   = PQ(:,:,IBL)   + ZLAMBDA*ZQ(:,:)
-           ZQSAT5(:,:)= ZQSAT(:,:)    + ZLAMBDA*ZZQSAT(:,:)
-           PT5(:,:)   = PT(:,:,IBL)   + ZLAMBDA*ZT(:,:)
-           PCLVL5(:,:)= PCLV(:,:,NCLDQL,IBL) + ZLAMBDA*ZL(:,:)
-           PCLVI5(:,:)= PCLV(:,:,NCLDQI,IBL) + ZLAMBDA*ZI(:,:)
-           PLUDE5(:,:)= PLUDE(:,:,IBL)+ ZLAMBDA*ZLUDE(:,:)
-           PLU5(:,:)  = PLU(:,:,IBL)  + ZLAMBDA*ZLU(:,:)
-           PMFU5(:,:) = PMFU(:,:,IBL) + ZLAMBDA*ZMFU(:,:)
-           PMFD5(:,:) = PMFD(:,:,IBL) + ZLAMBDA*ZMFD(:,:)
-           ZTENI_T5(:,:)=BUFFER_CML(:,:,1,IBL) + ZLAMBDA*ZTENI_T(:,:)
-           ZTENI_Q5(:,:)=BUFFER_CML(:,:,3,IBL) + ZLAMBDA*ZTENI_Q(:,:)
-           ZTENI_L5(:,:)=BUFFER_CML(:,:,3+NCLDQL,IBL) + ZLAMBDA*ZTENI_L(:,:)
-           ZTENI_I5(:,:)=BUFFER_CML(:,:,3+NCLDQI,IBL) + ZLAMBDA*ZTENI_I(:,:)
-           PSUPSAT5(:,:)=PSUPSAT(:,:,IBL) + ZLAMBDA*ZSUPSAT(:,:)
+           PAPH5(:,:,IBL) = PAPH(:,:,IBL) + ZLAMBDA*ZAPH(:,:,IBL)
+           PAP5(:,:,IBL)  = PAP(:,:,IBL)  + ZLAMBDA*ZAP(:,:,IBL)
+           PQ5(:,:,IBL)   = PQ(:,:,IBL)   + ZLAMBDA*ZQ(:,:,IBL)
+           ZQSAT5(:,:,IBL)= ZQSAT(:,:,IBL)    + ZLAMBDA*ZZQSAT(:,:,IBL)
+           PT5(:,:,IBL)   = PT(:,:,IBL)   + ZLAMBDA*ZT(:,:,IBL)
+           PCLVL5(:,:,IBL)= PCLV(:,:,NCLDQL,IBL) + ZLAMBDA*ZDRVL(:,:,IBL)
+           PCLVI5(:,:,IBL)= PCLV(:,:,NCLDQI,IBL) + ZLAMBDA*ZDRVI(:,:,IBL)
+           PLUDE5(:,:,IBL)= PLUDE(:,:,IBL)+ ZLAMBDA*ZDRVLUDE(:,:,IBL)
+           PLU5(:,:,IBL)  = PLU(:,:,IBL)  + ZLAMBDA*ZLU(:,:,IBL)
+           PMFU5(:,:,IBL) = PMFU(:,:,IBL) + ZLAMBDA*ZMFU(:,:,IBL)
+           PMFD5(:,:,IBL) = PMFD(:,:,IBL) + ZLAMBDA*ZMFD(:,:,IBL)
+           ZTENI_T5(:,:,IBL)=BUFFER_CML(:,:,1,IBL) + ZLAMBDA*ZTENI_T(:,:,IBL)
+           ZTENI_Q5(:,:,IBL)=BUFFER_CML(:,:,3,IBL) + ZLAMBDA*ZTENI_Q(:,:,IBL)
+           ZTENI_L5(:,:,IBL)=BUFFER_CML(:,:,3+NCLDQL,IBL) + ZLAMBDA*ZTENI_L(:,:,IBL)
+           ZTENI_I5(:,:,IBL)=BUFFER_CML(:,:,3+NCLDQI,IBL) + ZLAMBDA*ZTENI_I(:,:,IBL)
+           PSUPSAT5(:,:,IBL)=PSUPSAT(:,:,IBL) + ZLAMBDA*ZSUPSAT(:,:,IBL)
            ! Call the NL code
            CALL CLOUDSC2 ( &
               &  1, ICEND, NPROMA, 1, NLEV, LDRAIN1D, &
               & PTSPHY, LCETA,&
-              & PAPH5,  PAP5, &
-              & PQ5, ZQSAT5, PT5, &
-              & PCLVL5, PCLVI5, &
-              & PLUDE5, PLU5, PMFU5, PMFD5,&
-              & ZTENO_T5, ZTENI_T5, &
-              & ZTENO_Q5, ZTENI_Q5, &
-              & ZTENO_L5, ZTENI_L5, &
-              & ZTENO_I5, ZTENI_I5, &
-              & PSUPSAT5, &
-              & PA5(:,:), PFPLSL5(:,:),   PFPLSN5(:,:), &
-              & PFHPSL5(:,:),   PFHPSN5(:,:), PCOVPTOT5(:,:), &
+              & PAPH5(:,:,IBL),  PAP5(:,:,IBL), &
+              & PQ5(:,:,IBL), ZQSAT5(:,:,IBL), PT5(:,:,IBL), &
+              & PCLVL5(:,:,IBL), PCLVI5(:,:,IBL), &
+              & PLUDE5(:,:,IBL), PLU5(:,:,IBL), PMFU5(:,:,IBL), PMFD5(:,:,IBL),&
+              & ZTENO_T5(:,:,ILAM,IBL), ZTENI_T5(:,:,IBL), &
+              & ZTENO_Q5(:,:,ILAM,IBL), ZTENI_Q5(:,:,IBL), &
+              & ZTENO_L5(:,:,ILAM,IBL), ZTENI_L5(:,:,IBL), &
+              & ZTENO_I5(:,:,ILAM,IBL), ZTENI_I5(:,:,IBL), &
+              &                         PSUPSAT5(:,:,IBL), &
+              &      PA5(:,:,ILAM,IBL), &
+              &  PFPLSL5(:,:,ILAM,IBL), &
+              &  PFPLSN5(:,:,ILAM,IBL), &
+              &  PFHPSL5(:,:,ILAM,IBL), &
+              &  PFHPSN5(:,:,ILAM,IBL), &
+              &PCOVPTOT5(:,:,ILAM,IBL), &
               & YDCST, YDTHF, YHNC, YPHLI, YCLD, YCLDP)
 
-           ! Compute final test norm
-           ZCOUNT=0._JPRB
-           ZNORM= 0._JPRB 
-           CALL ERROR_NORM(ICEND, BUFFER_LOC(:,:,1,IBL), ZTENO_T5, ZTENO_T, ZNORM, ZCOUNT, ZLAMBDA)
-           CALL ERROR_NORM(ICEND, BUFFER_LOC(:,:,3,IBL), ZTENO_Q5, ZTENO_Q, ZNORM, ZCOUNT, ZLAMBDA)
-           CALL ERROR_NORM(ICEND, BUFFER_LOC(:,:,3+NCLDQL,IBL), ZTENO_L5, ZTENO_L, ZNORM, ZCOUNT, ZLAMBDA)
-           CALL ERROR_NORM(ICEND, BUFFER_LOC(:,:,3+NCLDQI,IBL), ZTENO_I5, ZTENO_I, ZNORM, ZCOUNT, ZLAMBDA)
-           CALL ERROR_NORM(ICEND, PA(:,:,IBL), PA5, ZCLC, ZNORM, ZCOUNT, ZLAMBDA)
-           CALL ERROR_NORM(ICEND, PFPLSL(:,:,IBL), PFPLSL5, ZFPLSL, ZNORM, ZCOUNT, ZLAMBDA)
-           CALL ERROR_NORM(ICEND, PFPLSN(:,:,IBL), PFPLSN5, ZFPLSN, ZNORM, ZCOUNT, ZLAMBDA)
-           CALL ERROR_NORM(ICEND, PFHPSL(:,:,IBL), PFHPSL5, ZFHPSL, ZNORM, ZCOUNT, ZLAMBDA)
-           CALL ERROR_NORM(ICEND, PFHPSN(:,:,IBL), PFHPSN5, ZFHPSN, ZNORM, ZCOUNT, ZLAMBDA)
-           CALL ERROR_NORM(ICEND, PCOVPTOT(:,:,IBL), PCOVPTOT5, ZCOVPTOT, ZNORM, ZCOUNT, ZLAMBDA)
-
-           ! Global norm (normalize by number of active statistics)
-           IF (ZNORM == 0._JPRB .OR. ZCOUNT == 0._JPRB) THEN
-             print *, ' TL is totally wrong !!! ',ZNORM,ZCOUNT
-             stop
-           ELSE
-             ZNORMG(ILAM)=MAX(ZNORMG(ILAM),ZNORM/ZCOUNT)
-           ENDIF
 
          ENDDO  ! end of lambda loops
 
+#ifndef CLOUDSC_GPU_TIMING
          ! Log number of columns processed by this thread
          CALL TIMER%THREAD_LOG(TID, IGPC=ICEND)
+#endif
       ENDDO
 
       CALL TIMER%THREAD_END(TID)
+
       !$loki end data
+
       CALL TIMER%END()
+
+#ifdef CLOUDSC_GPU_TIMING
+      ! On GPUs, adding block-level column totals is cumbersome and
+      ! error prone, and of little value due to the large number of
+      ! processing "thread teams". Instead we register the total here.
+      CALL TIMER % THREAD_LOG(TID=TID, IGPC=NGPTOT)
+#endif
 
       CALL TIMER%PRINT_PERFORMANCE(NPROMA, NGPBLKS, ZHPM, NGPTOT)
 
-      ! Evaluate the test and print the otput
-      print *, ' TL Taylor test '
-      print *, '                Lambda   Result'
-      istart=0
-      DO ILAM=1,10
-         print *, ILAM, ZNORMG(ILAM)
-         ! Redefine ZNORMG
-         ZNORMG(ILAM)=ABS(1._JPRB - ZNORMG(ILAM))
-         ! filter out first members with strong NL departures
-         if (istart == 0 .AND.  ZNORMG(ILAM) < 0.5_JPRB ) istart=ILAM 
-      ENDDO
-
-      print *, '   ==============================================   '
-      IF (ISTART == 0 .OR. ISTART > 4 ) THEN
-        print *, '       TEST FAILLED, err 13 '
-      ELSE
-        ! V-shape test
-        ITEST=-10
-        INEGAT=1
-        DO ILAM=ISTART,10-1
-          IF (ZNORMG(ILAM+1)/ZNORMG(ILAM) < 1._JPRB ) THEN
-            ITEMPNEGAT = 1
-          ELSE
-            ITEMPNEGAT = 0
-          ENDIF
-          IF (INEGAT > ITEMPNEGAT) ITEST=ITEST+10
-          INEGAT=ITEMPNEGAT
-        ENDDO
-        IF (ITEST == -10) ITEST = 11 ! no change of sign at all
-        ! Accuracy test
-        IF (MINVAL(ZNORMG(ISTART:10)) > 0.00001_JPRB) ITEST=ITEST+7  ! Hard limit
-        IF (MINVAL(ZNORMG(ISTART:10)) > 0.000001_JPRB) ITEST=ITEST+5  ! Soft limit
-        ! Final prints
-        IF (ITEST > 5) THEN
-          print *, '       TEST FAILLED, err ',ITEST
-        ELSE
-          print *, '       TEST PASSED, penalty ',ITEST
-        ENDIF 
-      ENDIF
-      print *, '   ==============================================   '        
+      CALL VALIDATE_TAYLOR_TEST(NPROMA, NLEV, NLAM, NGPTOT, &
+       & BUFFER_LOC(:,:,1,:)       ,  ZTENO_T5(:,:,:,:),  ZTENO_T(:,:,:), &
+       & BUFFER_LOC(:,:,3,:)       ,  ZTENO_Q5(:,:,:,:),  ZTENO_Q(:,:,:), &
+       & BUFFER_LOC(:,:,3+NCLDQL,:),  ZTENO_L5(:,:,:,:),  ZTENO_L(:,:,:), &
+       & BUFFER_LOC(:,:,3+NCLDQI,:),  ZTENO_I5(:,:,:,:),  ZTENO_I(:,:,:), &
+       & PA(:,:,:)                 ,       PA5(:,:,:,:),     ZCLC(:,:,:), &
+       & PFPLSL(:,:,:)             ,   PFPLSL5(:,:,:,:),   ZFPLSL(:,:,:), &
+       & PFPLSN(:,:,:)             ,   PFPLSN5(:,:,:,:),   ZFPLSN(:,:,:), &
+       & PFHPSL(:,:,:)             ,   PFHPSL5(:,:,:,:),   ZFHPSL(:,:,:), &
+       & PFHPSN(:,:,:)             ,   PFHPSN5(:,:,:,:),   ZFHPSN(:,:,:), &
+       & PCOVPTOT(:,:,:)           , PCOVPTOT5(:,:,:,:), ZCOVPTOT(:,:,:)  &
+       & )
     
   END SUBROUTINE CLOUDSC_DRIVER_TL
 
