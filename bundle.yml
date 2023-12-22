@@ -39,6 +39,8 @@ options :
         help  : Enable Loki/CLAW source-to-source transformations
         cmake : >
             ENABLE_CLOUDSC2_NL_LOKI=ON
+            ENABLE_CLOUDSC2_TL_LOKI=ON
+            ENABLE_CLOUDSC2_AD_LOKI=ON
             LOKI_ENABLE_NO_INSTALL=OFF
 
     - without-loki-install :
@@ -58,4 +60,11 @@ options :
         help  : Build the optimized Loki-based GPU version CLOUDSC2-NL  [ON|OFF]
         cmake : ENABLE_CLOUDSC2_NL_LOKI={{value}}
 
+    - cloudsc2-tl-loki :
+        help  : Build the optimized Loki-based GPU version CLOUDSC2-TL  [ON|OFF]
+        cmake : ENABLE_CLOUDSC2_TL_LOKI={{value}}
+
+    - cloudsc2-ad-loki :
+        help  : Build the optimized Loki-based GPU version CLOUDSC2-AD  [ON|OFF]
+        cmake : ENABLE_CLOUDSC2_AD_LOKI={{value}}
 ...

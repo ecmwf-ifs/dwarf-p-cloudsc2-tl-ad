@@ -15,10 +15,6 @@ if( HAVE_CLOUDSC2_NL_LOKI )
     set( COMMON_INCLUDE "${CMAKE_CURRENT_SOURCE_DIR}/../common/include" )
 
     set( LOKI_FRONTEND "fp" CACHE STRING "Frontend parser for Loki transforms" )
-
-
-    set( CLOUDSC_DEFINE_STMT_FUNC "" )
-
     ####################################################
     ##  Idempotence mode:                             ##
     ##   * Internal "do-nothing" mode for Loki debug  ##
@@ -26,7 +22,7 @@ if( HAVE_CLOUDSC2_NL_LOKI )
 
 
     loki_transform_convert(
-        MODE idem FRONTEND ${LOKI_FRONTEND} CPP
+        MODE idem FRONTEND ${LOKI_FRONTEND}
         CONFIG ${CMAKE_CURRENT_SOURCE_DIR}/cloudsc_loki.config
         PATH ${CMAKE_CURRENT_SOURCE_DIR}
         HEADERS ${COMMON_MODULE}/yomphyder.F90
@@ -40,8 +36,8 @@ if( HAVE_CLOUDSC2_NL_LOKI )
         SOURCES
             dwarf_cloudsc.F90
             loki-idem/cloudsc_driver_loki_mod.idem.F90
-            loki-idem/cloudsc2.idem.F90
-            loki-idem/satur.idem.F90
+	    loki-idem/cloudsc2.idem.F90
+	    loki-idem/satur.idem.F90
         LIBS
             cloudsc2-common-lib
         DEFINITIONS ${CLOUDSC_DEFINITIONS}
@@ -70,7 +66,7 @@ if( HAVE_CLOUDSC2_NL_LOKI )
         PATH ${CMAKE_CURRENT_SOURCE_DIR}
         HEADERS ${COMMON_MODULE}/yomphyder.F90 ${COMMON_MODULE}/yoecldp.F90
         INCLUDES ${COMMON_INCLUDE}
-        DEFINITIONS CLOUDSC_GPU_TIMING ${CLOUDSC_DEFINE_STMT_FUNC}
+        DEFINITIONS CLOUDSC_GPU_TIMING
         DATA_OFFLOAD REMOVE_OPENMP
         OUTPATH ${CMAKE_CURRENT_BINARY_DIR}/loki-scc
         OUTPUT loki-scc/satur.scc.F90 loki-scc/cloudsc2.scc.F90 loki-scc/cloudsc_driver_loki_mod.scc.F90
@@ -89,12 +85,12 @@ if( HAVE_CLOUDSC2_NL_LOKI )
     )
 
     ecbuild_add_test(
-        TARGET dwarf-cloudsc2-nl--loki-scc-serial
+        TARGET dwarf-cloudsc2-nl-loki-scc-serial
         COMMAND bin/dwarf-cloudsc2-nl-loki-scc
         ARGS 1 1280 128
         WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/../../..
         OMP 1
-        ENVIRONMENT NV_ACC_CUDA_HEAPSIZE=19G         
+        ENVIRONMENT NV_ACC_CUDA_HEAPSIZE=9G
     )
 
     ####################################################
@@ -112,7 +108,7 @@ if( HAVE_CLOUDSC2_NL_LOKI )
         PATH ${CMAKE_CURRENT_SOURCE_DIR}
         HEADERS ${COMMON_MODULE}/yomphyder.F90 ${COMMON_MODULE}/yoecldp.F90
         INCLUDES ${COMMON_INCLUDE}
-        DEFINITIONS CLOUDSC_GPU_TIMING ${CLOUDSC_DEFINE_STMT_FUNC}
+        DEFINITIONS CLOUDSC_GPU_TIMING
         DATA_OFFLOAD REMOVE_OPENMP
         OUTPATH ${CMAKE_CURRENT_BINARY_DIR}/loki-scc-hoist
         OUTPUT

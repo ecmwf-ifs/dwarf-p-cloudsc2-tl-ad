@@ -28,6 +28,9 @@ endif()
 
 include( cloudsc_compile_options )
 
+if( CMAKE_Fortran_COMPILER_ID MATCHES "GNU")
+  set(DIRECTIVE none)
+endif()
 ### OpenACC
 if( NOT DEFINED ENABLE_ACC OR ENABLE_ACC )
     # Incredibly inconvenient: FindOpenACC does _not_ set OpenACC_FOUND, only
