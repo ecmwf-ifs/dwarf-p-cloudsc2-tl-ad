@@ -35,6 +35,10 @@ options :
         help  : Specify compiler options via supplied toolchain file
         cmake : CMAKE_TOOLCHAIN_FILE={{value}}
 
+    - single-precision :
+        help  : Enable single precision build of the dwarf
+        cmake : ENABLE_SINGLE_PRECISION=ON
+
     - with-loki :
         help  : Enable Loki/CLAW source-to-source transformations
         cmake : >

@@ -8,7 +8,7 @@
 ! nor does it submit to any jurisdiction.
 !
 module expand_mod
-  USE PARKIND1 , ONLY : JPIM, JPRB, JPRD
+  USE PARKIND1 , ONLY : JPIM, JPRB
   USE YOMPHYDER, ONLY : STATE_TYPE
 
   use cloudsc_mpi_mod, only : irank, numproc
@@ -83,10 +83,10 @@ contains
   subroutine load_and_expand_r1(name, field, nlon, nproma, ngptot, nblocks, ngptotg)
     ! Load into the local memory buffer and expand to global field
     character(len=*) :: name
-    real(kind=JPRB), allocatable, intent(inout) :: field(:,:)
+    real(kind=jprb), allocatable, intent(inout) :: field(:,:)
     integer(kind=jpim), intent(in) :: nlon, nproma, ngptot, nblocks
     integer(kind=jpim), intent(in), optional :: ngptotg
-    real(kind=jprd), allocatable :: buffer(:), rbuf(:)
+    real(kind=jprb), allocatable :: buffer(:), rbuf(:)
     integer(kind=jpim) :: start, end, size
 
     call get_offsets(start, end, size, nlon, 1, 1, ngptot, ngptotg)
@@ -100,10 +100,10 @@ contains
   subroutine load_and_expand_r2(name, field, nlon, nlev, nproma, ngptot, nblocks, ngptotg)
     ! Load into the local memory buffer and expand to global field
     character(len=*) :: name
-    real(kind=JPRB), allocatable, intent(inout) :: field(:,:,:)
+    real(kind=jprb), allocatable, intent(inout) :: field(:,:,:)
     integer(kind=jpim), intent(in) :: nlon, nlev, nproma, ngptot, nblocks
     integer(kind=jpim), intent(in), optional :: ngptotg
-    real(kind=jprd), allocatable :: buffer(:,:), rbuf(:,:)
+    real(kind=jprb), allocatable :: buffer(:,:), rbuf(:,:)
     integer(kind=jpim) :: start, end, size
 
     call get_offsets(start, end, size, nlon, 1, nlev, ngptot, ngptotg)
@@ -117,10 +117,10 @@ contains
   subroutine load_and_expand_r3(name, field, nlon, nlev, ndim, nproma, ngptot, nblocks, ngptotg)
     ! Load into the local memory buffer and expand to global field
     character(len=*) :: name
-    real(kind=JPRB), allocatable, intent(inout) :: field(:,:,:,:)
+    real(kind=jprb), allocatable, intent(inout) :: field(:,:,:,:)
     integer(kind=jpim), intent(in) :: nlon, nlev, ndim, nproma, ngptot, nblocks
     integer(kind=jpim), intent(in), optional :: ngptotg
-    real(kind=jprd), allocatable :: buffer(:,:,:), rbuf(:,:,:)
+    real(kind=jprb), allocatable :: buffer(:,:,:), rbuf(:,:,:)
     integer(kind=jpim) :: start, end, size
 
     call get_offsets(start, end, size, nlon, ndim, nlev, ngptot, ngptotg)
@@ -135,10 +135,10 @@ contains
     ! Load into the local memory buffer and expand to global field
     character(len=*) :: name
     type(state_type), allocatable, intent(inout) :: state(:)
-    real(kind=JPRB), allocatable, target, intent(inout) :: field(:,:,:,:)
+    real(kind=jprb), allocatable, target, intent(inout) :: field(:,:,:,:)
     integer(kind=jpim), intent(in) :: nlon, nlev, ndim, nproma, ngptot, nblocks
     integer(kind=jpim), intent(in), optional :: ngptotg
-    real(kind=jprd), allocatable :: buffer(:,:,:), rbuf(:,:,:)
+    real(kind=jprb), allocatable :: buffer(:,:,:), rbuf(:,:,:)
     integer(kind=jpim) :: start, end, size
 
     integer :: b
@@ -235,8 +235,8 @@ contains
   end subroutine expand_i1
 
   subroutine expand_r1(buffer, field, nlon, nproma, ngptot, nblocks)
-    real(kind=JPRD), intent(inout) :: buffer(nlon)
-    real(kind=JPRB), intent(inout) :: field(nproma, nblocks)
+    real(kind=jprb), intent(inout) :: buffer(nlon)
+    real(kind=jprb), intent(inout) :: field(nproma, nblocks)
     integer(kind=jpim), intent(in) :: nlon, nproma, ngptot, nblocks
     integer :: b, gidx, bsize, fidx, fend, bidx, bend
 
@@ -269,8 +269,8 @@ contains
 
   subroutine expand_r2(buffer, field, nlon, nproma, nlev, ngptot, nblocks)
           use omp_lib
-    real(kind=JPRD), intent(inout) :: buffer(nlon, nlev)
-    real(kind=JPRB), intent(inout) :: field(nproma, nlev, nblocks)
+    real(kind=jprb), intent(inout) :: buffer(nlon, nlev)
+    real(kind=jprb), intent(inout) :: field(nproma, nlev, nblocks)
     integer(kind=jpim), intent(in) :: nlon, nlev, nproma, ngptot, nblocks
     integer :: b, gidx, bsize, fidx, fend, bidx, bend
 
@@ -302,8 +302,8 @@ contains
   end subroutine expand_r2
 
   subroutine expand_r3(buffer, field, nlon, nproma, nlev, ndim, ngptot, nblocks)
-    real(kind=JPRD), intent(inout) :: buffer(nlon, nlev, ndim)
-    real(kind=JPRB), intent(inout) :: field(nproma, nlev, ndim, nblocks)
+    real(kind=jprb), intent(inout) :: buffer(nlon, nlev, ndim)
+    real(kind=jprb), intent(inout) :: field(nproma, nlev, ndim, nblocks)
     integer(kind=jpim), intent(in) :: nlon, nlev, ndim, nproma, ngptot, nblocks
     integer :: b, gidx, bsize, fidx, fend, bidx, bend
 

@@ -73,7 +73,17 @@ if( HAVE_HDF5 )
     list(APPEND CLOUDSC_DEFINITIONS HAVE_HDF5 )
 endif()
 
+
+### Loki
 ecbuild_find_package( NAME loki )
+
+# Add option for single-precision builds
+ecbuild_add_option( FEATURE SINGLE_PRECISION
+    DESCRIPTION "Build CLOUDSC in single precision" DEFAULT OFF
+)
+if( HAVE_SINGLE_PRECISION )
+    list(APPEND CLOUDSC_DEFINITIONS SINGLE)
+endif()
 
 # build executables
 add_subdirectory(src)
