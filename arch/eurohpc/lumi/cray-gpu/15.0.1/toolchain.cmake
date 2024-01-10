@@ -20,7 +20,7 @@ set( ENABLE_USE_STMT_FUNC ON CACHE STRING "" )
 set( ENABLE_OMP ON CACHE STRING "" )
 set( OpenMP_C_FLAGS   "-fopenmp" CACHE STRING "" )
 set( OpenMP_CXX_FLAGS "-fopenmp" CACHE STRING "" )
-set( OpenMP_Fortran_FLAGS   "-fopenmp -hnoacc -hlist=aimd" CACHE STRING "" )
+set( OpenMP_Fortran_FLAGS   "-fopenmp -hlist=aimd" CACHE STRING "" )
 
 set( OpenMP_C_LIB_NAMES       "craymp" )
 set( OpenMP_CXX_LIB_NAMES     "craymp" )
