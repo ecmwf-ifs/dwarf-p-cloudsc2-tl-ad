@@ -23,10 +23,9 @@ else
 fi
 shift
 
-BUNDLE_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd -P )"
+BUNDLE_DIR="$( cd $( dirname "${BASH_SOURCE[0]}" ) && pwd -P )"
 
 if [[ -z "${BITBUCKET}" ]]; then
-  # set git repository web host
   export BITBUCKET=ssh://git@git.ecmwf.int
 fi
 
