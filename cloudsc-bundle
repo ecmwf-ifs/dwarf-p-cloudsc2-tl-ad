@@ -9,39 +9,32 @@ if [[ $# -eq 0 ]]; then
   exit 1
 fi
 
-# ecbundle config
 export ecbundle_VERSION=develop
-export ECBUNDLE_DIR=ecbundle/
-
-# add ruamel package to the path
-export PYTHONPATH=$PWD/ecbundle:${PYTHONPATH}
 
 # Which script do we run?
 # Partial matches are accepted, e.g. "$0 cr"
 if [[ "build" == "$1"* ]]; then
-  BOOTSTRAPPED=${ECBUNDLE_DIR}bin/ecbundle-build
+  BOOTSTRAPPED=${ECBUNDLE_DIR}ecbundle-build
 elif [[ "create" == "$1"* ]]; then
-  BOOTSTRAPPED=${ECBUNDLE_DIR}bin/ecbundle-create
+  BOOTSTRAPPED=${ECBUNDLE_DIR}ecbundle-create
 else
   echo "FAIL: Expected 'build' or 'create' as first argument"
   exit 1
 fi
 shift
 
-# destination folder for ecbundle
 BUNDLE_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd -P )"
 
-# set git repository web host
-if [[ -z "${GIT}" ]]; then
-#   export GIT=ssh://git@git.ecmwf.int
-  export GIT=https://github.com/ecmwf
+if [[ -z "${BITBUCKET}" ]]; then
+  # set git repository web host
+  export BITBUCKET=ssh://git@git.ecmwf.int
 fi
 
 # Download ecbundle scripts if not already available
 command_exists () { type "$1" &> /dev/null ; }
 if ! command_exists ${BOOTSTRAPPED} ; then
     if [[ ! -d ${BUNDLE_DIR}/ecbundle ]]; then
-        git clone ${GIT}/ecbundle.git ${BUNDLE_DIR}/ecbundle
+        git clone ${BITBUCKET}/escape/ecbundle.git ${BUNDLE_DIR}/ecbundle
         ( cd ${BUNDLE_DIR}/ecbundle && git checkout ${ecbundle_VERSION} )
     fi
     export PATH=${BUNDLE_DIR}/ecbundle/bin:${PATH}
