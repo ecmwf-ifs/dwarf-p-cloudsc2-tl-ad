@@ -146,7 +146,7 @@ class SymmetryTest:
                 print("The symmetry test passed. HOORAY!")
             else:
                 print("The symmetry test failed.")
-            print(f"The maximum error is {norm3.max()} times the zero of the machine.")
+            print(f"The maximum error is {norm3.max():.10e} times the zero of the machine.")
 
     @ported_method(from_file="cloudsc2_ad/cloudsc_driver_ad_mod.F90", from_line=183, to_line=195)
     def get_norm1(self, tends_tl: DataArrayDict, diags_tl: DataArrayDict) -> NDArray:
