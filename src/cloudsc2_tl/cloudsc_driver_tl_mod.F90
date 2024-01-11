@@ -248,27 +248,27 @@ CONTAINS
               & PFHPSL5(:,:),   PFHPSN5(:,:), PCOVPTOT5(:,:), &
               & YDCST, YDTHF, YHNC, YPHLI, YCLD, YCLDP)
 
-!           ! Compute final test norm
-!           ZCOUNT=0._JPRB
-!           ZNORM= 0._JPRB
-!           CALL ERROR_NORM(ICEND, TENDENCY_LOC(IBL)%T, ZTENO_T5, ZTENO_T, ZNORM, ZCOUNT, ZLAMBDA)
-!           CALL ERROR_NORM(ICEND, TENDENCY_LOC(IBL)%Q, ZTENO_Q5, ZTENO_Q, ZNORM, ZCOUNT, ZLAMBDA)
-!           CALL ERROR_NORM(ICEND, TENDENCY_LOC(IBL)%CLD(:,:,NCLDQL), ZTENO_L5, ZTENO_L, ZNORM, ZCOUNT, ZLAMBDA)
-!           CALL ERROR_NORM(ICEND, TENDENCY_LOC(IBL)%CLD(:,:,NCLDQI), ZTENO_I5, ZTENO_I, ZNORM, ZCOUNT, ZLAMBDA)
-!           CALL ERROR_NORM(ICEND, PA(:,:,IBL), PA5, ZCLC, ZNORM, ZCOUNT, ZLAMBDA)
-!           CALL ERROR_NORM(ICEND, PFPLSL(:,:,IBL), PFPLSL5, ZFPLSL, ZNORM, ZCOUNT, ZLAMBDA)
-!           CALL ERROR_NORM(ICEND, PFPLSN(:,:,IBL), PFPLSN5, ZFPLSN, ZNORM, ZCOUNT, ZLAMBDA)
-!           CALL ERROR_NORM(ICEND, PFHPSL(:,:,IBL), PFHPSL5, ZFHPSL, ZNORM, ZCOUNT, ZLAMBDA)
-!           CALL ERROR_NORM(ICEND, PFHPSN(:,:,IBL), PFHPSN5, ZFHPSN, ZNORM, ZCOUNT, ZLAMBDA)
-!           CALL ERROR_NORM(ICEND, PCOVPTOT(:,:,IBL), PCOVPTOT5, ZCOVPTOT, ZNORM, ZCOUNT, ZLAMBDA)
-!
-!           ! Global norm (normalize by number of active statistics)
-!           IF (ZNORM == 0._JPRB .OR. ZCOUNT == 0._JPRB) THEN
-!             print *, ' TL is totally wrong !!! ',ZNORM,ZCOUNT
-!             stop
-!           ELSE
-!             ZNORMG(ILAM)=MAX(ZNORMG(ILAM),ZNORM/ZCOUNT)
-!           ENDIF
+           ! Compute final test norm
+           ZCOUNT=0._JPRB
+           ZNORM= 0._JPRB
+           CALL ERROR_NORM(ICEND, TENDENCY_LOC(IBL)%T, ZTENO_T5, ZTENO_T, ZNORM, ZCOUNT, ZLAMBDA)
+           CALL ERROR_NORM(ICEND, TENDENCY_LOC(IBL)%Q, ZTENO_Q5, ZTENO_Q, ZNORM, ZCOUNT, ZLAMBDA)
+           CALL ERROR_NORM(ICEND, TENDENCY_LOC(IBL)%CLD(:,:,NCLDQL), ZTENO_L5, ZTENO_L, ZNORM, ZCOUNT, ZLAMBDA)
+           CALL ERROR_NORM(ICEND, TENDENCY_LOC(IBL)%CLD(:,:,NCLDQI), ZTENO_I5, ZTENO_I, ZNORM, ZCOUNT, ZLAMBDA)
+           CALL ERROR_NORM(ICEND, PA(:,:,IBL), PA5, ZCLC, ZNORM, ZCOUNT, ZLAMBDA)
+           CALL ERROR_NORM(ICEND, PFPLSL(:,:,IBL), PFPLSL5, ZFPLSL, ZNORM, ZCOUNT, ZLAMBDA)
+           CALL ERROR_NORM(ICEND, PFPLSN(:,:,IBL), PFPLSN5, ZFPLSN, ZNORM, ZCOUNT, ZLAMBDA)
+           CALL ERROR_NORM(ICEND, PFHPSL(:,:,IBL), PFHPSL5, ZFHPSL, ZNORM, ZCOUNT, ZLAMBDA)
+           CALL ERROR_NORM(ICEND, PFHPSN(:,:,IBL), PFHPSN5, ZFHPSN, ZNORM, ZCOUNT, ZLAMBDA)
+           CALL ERROR_NORM(ICEND, PCOVPTOT(:,:,IBL), PCOVPTOT5, ZCOVPTOT, ZNORM, ZCOUNT, ZLAMBDA)
+
+           ! Global norm (normalize by number of active statistics)
+           IF (ZNORM == 0._JPRB .OR. ZCOUNT == 0._JPRB) THEN
+             print *, ' TL is totally wrong !!! ',ZNORM,ZCOUNT
+             stop
+           ELSE
+             ZNORMG(ILAM)=MAX(ZNORMG(ILAM),ZNORM/ZCOUNT)
+           ENDIF
 
          ENDDO  ! end of lambda loops
 
@@ -288,46 +288,46 @@ CONTAINS
 
       CALL TIMER%PRINT_PERFORMANCE(NPROMA, NGPBLKS, ZHPM, NGPTOT)
 
-!      ! Evaluate the test and print the otput
-!      print *, ' TL Taylor test '
-!      print *, '                Lambda   Result'
-!      istart=0
-!      DO ILAM=1,10
-!         print *, ILAM, ZNORMG(ILAM)
-!         ! Redefine ZNORMG
-!         ZNORMG(ILAM)=ABS(1._JPRB - ZNORMG(ILAM))
-!         ! filter out first members with strong NL departures
-!         if (istart == 0 .AND.  ZNORMG(ILAM) < 0.5_JPRB ) istart=ILAM
-!      ENDDO
-!
-!      print *, '   ==============================================   '
-!      IF (ISTART == 0 .OR. ISTART > 4 ) THEN
-!        print *, '       TEST FAILLED, err 13 '
-!      ELSE
-!        ! V-shape test
-!        ITEST=-10
-!        INEGAT=1
-!        DO ILAM=ISTART,10-1
-!          IF (ZNORMG(ILAM+1)/ZNORMG(ILAM) < 1._JPRB ) THEN
-!            ITEMPNEGAT = 1
-!          ELSE
-!            ITEMPNEGAT = 0
-!          ENDIF
-!          IF (INEGAT > ITEMPNEGAT) ITEST=ITEST+10
-!          INEGAT=ITEMPNEGAT
-!        ENDDO
-!        IF (ITEST == -10) ITEST = 11 ! no change of sign at all
-!        ! Accuracy test
-!        IF (MINVAL(ZNORMG(ISTART:10)) > 0.00001_JPRB) ITEST=ITEST+7  ! Hard limit
-!        IF (MINVAL(ZNORMG(ISTART:10)) > 0.000001_JPRB) ITEST=ITEST+5  ! Soft limit
-!        ! Final prints
-!        IF (ITEST > 5) THEN
-!          print *, '       TEST FAILLED, err ',ITEST
-!        ELSE
-!          print *, '       TEST PASSED, penalty ',ITEST
-!        ENDIF
-!      ENDIF
-!      print *, '   ==============================================   '
+      ! Evaluate the test and print the otput
+      print *, ' TL Taylor test '
+      print *, '                Lambda   Result'
+      istart=0
+      DO ILAM=1,10
+         print *, ILAM, ZNORMG(ILAM)
+         ! Redefine ZNORMG
+         ZNORMG(ILAM)=ABS(1._JPRB - ZNORMG(ILAM))
+         ! filter out first members with strong NL departures
+         if (istart == 0 .AND.  ZNORMG(ILAM) < 0.5_JPRB ) istart=ILAM
+      ENDDO
+
+      print *, '   ==============================================   '
+      IF (ISTART == 0 .OR. ISTART > 4 ) THEN
+        print *, '       TEST FAILLED, err 13 '
+      ELSE
+        ! V-shape test
+        ITEST=-10
+        INEGAT=1
+        DO ILAM=ISTART,10-1
+          IF (ZNORMG(ILAM+1)/ZNORMG(ILAM) < 1._JPRB ) THEN
+            ITEMPNEGAT = 1
+          ELSE
+            ITEMPNEGAT = 0
+          ENDIF
+          IF (INEGAT > ITEMPNEGAT) ITEST=ITEST+10
+          INEGAT=ITEMPNEGAT
+        ENDDO
+        IF (ITEST == -10) ITEST = 11 ! no change of sign at all
+        ! Accuracy test
+        IF (MINVAL(ZNORMG(ISTART:10)) > 0.00001_JPRB) ITEST=ITEST+7  ! Hard limit
+        IF (MINVAL(ZNORMG(ISTART:10)) > 0.000001_JPRB) ITEST=ITEST+5  ! Soft limit
+        ! Final prints
+        IF (ITEST > 5) THEN
+          print *, '       TEST FAILLED, err ',ITEST
+        ELSE
+          print *, '       TEST PASSED, penalty ',ITEST
+        ENDIF
+      ENDIF
+      print *, '   ==============================================   '
         
     
   END SUBROUTINE CLOUDSC_DRIVER_TL

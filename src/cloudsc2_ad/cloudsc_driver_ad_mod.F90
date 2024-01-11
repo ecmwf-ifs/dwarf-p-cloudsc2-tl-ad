@@ -194,19 +194,19 @@ CONTAINS
             & ZFHPSL , ZFHPSN   , ZCOVPTOT, &
             & YDCST, YDTHF, YHNC, YPHLI, YCLD, YCLDP, YNCL )       ! o
 
-!         ! First norm
-!         DO JROF=1,ICEND
-!           ZNORM1(JROF)=SUM(ZTENO_T(JROF,1:NLEV)*ZTENO_T(JROF,1:NLEV)) &
-!           &  + SUM(ZTENO_Q(JROF,1:NLEV)*ZTENO_Q(JROF,1:NLEV)) &
-!           &  + SUM(ZTENO_L(JROF,1:NLEV)*ZTENO_L(JROF,1:NLEV)) &
-!           &  + SUM(ZTENO_I(JROF,1:NLEV)*ZTENO_I(JROF,1:NLEV)) &
-!           &  + SUM(ZCLC(JROF,1:NLEV)*ZCLC(JROF,1:NLEV)) &
-!           &  + SUM(ZFPLSL(JROF,1:NLEV+1)*ZFPLSL(JROF,1:NLEV+1)) &
-!           &  + SUM(ZFPLSN(JROF,1:NLEV+1)*ZFPLSN(JROF,1:NLEV+1)) &
-!           &  + SUM(ZFHPSL(JROF,1:NLEV+1)*ZFHPSL(JROF,1:NLEV+1)) &
-!           &  + SUM(ZFHPSN(JROF,1:NLEV+1)*ZFHPSN(JROF,1:NLEV+1)) &
-!           &  + SUM(ZCOVPTOT(JROF,1:NLEV)*ZCOVPTOT(JROF,1:NLEV))
-!         ENDDO
+         ! First norm
+         DO JROF=1,ICEND
+           ZNORM1(JROF)=SUM(ZTENO_T(JROF,1:NLEV)*ZTENO_T(JROF,1:NLEV)) &
+           &  + SUM(ZTENO_Q(JROF,1:NLEV)*ZTENO_Q(JROF,1:NLEV)) &
+           &  + SUM(ZTENO_L(JROF,1:NLEV)*ZTENO_L(JROF,1:NLEV)) &
+           &  + SUM(ZTENO_I(JROF,1:NLEV)*ZTENO_I(JROF,1:NLEV)) &
+           &  + SUM(ZCLC(JROF,1:NLEV)*ZCLC(JROF,1:NLEV)) &
+           &  + SUM(ZFPLSL(JROF,1:NLEV+1)*ZFPLSL(JROF,1:NLEV+1)) &
+           &  + SUM(ZFPLSN(JROF,1:NLEV+1)*ZFPLSN(JROF,1:NLEV+1)) &
+           &  + SUM(ZFHPSL(JROF,1:NLEV+1)*ZFHPSL(JROF,1:NLEV+1)) &
+           &  + SUM(ZFHPSN(JROF,1:NLEV+1)*ZFHPSN(JROF,1:NLEV+1)) &
+           &  + SUM(ZCOVPTOT(JROF,1:NLEV)*ZCOVPTOT(JROF,1:NLEV))
+         ENDDO
 
          ! Initiaslization of output variables
          ZAPH    = 0.0_JPRB
@@ -251,35 +251,35 @@ CONTAINS
             & ZFHPSL , ZFHPSN   , ZCOVPTOT, &
             & YDCST, YDTHF, YHNC, YPHLI, YCLD, YCLDP, YNCL)       ! o
 
-!         ! Second norm
-!         DO JROF=1,ICEND
-!           ZNORM2(JROF)=SUM(ZAPH0(JROF,1:NLEV+1)*ZAPH(JROF,1:NLEV+1)) &
-!           &  + SUM(ZAP0(JROF,1:NLEV)*ZAP(JROF,1:NLEV)) &
-!           &  + SUM(ZQ0(JROF,1:NLEV)*ZQ(JROF,1:NLEV)) &
-!           &  + SUM(ZZQSAT0(JROF,1:NLEV)*ZZQSAT(JROF,1:NLEV)) &
-!           &  + SUM(ZT0(JROF,1:NLEV)*ZT(JROF,1:NLEV)) &
-!           &  + SUM(ZL0(JROF,1:NLEV)*ZL(JROF,1:NLEV)) &
-!           &  + SUM(ZI0(JROF,1:NLEV)*ZI(JROF,1:NLEV)) &
-!           &  + SUM(ZLUDE0(JROF,1:NLEV)*ZLUDE(JROF,1:NLEV)) &
-!           &  + SUM(ZLU0(JROF,1:NLEV)*ZLU(JROF,1:NLEV)) &
-!           &  + SUM(ZMFU0(JROF,1:NLEV)*ZMFU(JROF,1:NLEV)) &
-!           &  + SUM(ZMFD0(JROF,1:NLEV)*ZMFD(JROF,1:NLEV)) &
-!           &  + SUM(ZTENI_T0(JROF,1:NLEV)*ZTENI_T(JROF,1:NLEV)) &
-!           &  + SUM(ZTENI_Q0(JROF,1:NLEV)*ZTENI_Q(JROF,1:NLEV)) &
-!           &  + SUM(ZTENI_L0(JROF,1:NLEV)*ZTENI_L(JROF,1:NLEV)) &
-!           &  + SUM(ZTENI_I0(JROF,1:NLEV)*ZTENI_I(JROF,1:NLEV)) &
-!           &  + SUM(ZSUPSAT0(JROF,1:NLEV)*ZSUPSAT(JROF,1:NLEV))
-!           ! Third norm
-!           ! Note the machine precision is defined here as strictly 64bits
-!           ! as we assume at worst 12 digits agreements in norms.
-!           IF (ZNORM2(JROF) == 0._JPRB ) THEN
-!             ZNORM3(JROF)=ABS(ZNORM1(JROF)-ZNORM2(JROF))/EPSILON(1._8)
-!           ELSE
-!             ZNORM3(JROF)=ABS(ZNORM1(JROF)-ZNORM2(JROF))/EPSILON(1._8)/ZNORM2(JROF)
-!           ENDIF
-!         ENDDO
-!
-!         ZNORMG=MAX(ZNORMG,MAXVAL(ZNORM3(1:ICEND)))
+         ! Second norm
+         DO JROF=1,ICEND
+           ZNORM2(JROF)=SUM(ZAPH0(JROF,1:NLEV+1)*ZAPH(JROF,1:NLEV+1)) &
+           &  + SUM(ZAP0(JROF,1:NLEV)*ZAP(JROF,1:NLEV)) &
+           &  + SUM(ZQ0(JROF,1:NLEV)*ZQ(JROF,1:NLEV)) &
+           &  + SUM(ZZQSAT0(JROF,1:NLEV)*ZZQSAT(JROF,1:NLEV)) &
+           &  + SUM(ZT0(JROF,1:NLEV)*ZT(JROF,1:NLEV)) &
+           &  + SUM(ZL0(JROF,1:NLEV)*ZL(JROF,1:NLEV)) &
+           &  + SUM(ZI0(JROF,1:NLEV)*ZI(JROF,1:NLEV)) &
+           &  + SUM(ZLUDE0(JROF,1:NLEV)*ZLUDE(JROF,1:NLEV)) &
+           &  + SUM(ZLU0(JROF,1:NLEV)*ZLU(JROF,1:NLEV)) &
+           &  + SUM(ZMFU0(JROF,1:NLEV)*ZMFU(JROF,1:NLEV)) &
+           &  + SUM(ZMFD0(JROF,1:NLEV)*ZMFD(JROF,1:NLEV)) &
+           &  + SUM(ZTENI_T0(JROF,1:NLEV)*ZTENI_T(JROF,1:NLEV)) &
+           &  + SUM(ZTENI_Q0(JROF,1:NLEV)*ZTENI_Q(JROF,1:NLEV)) &
+           &  + SUM(ZTENI_L0(JROF,1:NLEV)*ZTENI_L(JROF,1:NLEV)) &
+           &  + SUM(ZTENI_I0(JROF,1:NLEV)*ZTENI_I(JROF,1:NLEV)) &
+           &  + SUM(ZSUPSAT0(JROF,1:NLEV)*ZSUPSAT(JROF,1:NLEV))
+           ! Third norm
+           ! Note the machine precision is defined here as strictly 64bits
+           ! as we assume at worst 12 digits agreements in norms.
+           IF (ZNORM2(JROF) == 0._JPRB ) THEN
+             ZNORM3(JROF)=ABS(ZNORM1(JROF)-ZNORM2(JROF))/EPSILON(1._8)
+           ELSE
+             ZNORM3(JROF)=ABS(ZNORM1(JROF)-ZNORM2(JROF))/EPSILON(1._8)/ZNORM2(JROF)
+           ENDIF
+         ENDDO
+
+         ZNORMG=MAX(ZNORMG,MAXVAL(ZNORM3(1:ICEND)))
 
          ! Log number of columns processed by this thread
          CALL TIMER%THREAD_LOG(TID, IGPC=ICEND)
@@ -297,16 +297,16 @@ CONTAINS
 
       CALL TIMER%PRINT_PERFORMANCE(NPROMA, NGPBLKS, ZHPM, NGPTOT)
 
-!      ! Print final test results
-!      print *, ' AD TEST '
-!      print *, ' The maximum error is ',ZNORMG,' times the zero of the machine. '
-!      print *, '   =============================  '
-!      IF (ZNORMG < 10000._JPRB) THEN
-!        print *, '   =           TEST OK         = '
-!      ELSE
-!        print *, '   =        TEST FAILED        = '
-!      ENDIF
-!      print *, '   =============================  '
+      ! Print final test results
+      print *, ' AD TEST '
+      print *, ' The maximum error is ',ZNORMG,' times the zero of the machine. '
+      print *, '   =============================  '
+      IF (ZNORMG < 10000._JPRB) THEN
+        print *, '   =           TEST OK         = '
+      ELSE
+        print *, '   =        TEST FAILED        = '
+      ENDIF
+      print *, '   =============================  '
       
     
   END SUBROUTINE CLOUDSC_DRIVER_AD
