@@ -259,7 +259,7 @@ CONTAINS
 
       CALL TIMER%PRINT_PERFORMANCE(NPROMA, NGPBLKS, ZHPM, NGPTOT)
 
-      CALL VALIDATE_TAYLOR_TEST(NPROMA, NLEV, NLAM, NGPTOT, &
+      CALL VALIDATE_TAYLOR_TEST(NPROMA, NLEV, NLAM, NGPTOT, NGPBLKS, &
        & BUFFER_LOC(:,:,1,:)       ,  ZTENO_T5(:,:,:,:),  ZTENO_T(:,:,:), &
        & BUFFER_LOC(:,:,3,:)       ,  ZTENO_Q5(:,:,:,:),  ZTENO_Q(:,:,:), &
        & BUFFER_LOC(:,:,3+NCLDQL,:),  ZTENO_L5(:,:,:,:),  ZTENO_L(:,:,:), &

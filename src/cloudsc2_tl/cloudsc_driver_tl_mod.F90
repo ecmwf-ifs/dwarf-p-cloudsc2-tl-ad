@@ -250,7 +250,7 @@ CONTAINS
 
            ! Compute final test norm
            ZCOUNT=0._JPRB
-           ZNORM= 0._JPRB 
+           ZNORM= 0._JPRB
            CALL ERROR_NORM(ICEND, TENDENCY_LOC(IBL)%T, ZTENO_T5, ZTENO_T, ZNORM, ZCOUNT, ZLAMBDA)
            CALL ERROR_NORM(ICEND, TENDENCY_LOC(IBL)%Q, ZTENO_Q5, ZTENO_Q, ZNORM, ZCOUNT, ZLAMBDA)
            CALL ERROR_NORM(ICEND, TENDENCY_LOC(IBL)%CLD(:,:,NCLDQL), ZTENO_L5, ZTENO_L, ZNORM, ZCOUNT, ZLAMBDA)
@@ -297,7 +297,7 @@ CONTAINS
          ! Redefine ZNORMG
          ZNORMG(ILAM)=ABS(1._JPRB - ZNORMG(ILAM))
          ! filter out first members with strong NL departures
-         if (istart == 0 .AND.  ZNORMG(ILAM) < 0.5_JPRB ) istart=ILAM 
+         if (istart == 0 .AND.  ZNORMG(ILAM) < 0.5_JPRB ) istart=ILAM
       ENDDO
 
       print *, '   ==============================================   '
@@ -325,7 +325,7 @@ CONTAINS
           print *, '       TEST FAILLED, err ',ITEST
         ELSE
           print *, '       TEST PASSED, penalty ',ITEST
-        ENDIF 
+        ENDIF
       ENDIF
       print *, '   ==============================================   '
         

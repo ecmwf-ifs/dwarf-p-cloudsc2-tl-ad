@@ -5,12 +5,13 @@ name    : cloudsc-bundle
 version : 1.0.0-develop
 cmake : >
         CMAKE_LINK_DEPENDS_NO_SHARED=ON
+        ENABLE_OMP=ON
 
 projects :
 
     - ecbuild :
         git     : https://github.com/ecmwf/ecbuild 
-        version : 3.7.0 
+        version : 3.8.0
         bundle  : false
 
     - loki :
@@ -34,6 +35,10 @@ options :
     - toolchain :
         help  : Specify compiler options via supplied toolchain file
         cmake : CMAKE_TOOLCHAIN_FILE={{value}}
+
+    - single-precision :
+        help  : Enable single precision build of the dwarf
+        cmake : ENABLE_SINGLE_PRECISION=ON
 
     - with-loki :
         help  : Enable Loki/CLAW source-to-source transformations
