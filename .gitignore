@@ -19,8 +19,5 @@ gt_cache/
 # virtual environment
 venv/
 
-# diagnostics
-timings/
-
 # IDE
 .idea/
