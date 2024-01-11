@@ -22,7 +22,8 @@ def core(config: FortranConfig, io_config: IOConfig) -> None:
         os.path.dirname(__file__), config.build_dir, f"bin/dwarf-cloudsc2-{config.variant}"
     )
     if not os.path.exists(executable):
-        raise RuntimeError(f"The executable `{executable}` does not exist.")
+        print(f"The executable `{executable}` does not exist.")
+        return
 
     # warm-up cache
     out = subprocess.run(
@@ -51,7 +52,7 @@ def core(config: FortranConfig, io_config: IOConfig) -> None:
             capture_output=True,
         )
 
-        if config.variant in ("nl-loki-scc-hoist",):
+        if "loki-scc" in config.variant:
             x = out.stderr.decode("utf-8").split("\n")[1]
         else:
             x = out.stderr.decode("utf-8").split("\n")[-2]
@@ -79,6 +80,31 @@ def core(config: FortranConfig, io_config: IOConfig) -> None:
             mflops_mean,
             mflops_stddev,
         )
+
+
+def _main(
+    build_dir: str,
+    precision: Literal["double", "single"],
+    variant: str,
+    nproma: int,
+    num_cols: int,
+    num_runs: int,
+    num_threads: int,
+    host_alias: Optional[str],
+    output_csv_file: Optional[str],
+) -> None:
+    """Driver for the FORTRAN implementations of CLOUDSC2."""
+    config = (
+        default_fortran_config.with_build_dir(build_dir)
+        .with_precision(precision)
+        .with_variant(variant)
+        .with_nproma(nproma)
+        .with_num_cols(num_cols)
+        .with_num_runs(num_runs)
+        .with_num_threads(num_threads)
+    )
+    io_config = default_io_config.with_output_csv_file(output_csv_file).with_host_name(host_alias)
+    core(config, io_config)
 
 
 @click.command()
@@ -133,18 +159,18 @@ def main(
     host_alias: Optional[str],
     output_csv_file: Optional[str],
 ) -> None:
-    """Driver for the FORTRAN implementation of CLOUDSC."""
-    config = (
-        default_fortran_config.with_build_dir(build_dir)
-        .with_precision(precision)
-        .with_variant(variant)
-        .with_nproma(nproma)
-        .with_num_cols(num_cols)
-        .with_num_runs(num_runs)
-        .with_num_threads(num_threads)
+    """Driver for the FORTRAN implementations of CLOUDSC2."""
+    _main(
+        build_dir,
+        precision,
+        variant,
+        nproma,
+        num_cols,
+        num_runs,
+        num_threads,
+        host_alias,
+        output_csv_file,
     )
-    io_config = default_io_config.with_output_csv_file(output_csv_file).with_host_name(host_alias)
-    core(config, io_config)
 
 
 if __name__ == "__main__":
