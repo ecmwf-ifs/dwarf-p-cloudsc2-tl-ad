@@ -9,8 +9,8 @@ cmake : >
 projects :
 
     - ecbuild :
-        git     : https://github.com/ecmwf/ecbuild 
-        version : 3.7.0 
+        git     : https://github.com/ecmwf/ecbuild
+        version : 3.7.0
         bundle  : false
 
     - loki :
@@ -51,10 +51,6 @@ options :
     - loki-frontend :
         help  : Frontend parser to use for Loki transformations
         cmake : LOKI_FRONTEND={{value}}
-
-    - cloudsc-fortran :
-        help  : Build the new Fortran version of CLOUDSC [ON|OFF]
-        cmake : ENABLE_CLOUDSC_FORTRAN={{value}}
 
     - cloudsc2-nl-loki :
         help  : Build the optimized Loki-based GPU version CLOUDSC2-NL  [ON|OFF]
