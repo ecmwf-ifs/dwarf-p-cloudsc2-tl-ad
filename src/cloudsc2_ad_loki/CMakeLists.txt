@@ -21,20 +21,27 @@ if( HAVE_CLOUDSC2_AD_LOKI )
     ##   * Internal "do-nothing" mode for Loki debug  ##
     ####################################################
 
-
-    loki_transform_convert(
-        MODE idem FRONTEND ${LOKI_FRONTEND}
-        CONFIG ${CMAKE_CURRENT_SOURCE_DIR}/cloudsc_loki.config
-        PATH ${CMAKE_CURRENT_SOURCE_DIR}
-        HEADERS ${COMMON_MODULE}/yomphyder.F90
-        INCLUDES ${COMMON_INCLUDE}
-        OUTPATH ${CMAKE_CURRENT_BINARY_DIR}/loki-idem
+    loki_transform(
+        COMMAND convert
         OUTPUT
-               loki-idem/satur.idem.F90
-               loki-idem/cloudsc2ad.idem.F90
-               loki-idem/cloudsc2tl.idem.F90
-               loki-idem/cloudsc_driver_ad_loki_mod.idem.F90
-               DEPENDS satur.F90 cloudsc2ad.F90 cloudsc2tl.F90 cloudsc_driver_ad_loki_mod.F90
+            loki-idem/satur.idem.F90
+            loki-idem/cloudsc2ad.idem.F90
+            loki-idem/cloudsc2tl.idem.F90
+            loki-idem/cloudsc_driver_ad_loki_mod.idem.F90
+        BUILDDIR ${CMAKE_CURRENT_BINARY_DIR}/loki-idem
+        DEPENDS
+            satur.F90
+            cloudsc2ad.F90
+            cloudsc2tl.F90
+            cloudsc_driver_ad_loki_mod.F90
+        MODE idem
+        CONFIG ${CMAKE_CURRENT_SOURCE_DIR}/cloudsc_loki.config
+        FRONTEND ${LOKI_FRONTEND}
+        SOURCES
+            ${CMAKE_CURRENT_SOURCE_DIR}
+            ${COMMON_MODULE}
+        INCLUDES
+            ${COMMON_INCLUDE}
     )
 
     ecbuild_add_executable( TARGET dwarf-cloudsc2-ad-loki-idem
@@ -52,7 +59,7 @@ if( HAVE_CLOUDSC2_AD_LOKI )
     ecbuild_add_test(
         TARGET dwarf-cloudsc2-ad-loki-idem-serial
         COMMAND bin/dwarf-cloudsc2-ad-loki-idem
-        ARGS 
+        ARGS
         WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/../../..
         OMP 1
     )
@@ -63,24 +70,35 @@ if( HAVE_CLOUDSC2_AD_LOKI )
      ##   * Invokes compute kernel as `!$acc vector`   ##
      ####################################################
 
+     loki_transform(
+        COMMAND convert
+        OUTPUT
+            loki-scc/satur.scc.F90
+            loki-scc/cloudsc2ad.scc.F90
+            loki-scc/cloudsc2tl.scc.F90
+            loki-scc/cloudsc_driver_ad_loki_mod.scc.F90
+        BUILDDIR ${CMAKE_CURRENT_BINARY_DIR}/loki-scc
+        DEPENDS
+            satur.F90
+            cloudsc2ad.F90
+            cloudsc2tl.F90
+            cloudsc_driver_ad_loki_mod.F90
+        MODE scc
+        CONFIG ${CMAKE_CURRENT_SOURCE_DIR}/cloudsc_loki.config
+        DATA_OFFLOAD
+        REMOVE_OPENMP
+        CPP
+        DEFINITIONS
+            ${CLOUDSC_DEFINITIONS}
+            CLOUDSC_GPU_TIMING
+        FRONTEND ${LOKI_FRONTEND}
+        SOURCES
+            ${CMAKE_CURRENT_SOURCE_DIR}
+            ${COMMON_MODULE}
+        INCLUDES
+            ${COMMON_INCLUDE}
+    )
 
-     loki_transform_convert(
-         MODE scc FRONTEND ${LOKI_FRONTEND} CPP
-         CONFIG ${CMAKE_CURRENT_SOURCE_DIR}/cloudsc_loki.config
-         PATH ${CMAKE_CURRENT_SOURCE_DIR}
-         HEADERS ${COMMON_MODULE}/yomphyder.F90 ${COMMON_MODULE}/yoecldp.F90
-         INCLUDES ${COMMON_INCLUDE}
-         DEFINITIONS CLOUDSC_GPU_TIMING
-         DATA_OFFLOAD REMOVE_OPENMP
-         OUTPATH ${CMAKE_CURRENT_BINARY_DIR}/loki-scc
-         OUTPUT
-             loki-scc/satur.scc.F90
-             loki-scc/cloudsc2ad.scc.F90
-             loki-scc/cloudsc2tl.scc.F90
-             loki-scc/cloudsc_driver_ad_loki_mod.scc.F90
-         DEPENDS
-             satur.F90 cloudsc2ad.F90 cloudsc2tl.F90 cloudsc_driver_ad_loki_mod.F90
-     )
      ecbuild_add_executable( TARGET dwarf-cloudsc2-ad-loki-scc
          SOURCES
              dwarf_cloudsc.F90
@@ -96,7 +114,7 @@ if( HAVE_CLOUDSC2_AD_LOKI )
      ecbuild_add_test(
          TARGET dwarf-cloudsc2-ad--loki-scc-serial
          COMMAND bin/dwarf-cloudsc2-ad-loki-scc
-         ARGS 
+         ARGS
          WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/../../..
          OMP 1
          ENVIRONMENT NV_ACC_CUDA_HEAPSIZE=9G
@@ -108,23 +126,35 @@ if( HAVE_CLOUDSC2_AD_LOKI )
     ##   * Temporary arrays hoisted to driver         ##
     ####################################################
 
-    loki_transform_convert(
-        MODE scc-hoist FRONTEND ${LOKI_FRONTEND} CPP
-        CONFIG ${CMAKE_CURRENT_SOURCE_DIR}/cloudsc_loki.config
-        PATH ${CMAKE_CURRENT_SOURCE_DIR}
-        HEADERS ${COMMON_MODULE}/yomphyder.F90 ${COMMON_MODULE}/yoecldp.F90
-        INCLUDES ${COMMON_INCLUDE}
-        DEFINITIONS CLOUDSC_GPU_TIMING
-        DATA_OFFLOAD REMOVE_OPENMP
-        OUTPATH ${CMAKE_CURRENT_BINARY_DIR}/loki-scc-hoist
+    loki_transform(
+        COMMAND convert
         OUTPUT
             loki-scc-hoist/satur.scc_hoist.F90
             loki-scc-hoist/cloudsc2ad.scc_hoist.F90
             loki-scc-hoist/cloudsc2tl.scc_hoist.F90
             loki-scc-hoist/cloudsc_driver_ad_loki_mod.scc_hoist.F90
+        BUILDDIR ${CMAKE_CURRENT_BINARY_DIR}/loki-scc-hoist
         DEPENDS
-            satur.F90 cloudsc2ad.F90 cloudsc2tl.F90 cloudsc_driver_ad_loki_mod.F90
-     )
+            satur.F90
+            cloudsc2ad.F90
+            cloudsc2tl.F90
+            cloudsc_driver_ad_loki_mod.F90
+        MODE scc-hoist
+        CONFIG ${CMAKE_CURRENT_SOURCE_DIR}/cloudsc_loki.config
+        DATA_OFFLOAD
+        REMOVE_OPENMP
+        CPP
+        DEFINITIONS
+            ${CLOUDSC_DEFINITIONS}
+            CLOUDSC_GPU_TIMING
+        FRONTEND ${LOKI_FRONTEND}
+        SOURCES
+            ${CMAKE_CURRENT_SOURCE_DIR}
+            ${COMMON_MODULE}
+        INCLUDES
+            ${COMMON_INCLUDE}
+    )
+
      ecbuild_add_executable( TARGET dwarf-cloudsc2-ad-loki-scc-hoist
          SOURCES
              dwarf_cloudsc.F90
@@ -140,7 +170,7 @@ if( HAVE_CLOUDSC2_AD_LOKI )
      ecbuild_add_test(
          TARGET dwarf-cloudsc2-ad--loki-scc-hoist-serial
          COMMAND bin/dwarf-cloudsc2-ad-loki-scc-hoist
-         ARGS 
+         ARGS
          WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/../../..
          OMP 1
          ENVIRONMENT NV_ACC_CUDA_HEAPSIZE=9G
