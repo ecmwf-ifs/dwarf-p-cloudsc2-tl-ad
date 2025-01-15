@@ -89,11 +89,8 @@ if( HAVE_CLOUDSC2_AD_LOKI )
             cloudsc_driver_ad_loki_mod.F90
         MODE scc
         CONFIG ${CMAKE_CURRENT_SOURCE_DIR}/cloudsc_loki.config
-        DATA_OFFLOAD
-        REMOVE_OPENMP
         CPP
         DEFINITIONS
-            ${CLOUDSC_DEFINITIONS}
             CLOUDSC_GPU_TIMING
         FRONTEND ${LOKI_FRONTEND}
         SOURCES
@@ -149,11 +146,8 @@ if( HAVE_CLOUDSC2_AD_LOKI )
             cloudsc_driver_ad_loki_mod.F90
         MODE scc-hoist
         CONFIG ${CMAKE_CURRENT_SOURCE_DIR}/cloudsc_loki.config
-        DATA_OFFLOAD
-        REMOVE_OPENMP
         CPP
         DEFINITIONS
-            ${CLOUDSC_DEFINITIONS}
             CLOUDSC_GPU_TIMING
         FRONTEND ${LOKI_FRONTEND}
         SOURCES
