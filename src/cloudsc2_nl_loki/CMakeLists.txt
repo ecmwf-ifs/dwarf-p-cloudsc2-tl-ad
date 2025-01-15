@@ -51,6 +51,10 @@ if( HAVE_CLOUDSC2_NL_LOKI )
             cloudsc2-common-lib
         DEFINITIONS ${CLOUDSC_DEFINITIONS}
     )
+    # Set specific module directory to avoid aliasing of .mod files
+    set_target_properties( dwarf-cloudsc2-nl-loki-idem
+        PROPERTIES Fortran_MODULE_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/loki-idem
+    )
 
     ecbuild_add_test(
         TARGET dwarf-cloudsc2-nl-loki-idem-serial
@@ -104,6 +108,10 @@ if( HAVE_CLOUDSC2_NL_LOKI )
         LIBS
             cloudsc2-common-lib
         DEFINITIONS ${CLOUDSC_DEFINITIONS}
+    )
+    # Set specific module directory to avoid aliasing of .mod files
+    set_target_properties( dwarf-cloudsc2-nl-loki-scc
+        PROPERTIES Fortran_MODULE_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/loki-scc
     )
 
     ecbuild_add_test(
@@ -159,6 +167,10 @@ if( HAVE_CLOUDSC2_NL_LOKI )
         LIBS
             cloudsc2-common-lib
         DEFINITIONS ${CLOUDSC_DEFINITIONS}
+    )
+    # Set specific module directory to avoid aliasing of .mod files
+    set_target_properties( dwarf-cloudsc2-nl-loki-scc-hoist
+        PROPERTIES Fortran_MODULE_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/loki-scc-hoist
     )
 
     ecbuild_add_test(
