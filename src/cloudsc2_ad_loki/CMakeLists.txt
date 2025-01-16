@@ -55,6 +55,10 @@ if( HAVE_CLOUDSC2_AD_LOKI )
             cloudsc2-common-lib
         DEFINITIONS ${CLOUDSC_DEFINITIONS}
     )
+    # Set specific module directory to avoid aliasing of .mod files
+    set_target_properties( dwarf-cloudsc2-ad-loki-idem
+        PROPERTIES Fortran_MODULE_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/loki-idem
+    )
 
     ecbuild_add_test(
         TARGET dwarf-cloudsc2-ad-loki-idem-serial
@@ -85,11 +89,8 @@ if( HAVE_CLOUDSC2_AD_LOKI )
             cloudsc_driver_ad_loki_mod.F90
         MODE scc
         CONFIG ${CMAKE_CURRENT_SOURCE_DIR}/cloudsc_loki.config
-        DATA_OFFLOAD
-        REMOVE_OPENMP
         CPP
         DEFINITIONS
-            ${CLOUDSC_DEFINITIONS}
             CLOUDSC_GPU_TIMING
         FRONTEND ${LOKI_FRONTEND}
         SOURCES
@@ -110,9 +111,13 @@ if( HAVE_CLOUDSC2_AD_LOKI )
              cloudsc2-common-lib
          DEFINITIONS ${CLOUDSC_DEFINITIONS}
      )
+     # Set specific module directory to avoid aliasing of .mod files
+     set_target_properties( dwarf-cloudsc2-ad-loki-scc
+         PROPERTIES Fortran_MODULE_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/loki-scc
+     )
 
      ecbuild_add_test(
-         TARGET dwarf-cloudsc2-ad--loki-scc-serial
+         TARGET dwarf-cloudsc2-ad-loki-scc-serial
          COMMAND bin/dwarf-cloudsc2-ad-loki-scc
          ARGS
          WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/../../..
@@ -141,11 +146,8 @@ if( HAVE_CLOUDSC2_AD_LOKI )
             cloudsc_driver_ad_loki_mod.F90
         MODE scc-hoist
         CONFIG ${CMAKE_CURRENT_SOURCE_DIR}/cloudsc_loki.config
-        DATA_OFFLOAD
-        REMOVE_OPENMP
         CPP
         DEFINITIONS
-            ${CLOUDSC_DEFINITIONS}
             CLOUDSC_GPU_TIMING
         FRONTEND ${LOKI_FRONTEND}
         SOURCES
@@ -166,9 +168,13 @@ if( HAVE_CLOUDSC2_AD_LOKI )
              cloudsc2-common-lib
          DEFINITIONS ${CLOUDSC_DEFINITIONS}
      )
+     # Set specific module directory to avoid aliasing of .mod files
+     set_target_properties( dwarf-cloudsc2-ad-loki-scc-hoist
+         PROPERTIES Fortran_MODULE_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/loki-scc-hoist
+     )
 
      ecbuild_add_test(
-         TARGET dwarf-cloudsc2-ad--loki-scc-hoist-serial
+         TARGET dwarf-cloudsc2-ad-loki-scc-hoist-serial
          COMMAND bin/dwarf-cloudsc2-ad-loki-scc-hoist
          ARGS
          WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/../../..
