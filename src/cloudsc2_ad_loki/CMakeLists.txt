@@ -117,7 +117,7 @@ if( HAVE_CLOUDSC2_AD_LOKI )
      )
 
      ecbuild_add_test(
-         TARGET dwarf-cloudsc2-ad--loki-scc-serial
+         TARGET dwarf-cloudsc2-ad-loki-scc-serial
          COMMAND bin/dwarf-cloudsc2-ad-loki-scc
          ARGS
          WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/../../..
@@ -174,7 +174,7 @@ if( HAVE_CLOUDSC2_AD_LOKI )
      )
 
      ecbuild_add_test(
-         TARGET dwarf-cloudsc2-ad--loki-scc-hoist-serial
+         TARGET dwarf-cloudsc2-ad-loki-scc-hoist-serial
          COMMAND bin/dwarf-cloudsc2-ad-loki-scc-hoist
          ARGS
          WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/../../..
