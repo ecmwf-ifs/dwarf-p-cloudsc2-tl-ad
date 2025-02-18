@@ -17,7 +17,7 @@ if( HAVE_CLOUDSC2_TL )
             cloudsc2tl.F90
         DEFINITIONS ${CLOUDSC_DEFINITIONS}
     )
-    target_link_libraries( dwarf-cloudsc2-tl PRIVATE cloudsc-common-lib )
+    target_link_libraries( dwarf-cloudsc2-tl PRIVATE cloudsc2-common-lib )
 
     if( HAVE_OMP AND TARGET OpenMP::OpenMP_Fortran )
         target_link_libraries( dwarf-cloudsc2-tl PRIVATE OpenMP::OpenMP_Fortran )
@@ -32,4 +32,11 @@ if( HAVE_CLOUDSC2_TL )
     execute_process(COMMAND ${CMAKE_COMMAND} -E create_symlink
       ${CMAKE_CURRENT_SOURCE_DIR}/../../config-files/reference.h5 ${CMAKE_CURRENT_BINARY_DIR}/../../../reference.h5 )
 
+    ecbuild_add_test(
+        TARGET dwarf-cloudsc2-tl
+        COMMAND bin/dwarf-cloudsc2-tl
+        ARGS
+        WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/../../..
+        OMP 1
+    )
 endif()

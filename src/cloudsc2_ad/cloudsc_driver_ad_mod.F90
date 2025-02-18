@@ -26,10 +26,17 @@ CONTAINS
      & PLU,      PLUDE,    PMFU,     PMFD, &
      & PA,       PCLV,     PSUPSAT,&
      & PCOVPTOT, &
-     & PFPLSL,   PFPLSN,   PFHPSL,   PFHPSN &
-     & )
+     & PFPLSL,   PFPLSN,   PFHPSL,   PFHPSN, &
+     & YDCST, YDTHF, YHNC, YPHLI, YCLD, YCLDP, YNCL )
     ! Driver routine that performans the parallel NPROMA-blocking and
     ! invokes the CLOUDSC2 kernel
+    USE YOMNCL   , ONLY : TNCL
+    USE YOMCST   , ONLY : TOMCST
+    USE YOETHF   , ONLY : TOETHF
+    USE YOPHNC   , ONLY : TPHNC
+    USE YOEPHLI  , ONLY : TEPHLI
+    USE YOECLD   , ONLY : TECLD
+    USE YOECLDP  , ONLY : TECLDP
 
     INTEGER(KIND=JPIM), INTENT(IN)    :: NUMOMP, NPROMA, NLEV, NGPTOT, NGPTOTG
     REAL(KIND=JPRB),    INTENT(IN)    :: PTSPHY       ! Physics timestep
@@ -77,7 +84,13 @@ CONTAINS
      & ZLUDE0(NPROMA,NLEV), ZLU0(NPROMA,NLEV), ZMFU0(NPROMA,NLEV), ZMFD0(NPROMA,NLEV), &
      & ZTENI_T0(NPROMA,NLEV), ZTENI_Q0(NPROMA,NLEV), ZTENI_L0(NPROMA,NLEV), &
      & ZTENI_I0(NPROMA,NLEV), ZSUPSAT0(NPROMA,NLEV)
-
+    TYPE(TNCL)      :: YNCL
+    TYPE(TOMCST)    :: YDCST
+    TYPE(TOETHF)    :: YDTHF
+    TYPE(TPHNC)     :: YHNC
+    TYPE(TEPHLI)    :: YPHLI
+    TYPE(TECLD)     :: YCLD
+    TYPE(TECLDP)    :: YCLDP
     NGPBLKS = (NGPTOT / NPROMA) + MIN(MOD(NGPTOT,NPROMA), 1)
 1003 format(5x,'NUMPROC=',i0', NUMOMP=',i0,', NGPTOTG=',i0,', NPROMA=',i0,', NGPBLKS=',i0)
     if (irank == 0) then
@@ -115,7 +128,7 @@ CONTAINS
 
          ! Fill in ZQSAT
          CALL SATUR (1, ICEND, NPROMA, 1, NLEV, .TRUE., &
-              & PAP(:,:,IBL), PT(:,:,IBL), ZQSAT(:,:), 2) 
+              & PAP(:,:,IBL), PT(:,:,IBL), ZQSAT(:,:), 2, YDCST, YDTHF) 
 
 
          ! Preparation for TL
@@ -178,7 +191,8 @@ CONTAINS
             & ZTENO_T, ZTENI_T, ZTENO_Q, ZTENI_Q, &   ! o,i,o,i
             & ZTENO_L, ZTENI_L, ZTENO_I, ZTENI_I, ZSUPSAT, &  ! o,i,o,i
             & ZCLC   , ZFPLSL   , ZFPLSN ,&        ! o
-            & ZFHPSL , ZFHPSN   , ZCOVPTOT )       ! o
+            & ZFHPSL , ZFHPSN   , ZCOVPTOT, &
+            & YDCST, YDTHF, YHNC, YPHLI, YCLD, YCLDP, YNCL )       ! o
 
          ! First norm
          DO JROF=1,ICEND
@@ -234,7 +248,8 @@ CONTAINS
             & ZTENO_T, ZTENI_T, ZTENO_Q, ZTENI_Q, &   ! o,i,o,i
             & ZTENO_L, ZTENI_L, ZTENO_I, ZTENI_I, ZSUPSAT, &  ! o,i,o,i
             & ZCLC   , ZFPLSL   , ZFPLSN ,&        ! o
-            & ZFHPSL , ZFHPSN   , ZCOVPTOT )       ! o
+            & ZFHPSL , ZFHPSN   , ZCOVPTOT, &
+            & YDCST, YDTHF, YHNC, YPHLI, YCLD, YCLDP, YNCL)       ! o
 
          ! Second norm
          DO JROF=1,ICEND

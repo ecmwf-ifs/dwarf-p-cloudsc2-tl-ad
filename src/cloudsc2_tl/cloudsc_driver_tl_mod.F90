@@ -37,10 +37,18 @@ CONTAINS
      & PLU,      PLUDE,    PMFU,     PMFD, &
      & PA,       PCLV,     PSUPSAT,&
      & PCOVPTOT, &
-     & PFPLSL,   PFPLSN,   PFHPSL,   PFHPSN &
-     & )
+     & PFPLSL,   PFPLSN,   PFHPSL,   PFHPSN,  &
+     & YDCST, YDTHF, YHNC, YPHLI, YCLD, YCLDP, YNCL)
     ! Driver routine that performans the parallel NPROMA-blocking and
     ! invokes the CLOUDSC2 kernel
+
+    USE YOMCST   , ONLY : TOMCST
+    USE YOETHF   , ONLY : TOETHF
+    USE YOPHNC   , ONLY : TPHNC
+    USE YOEPHLI  , ONLY : TEPHLI
+    USE YOECLD   , ONLY : TECLD
+    USE YOECLDP  , ONLY : TECLDP
+    USE YOMNCL   , ONLY : TNCL
 
     INTEGER(KIND=JPIM), INTENT(IN)    :: NUMOMP, NPROMA, NLEV, NGPTOT, NGPTOTG
     REAL(KIND=JPRB),    INTENT(IN)    :: PTSPHY       ! Physics timestep
@@ -94,6 +102,14 @@ CONTAINS
      & PFPLSL5(NPROMA,NLEV+1), PFPLSN5(NPROMA,NLEV+1), PFHPSL5(NPROMA,NLEV+1), &
      & PFHPSN5(NPROMA,NLEV+1), PCOVPTOT5(NPROMA,NLEV)
 
+    TYPE(TOMCST)    :: YDCST
+    TYPE(TOETHF)    :: YDTHF
+    TYPE(TPHNC)     :: YHNC
+    TYPE(TEPHLI)    :: YPHLI
+    TYPE(TECLD)     :: YCLD
+    TYPE(TECLDP)    :: YCLDP
+    TYPE(TNCL)      :: YNCL
+
     NGPBLKS = (NGPTOT / NPROMA) + MIN(MOD(NGPTOT,NPROMA), 1)
 1003 format(5x,'NUMPROC=',i0', NUMOMP=',i0,', NGPTOTG=',i0,', NPROMA=',i0,', NGPBLKS=',i0)
     if (irank == 0) then
@@ -133,7 +149,7 @@ CONTAINS
 
          ! Fill in ZQSAT
          CALL SATUR (1, ICEND, NPROMA, 1, NLEV, .TRUE., &
-              & PAP(:,:,IBL), PT(:,:,IBL), ZQSAT(:,:), 2) 
+              & PAP(:,:,IBL), PT(:,:,IBL), ZQSAT(:,:), 2, YDCST, YDTHF) 
 
          CALL CLOUDSC2 ( &
               &  1, ICEND, NPROMA, 1, NLEV, LDRAIN1D, &
@@ -148,7 +164,8 @@ CONTAINS
               &  TENDENCY_LOC(IBL)%CLD(:,:,NCLDQI), TENDENCY_CML(IBL)%CLD(:,:,NCLDQI), &
               &  PSUPSAT(:,:,IBL), &
               &  PA(:,:,IBL), PFPLSL(:,:,IBL),   PFPLSN(:,:,IBL), &
-              &  PFHPSL(:,:,IBL),   PFHPSN(:,:,IBL), PCOVPTOT(:,:,IBL))
+              &  PFHPSL(:,:,IBL),   PFHPSN(:,:,IBL), PCOVPTOT(:,:,IBL), & 
+              &  YDCST, YDTHF, YHNC, YPHLI, YCLD, YCLDP)
 
          ! Preparation for TL
 
@@ -191,7 +208,8 @@ CONTAINS
             & ZTENO_T, ZTENI_T, ZTENO_Q, ZTENI_Q, &   ! o,i,o,i
             & ZTENO_L, ZTENI_L, ZTENO_I, ZTENI_I, ZSUPSAT, &  ! o,i,o,i
             & ZCLC   , ZFPLSL   , ZFPLSN ,&        ! o
-            & ZFHPSL , ZFHPSN   , ZCOVPTOT )       ! o
+            & ZFHPSL , ZFHPSN   , ZCOVPTOT,&
+            & YDCST, YDTHF, YHNC, YPHLI, YCLD, YCLDP, YNCL )       ! o
 
          ! Loop over incrementing states
          DO ILAM=1,10
@@ -227,7 +245,8 @@ CONTAINS
               & ZTENO_I5, ZTENI_I5, &
               & PSUPSAT5, &
               & PA5(:,:), PFPLSL5(:,:),   PFPLSN5(:,:), &
-              & PFHPSL5(:,:),   PFHPSN5(:,:), PCOVPTOT5(:,:))
+              & PFHPSL5(:,:),   PFHPSN5(:,:), PCOVPTOT5(:,:), &
+              & YDCST, YDTHF, YHNC, YPHLI, YCLD, YCLDP)
 
            ! Compute final test norm
            ZCOUNT=0._JPRB

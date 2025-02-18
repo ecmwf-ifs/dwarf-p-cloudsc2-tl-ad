@@ -51,7 +51,7 @@ LOGICAL :: LOMEGA
 END TYPE TECLD
 !============================================================================
 
-TYPE(TECLD), POINTER :: YRECLD => NULL()
+TYPE(TECLD), ALLOCATABLE :: YRECLD
 
 !        * E.C.M.W.F. PHYSICS PACKAGE *
 
