@@ -10,7 +10,7 @@ projects :
 
     - ecbuild :
         git     : https://github.com/ecmwf/ecbuild
-        version : 3.8.4
+        version : 3.14.2
         bundle  : false
 
     - loki :
